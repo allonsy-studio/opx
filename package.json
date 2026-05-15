@@ -1,0 +1,94 @@
+{
+	"$schema": "https://www.schemastore.org/package.json",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"name": "@allons-y/actions-toolkit",
+	"version": "0.1.0",
+	"description": "Shared lint, format, test, and release tooling for @allons-y GitHub Action repos.",
+	"license": "MIT",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
+	"homepage": "https://github.com/allons-y/actions-toolkit#readme",
+	"funding": [
+		{
+			"type": "github",
+			"url": "https://github.com/sponsors/castastrophe"
+		}
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/allons-y/actions-toolkit.git"
+	},
+	"bugs": {
+		"url": "https://github.com/allons-y/actions-toolkit/issues"
+	},
+	"type": "module",
+	"exports": {
+		".": "./index.js",
+		"./eslint": "./eslint.config.js",
+		"./prettier": "./prettier.config.js",
+		"./commitlint": "./commitlint.config.js",
+		"./jest": "./jest.preset.js",
+		"./jest/js": "./jest.preset.js.cjs",
+		"./semantic-release": "./semantic-release.config.js",
+		"./tsconfig.base.json": "./tsconfig.base.json"
+	},
+	"files": [
+		"index.js",
+		"eslint.config.js",
+		"prettier.config.js",
+		"commitlint.config.js",
+		"jest.preset.js",
+		"jest.preset.js.cjs",
+		"semantic-release.config.js",
+		"tsconfig.base.json"
+	],
+	"dependencies": {
+		"@commitlint/config-conventional": "^21.0.1",
+		"@eslint/js": "^10.0.1",
+		"@eslint/json": "^1.2.0",
+		"@eslint/markdown": "^8.0.1",
+		"@semantic-release/changelog": "^6.0.3",
+		"@semantic-release/exec": "^7.1.0",
+		"@semantic-release/git": "^10.0.1",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-jest": "^29.15.2",
+		"eslint-plugin-jsonc": "^3.1.2",
+		"globals": "^17.6.0",
+		"typescript-eslint": "^8.59.3"
+	},
+	"peerDependencies": {
+		"eslint": "^10.0.0",
+		"jest": "^30.0.0",
+		"prettier": "^3.0.0",
+		"semantic-release": "^25.0.0",
+		"ts-jest": "^29.0.0",
+		"typescript": "^6.0.0"
+	},
+	"peerDependenciesMeta": {
+		"ts-jest": {
+			"optional": true
+		}
+	},
+	"devDependencies": {
+		"eslint": "^10.3.0",
+		"jest": "^30.4.2",
+		"prettier": "^3.0.0",
+		"semantic-release": "^25.0.3",
+		"typescript": "^6.0.3"
+	},
+	"keywords": [
+		"actions",
+		"config",
+		"eslint",
+		"github",
+		"jest",
+		"prettier",
+		"semantic-release",
+		"toolkit"
+	],
+	"engines": {
+		"node": ">=24"
+	}
+}
