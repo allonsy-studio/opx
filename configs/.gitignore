@@ -24,13 +24,6 @@ node_modules/
 .cache
 .eslintcache
 
-# opx local state + tool caches
-.opx/
-
-# package build outputs
-opx/*/bin/
-opx/*/dist/
-
 # Output of 'npm pack'
 *.tgz
 
@@ -42,18 +35,8 @@ opx/*/dist/
 
 # publish directory
 dist
-bin/
 
-# opx local state + tool caches
-.opx/
-
-# OS generated files
-.DS_Store*
-ehthumbs.db
-Icon?
-Thumbs.db
-*~
-*.swp
+.DS_Store
 
 # yarn
 .pnp.*

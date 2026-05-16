@@ -5,6 +5,13 @@ export default {
 	useTabs: true,
 	overrides: [
 		{
+			files: "*.json",
+			options: {
+				tabWidth: 2,
+				useTabs: false,
+			},
+		},
+		{
 			files: ".github/**/*.yml",
 			options: {
 				useTabs: false,

@@ -1,0 +1,54 @@
+{
+	"$schema": "https://www.schemastore.org/package.json",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"name": "@allons-y/opx",
+	"version": "0.1.0",
+	"description": "opx engine — pure detector registry, scanner contract, state, plugin loader, and resolver. Consumed by @allons-y/opx-cli and @allons-y/opx-mcp.",
+	"license": "MIT",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
+	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/engine#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/allons-y/toolkit.git",
+		"directory": "packages/engine"
+	},
+	"bugs": {
+		"url": "https://github.com/allons-y/toolkit/issues"
+	},
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./bin/index.d.ts",
+			"import": "./bin/index.js"
+		}
+	},
+	"main": "./bin/index.js",
+	"types": "./bin/index.d.ts",
+	"files": [
+		"bin/",
+		"opx.schema.json"
+	],
+	"scripts": {
+		"build": "yarn g:build && yarn g:dts",
+		"test": "yarn g:test",
+		"typecheck": "yarn g:typecheck",
+		"clean": "yarn g:clean"
+	},
+	"keywords": [
+		"opx",
+		"engine",
+		"detector",
+		"linter",
+		"plugin"
+	],
+	"engines": {
+		"node": ">=24"
+	},
+	"opx": {
+		"entry": "src/index.ts",
+		"outfile": "bin/index.js"
+	}
+}

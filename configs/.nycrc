@@ -1,0 +1,14 @@
+{
+    "exclude": [
+        ".yarn/**",
+        "test.js"
+    ],
+    "reporter": [
+        "text",
+        "cobertura"
+    ],
+
+    "lines": 95,
+    "branches": "82",
+    "statements": "95"
+}

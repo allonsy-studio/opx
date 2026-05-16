@@ -1,11 +1,11 @@
-# @allons-y/actions-toolkit
+# @allons-y/toolkit
 
 Shared lint, format, test, and release tooling for `@allons-y` GitHub Action repos. One install, one source of truth for ESLint, Prettier, commitlint, Jest, semantic-release, and TypeScript base config.
 
 ## Install
 
 ```sh
-yarn add --dev @allons-y/actions-toolkit eslint prettier jest semantic-release typescript
+yarn add --dev @allons-y/toolkit eslint prettier jest semantic-release typescript
 # TS-using consumers also:
 yarn add --dev ts-jest
 ```
@@ -19,43 +19,43 @@ Every consumer config collapses to a single re-export.
 ### `eslint.config.js`
 
 ```js
-export { default } from "@allons-y/actions-toolkit/eslint";
+export { default } from "@allons-y/toolkit/eslint";
 ```
 
 ### `prettier.config.js`
 
 ```js
-export { default } from "@allons-y/actions-toolkit/prettier";
+export { default } from "@allons-y/toolkit/prettier";
 ```
 
 ### `commitlint.config.js`
 
 ```js
-export { default } from "@allons-y/actions-toolkit/commitlint";
+export { default } from "@allons-y/toolkit/commitlint";
 ```
 
 ### `jest.config.js` — TypeScript
 
 ```js
-export { default } from "@allons-y/actions-toolkit/jest";
+export { default } from "@allons-y/toolkit/jest";
 ```
 
 ### `jest.config.cjs` — JavaScript-only
 
 ```js
-module.exports = require("@allons-y/actions-toolkit/jest/js");
+module.exports = require("@allons-y/toolkit/jest/js");
 ```
 
 ### `.releaserc.js`
 
 ```js
-export { default } from "@allons-y/actions-toolkit/semantic-release";
+export { default } from "@allons-y/toolkit/semantic-release";
 ```
 
 Need to override the assets the git plugin commits (e.g. your build emits `dist/index.js`)?
 
 ```js
-import { createConfig } from "@allons-y/actions-toolkit/semantic-release";
+import { createConfig } from "@allons-y/toolkit/semantic-release";
 export default createConfig({ gitAssets: ["dist/index.js", "CHANGELOG.md", "package.json", "yarn.lock"] });
 ```
 
@@ -63,7 +63,7 @@ export default createConfig({ gitAssets: ["dist/index.js", "CHANGELOG.md", "pack
 
 ```json
 {
-	"extends": "@allons-y/actions-toolkit/tsconfig.base.json",
+	"extends": "@allons-y/toolkit/tsconfig.base.json",
 	"compilerOptions": {
 		"rootDir": "./src"
 	},

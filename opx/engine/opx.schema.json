@@ -1,0 +1,38 @@
+{
+	"$schema": "https://json-schema.org/draft-07/schema",
+	"$id": "https://unpkg.com/@allons-y/opx/opx.schema.json",
+	"title": "opx.config.json",
+	"description": "Configuration for opx — front-end dev ops resources. Enabled-by-presence: a detector is enabled iff its short name appears in the relevant concern array.",
+	"type": "object",
+	"additionalProperties": false,
+	"required": ["version"],
+	"properties": {
+		"$schema": { "type": "string", "format": "uri" },
+		"version": { "type": "integer", "const": 1 },
+		"lint": {
+			"type": "array",
+			"description": "Languages/concerns to lint. Each entry is a short name (\"js\", \"css\") or fully-qualified package id.",
+			"items": { "type": "string", "minLength": 1 },
+			"uniqueItems": true,
+			"default": []
+		},
+		"test": {
+			"type": "array",
+			"items": { "type": "string", "minLength": 1 },
+			"uniqueItems": true
+		},
+		"build": {
+			"type": "array",
+			"items": { "type": "string", "minLength": 1 },
+			"uniqueItems": true
+		},
+		"overrides": {
+			"type": "object",
+			"description": "Per-detector configuration overrides. Keys are detector short names; values map tool name → path of the user's override config.",
+			"additionalProperties": {
+				"type": "object",
+				"additionalProperties": { "type": "string" }
+			}
+		}
+	}
+}

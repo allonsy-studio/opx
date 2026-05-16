@@ -1,0 +1,82 @@
+{
+	"$schema": "https://www.schemastore.org/package.json",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"name": "@allons-y/opx-lint-js",
+	"version": "0.1.0",
+	"description": "opx detector + runner for JavaScript/TypeScript. Bundles ESLint, @stylistic/eslint-plugin, and typescript-eslint.",
+	"license": "MIT",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
+	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/lint-js#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/allons-y/toolkit.git",
+		"directory": "packages/lint-js"
+	},
+	"bugs": {
+		"url": "https://github.com/allons-y/toolkit/issues"
+	},
+	"type": "module",
+	"exports": {
+		".": {
+			"import": "./bin/index.js",
+			"types": "./bin/index.d.ts"
+		},
+		"./eslint.config.js": "./eslint.config.js"
+	},
+	"main": "./bin/index.js",
+	"files": [
+		"bin/",
+		"CHANGELOG.md",
+		"README.md",
+		"package.json",
+		"LICENSE",
+		"eslint.config.js"
+	],
+	"scripts": {
+		"build": "yarn g:build && yarn g:dts",
+		"clean": "yarn g:clean",
+		"lint": "eslint . --config ../../configs/eslint.config.js",
+		"test": "yarn g:test",
+		"typecheck": "yarn g:typecheck"
+	},
+	"types": "./bin/index.d.ts",
+	"dependencies": {
+		"@allons-y/opx": "workspace:^",
+		"@eslint/js": "^10.0.1",
+		"@eslint/json": "^1.2.0",
+		"@eslint/markdown": "^8.0.1",
+		"@stylistic/eslint-plugin": "^2.13.0",
+		"eslint": "^10.3.0",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-jest": "^29.15.2",
+		"eslint-plugin-jsonc": "^3.1.2",
+		"eslint-plugin-node": "^11.1.0",
+		"globals": "^17.6.0",
+		"typescript-eslint": "^8.59.3"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0 || ^6.0.0"
+	},
+	"peerDependenciesMeta": {
+		"typescript": {
+			"optional": true
+		}
+	},
+	"keywords": [
+		"opx",
+		"eslint",
+		"linter",
+		"javascript",
+		"typescript"
+	],
+	"engines": {
+		"node": ">=24"
+	},
+	"opx": {
+		"entry": "src/index.ts",
+		"outfile": "bin/index.js"
+	}
+}

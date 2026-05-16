@@ -1,0 +1,30 @@
+name: Release
+
+on:
+    push:
+        branches: [main]
+
+jobs:
+    publish:
+        runs-on: ubuntu-latest
+        permissions: write-all
+        env:
+            GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v6
+              with:
+                  persist-credentials: false
+
+            - name: Setup
+              uses: allons-y/setup-action@v1
+
+            - name: Run build
+              run: yarn ci
+
+            - name: Semantic release
+              uses: cycjimmy/semantic-release-action@v6
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
