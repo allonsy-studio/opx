@@ -8,7 +8,7 @@
 	"version": "0.1.0",
 	"description": "opx detector + runner for JavaScript/TypeScript. Bundles ESLint, @stylistic/eslint-plugin, and typescript-eslint.",
 	"license": "MIT",
-	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
 	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/lint-js#readme",
 	"repository": {
 		"type": "git",
@@ -39,13 +39,13 @@
 		"build": "yarn g:build && yarn g:dts",
 		"clean": "yarn g:clean",
 		"coverage": "yarn g:coverage",
-		"lint": "eslint . --config ../../configs/eslint.config.js",
 		"test": "yarn g:test",
 		"typecheck": "yarn g:typecheck"
 	},
 	"types": "./bin/index.d.ts",
 	"dependencies": {
 		"@allons-y/opx": "workspace:^",
+		"@eslint/compat": "^1.4.1",
 		"@eslint/js": "^10.0.1",
 		"@eslint/json": "^1.2.0",
 		"@eslint/markdown": "^8.0.1",

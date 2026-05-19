@@ -1,10 +1,10 @@
 {
 	"$schema": "https://www.schemastore.org/package.json",
-	"name": "@allons-y/toolkit",
+	"name": "opx-monorepo",
 	"version": "0.0.0",
 	"description": "opx — optionally opinionated front-end dev ops resources. Private monorepo root for the @allons-y/opx-* package family.",
 	"license": "MIT",
-	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
 	"homepage": "https://github.com/Allons-y-Studio/opx#readme",
 	"repository": {
 		"type": "git",
@@ -24,8 +24,8 @@
 		"ci": "npm-run-all clean build format",
 		"test": "yarn workspaces foreach --all --parallel --interlaced --no-private run test",
 		"coverage": "yarn workspaces foreach --all --parallel --interlaced --no-private run coverage",
-		"lint": "yarn workspace @allons-y/opx-lint-js run lint",
-		"format": "yarn lint --fix",
+		"lint": "yarn build && opx lint",
+		"format": "yarn build && opx lint --fix",
 		"typecheck": "yarn workspaces foreach --all --parallel --interlaced --no-private run typecheck",
 		"clean": "yarn workspaces foreach --all --parallel --no-private run clean",
 		"g:build": "cd $INIT_CWD && node $PROJECT_CWD/configs/esbuild.config.js",

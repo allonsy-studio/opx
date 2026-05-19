@@ -8,7 +8,7 @@
 	"version": "0.1.0",
 	"description": "opx CLI (bin: opx) — scans the committed tree, suggests language tooling, drives the opx engine.",
 	"license": "MIT",
-	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
 	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/cli#readme",
 	"repository": {
 		"type": "git",

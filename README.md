@@ -86,4 +86,4 @@ Major bumps when the consumer must change code (rule changes, dropped exports, p
 
 ---
 
-<sub>Built and maintained by [Allons-y Studio](https://allons-y.llc) — a US-based studio specializing in design systems, front-end architecture, and accessibility. Available to work on your next big project. </sub>
+<sub>Built and maintained by [Allons-y Studio](https://allons-y.studio) — a US-based studio specializing in design systems, front-end architecture, and accessibility. Available to work on your next big project. </sub>

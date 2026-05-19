@@ -8,7 +8,7 @@ import markdown from "@eslint/markdown";
  */
 export default defineConfig([
 	{
-		ignores: ["**/node_modules/**", ".yarn/**", ".opx/**", "bin/**", "dist/**", "coverage/**"],
+		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.opx/**", "**/bin/**", "**/dist/**", "**/coverage/**"],
 	},
 	{
 		files: ["**/*.md"],

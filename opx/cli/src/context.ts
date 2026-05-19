@@ -10,6 +10,7 @@ export type BuildContextOptions = {
 	cwd: string;
 	debug?: boolean;
 	dryRun?: boolean;
+	fix?: boolean;
 };
 
 export function readHostPackage(cwd: string): PackageJson {
@@ -19,7 +20,7 @@ export function readHostPackage(cwd: string): PackageJson {
 }
 
 export function buildContext(options: BuildContextOptions): DetectorContext {
-	const { cwd, debug = false, dryRun = false } = options;
+	const { cwd, debug = false, dryRun = false, fix = false } = options;
 	const hostPkg = readHostPackage(cwd);
 	const config: OpxConfig = readConfig(cwd);
 	const state: OpxState = readState(cwd);
@@ -35,5 +36,6 @@ export function buildContext(options: BuildContextOptions): DetectorContext {
 		branch: getCurrentBranch(cwd),
 		logger: createConsoleLogger({ debug }),
 		dryRun,
+		fix,
 	};
 }

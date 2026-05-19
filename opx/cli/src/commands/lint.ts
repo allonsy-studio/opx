@@ -8,10 +8,11 @@ export function registerLint(program: Command): void {
 		.command("lint")
 		.description("Run lint via every enabled lint detector")
 		.argument("[paths...]", "paths to lint (forwarded to each detector's runner)")
+		.option("--fix", "auto-fix problems where the underlying linter supports it", false)
 		.allowUnknownOption(true)
-		.action(async (paths: string[], _opts, command) => {
+		.action(async (paths: string[], opts: { fix: boolean }, command) => {
 			const cwd = process.cwd();
-			const ctx = buildContext({ cwd });
+			const ctx = buildContext({ cwd, fix: opts.fix });
 			const detectors = await loadEnabledLintDetectors(ctx);
 
 			if (detectors.length === 0) {

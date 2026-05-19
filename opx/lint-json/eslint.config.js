@@ -10,7 +10,7 @@ import json from "@eslint/json";
  */
 export default defineConfig([
 	{
-		ignores: ["**/node_modules/**", ".yarn/**", ".opx/**", "bin/**", "dist/**", "coverage/**"],
+		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.opx/**", "**/bin/**", "**/dist/**", "**/coverage/**"],
 	},
 	{
 		files: ["**/*.json"],

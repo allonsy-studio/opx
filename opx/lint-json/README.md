@@ -76,4 +76,4 @@ Paths are resolved relative to the host repo root.
 
 ---
 
-<sub>Built and maintained by [Allons-y Studio](https://allons-y.llc) — a US-based studio specializing in design systems, front-end architecture, and accessibility.</sub>
+<sub>Built and maintained by [Allons-y Studio](https://allons-y.studio) — a US-based studio specializing in design systems, front-end architecture, and accessibility.</sub>
