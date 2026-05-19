@@ -13,7 +13,9 @@ const program = new Command();
 program
 	.name("opx")
 	.description("opx — optionally opinionated front-end dev ops resources")
+	/** @todo fetch version dynamically from package.json */
 	.version("0.1.0")
+	.helpOption("-h, --help", "show help for command")
 	.option("--debug", "enable verbose debug logging", false);
 
 registerScan(program);

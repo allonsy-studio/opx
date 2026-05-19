@@ -2,6 +2,8 @@ import { execFileSync } from "node:child_process";
 import { extname, basename } from "node:path";
 
 /**
+ * @todo use a more robust scanner that can handle symlinks and other edge cases.
+ *
  * Map of well-known extensionless filenames to a synthetic "type" token.
  * Lets detectors match Dockerfiles, Makefiles, etc. without inventing fake
  * extensions.

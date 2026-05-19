@@ -2,6 +2,8 @@
   "$schema": "https://unpkg.com/@allons-y/opx/opx.schema.json",
   "version": 1,
   "lint": [
-    "js"
+    "js",
+    "json",
+    "md"
   ]
 }

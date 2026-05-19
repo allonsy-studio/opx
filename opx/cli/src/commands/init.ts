@@ -18,7 +18,7 @@ import {
 } from "@allons-y/opx";
 
 import { buildContext, readHostPackage } from "../context.js";
-import { BUILTIN_LINT_PACKAGE_HINTS, virtualBuiltinDetectors } from "../built-in.js";
+import { virtualBuiltinDetectors } from "../built-in.js";
 import { defaultSkipUntilDate } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
 

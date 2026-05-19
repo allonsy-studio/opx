@@ -40,6 +40,8 @@
 	},
 	"devDependencies": {
 		"@allons-y/envoy": "^1.1.0",
+		"@allons-y/opx-cli": "workspace:*",
+		"@allons-y/opx-lint-js": "workspace:*",
 		"@commitlint/cli": "^21.0.1",
 		"@commitlint/config-conventional": "^21.0.1",
 		"@semantic-release/changelog": "^6.0.3",
