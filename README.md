@@ -83,3 +83,7 @@ export default createConfig({ gitAssets: ["dist/index.js", "CHANGELOG.md", "pack
 ## Versioning
 
 Major bumps when the consumer must change code (rule changes, dropped exports, peer dep major). Minor for added exports or new rule coverage. Patch for fixes.
+
+---
+
+<sub>Built and maintained by [Allons-y Studio](https://allons-y.llc) — a US-based studio specializing in design systems, front-end architecture, and accessibility. Available to work on your next big project. </sub>

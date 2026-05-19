@@ -1,12 +1,21 @@
 {
+	"$schema": "https://json.schemastore.org/tsconfig",
 	"compilerOptions": {
-		"esModuleInterop": true,
+		"target": "ESNext",
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
 		"lib": ["ESNext"],
-		"module": "nodenext",
-		"moduleResolution": "nodenext",
-		"noImplicitAny": false,
-		"skipLibCheck": true,
+		"types": ["node"],
 		"strict": true,
-		"target": "esnext"
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
+		"noUncheckedIndexedAccess": true
 	}
 }

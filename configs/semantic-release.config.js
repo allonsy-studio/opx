@@ -9,14 +9,12 @@
  * - If your project is a GitHub Action, use `@allons-y/toolkit/semantic-release` instead.
  */
 
-const defaultGitAssets = ["CHANGELOG.md", "README.md", "package.json"];
-
 /**
  * @param {{ gitAssets?: string[] }} [options]
- * @returns {import('semantic-release').GlobalConfig}
+ * @returns {Partial<import('semantic-release').GlobalConfig>}
  */
 export function createConfig(options = {}) {
-	const gitAssets = options.gitAssets ?? defaultGitAssets;
+	const gitAssets = options.gitAssets ?? ["CHANGELOG.md", "README.md", "package.json"];
 
 	return {
 		plugins: [

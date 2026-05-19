@@ -35,7 +35,7 @@ export function suggestBuiltins(fileTypes: Set<string>): BuiltinLintShortName[] 
 	) hits.push("js");
 	if (fileTypes.has(".css")) hits.push("css");
 	if (fileTypes.has(".md") || fileTypes.has(".mdx")) hits.push("md");
-	if (fileTypes.has(".json") || fileTypes.has(".jsonc")) hits.push("json");
+	if (fileTypes.has(".json") || fileTypes.has(".jsonc") || fileTypes.has(".json5")) hits.push("json");
 	return hits;
 }
 

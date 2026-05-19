@@ -5,18 +5,19 @@
 	"description": "opx — optionally opinionated front-end dev ops resources. Private monorepo root for the @allons-y/opx-* package family.",
 	"license": "MIT",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
-	"homepage": "https://github.com/allons-y/toolkit#readme",
+	"homepage": "https://github.com/Allons-y-Studio/opx#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/allons-y/toolkit.git"
+		"url": "git+https://github.com/Allons-y-Studio/opx.git"
 	},
 	"bugs": {
-		"url": "https://github.com/allons-y/toolkit/issues"
+		"url": "https://github.com/Allons-y-Studio/opx/issues"
 	},
 	"private": true,
 	"type": "module",
 	"workspaces": [
-		"opx/*"
+		"opx/*",
+		"docs"
 	],
 	"scripts": {
 		"build": "yarn workspaces foreach --all --parallel --interlaced --topological-dev --no-private run build",
@@ -39,6 +40,8 @@
 	},
 	"devDependencies": {
 		"@allons-y/envoy": "^1.1.0",
+		"@allons-y/opx-cli": "workspace:*",
+		"@allons-y/opx-lint-js": "workspace:*",
 		"@commitlint/cli": "^21.0.1",
 		"@commitlint/config-conventional": "^21.0.1",
 		"@semantic-release/changelog": "^6.0.3",

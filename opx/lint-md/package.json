@@ -1,0 +1,65 @@
+{
+	"$schema": "https://www.schemastore.org/package.json",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"name": "@allons-y/opx-lint-md",
+	"version": "0.1.0",
+	"description": "opx detector + runner for Markdown. Bundles ESLint with @eslint/markdown.",
+	"license": "MIT",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.llc)",
+	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/lint-md#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/allons-y/toolkit.git",
+		"directory": "packages/lint-md"
+	},
+	"bugs": {
+		"url": "https://github.com/allons-y/toolkit/issues"
+	},
+	"type": "module",
+	"exports": {
+		".": {
+			"import": "./bin/index.js",
+			"types": "./bin/index.d.ts"
+		},
+		"./eslint.config.js": "./eslint.config.js"
+	},
+	"main": "./bin/index.js",
+	"files": [
+		"bin/",
+		"CHANGELOG.md",
+		"README.md",
+		"package.json",
+		"LICENSE",
+		"eslint.config.js"
+	],
+	"scripts": {
+		"build": "yarn g:build && yarn g:dts",
+		"clean": "yarn g:clean",
+		"coverage": "yarn g:coverage",
+		"lint": "eslint . --config ../../configs/eslint.config.js",
+		"test": "yarn g:test",
+		"typecheck": "yarn g:typecheck"
+	},
+	"types": "./bin/index.d.ts",
+	"dependencies": {
+		"@allons-y/opx": "workspace:^",
+		"@eslint/markdown": "^8.0.1",
+		"eslint": "^10.3.0"
+	},
+	"keywords": [
+		"opx",
+		"eslint",
+		"linter",
+		"markdown"
+	],
+	"engines": {
+		"node": ">=24"
+	},
+	"opx": {
+		"entry": "src/index.ts",
+		"outfile": "bin/index.js"
+	}
+}
