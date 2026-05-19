@@ -75,6 +75,7 @@ async function runInteractive(cwd: string): Promise<void> {
 	const accepted: string[] = [];
 	const deferred: string[] = [];
 	const installCandidates: string[] = [];
+	const overrides: Record<string, Record<string, string>> = { ...(config.overrides ?? {}) };
 
 	for (const suggestion of remaining) {
 		const choice = await p.select({
@@ -92,6 +93,23 @@ async function runInteractive(cwd: string): Promise<void> {
 		if (choice === "yes") {
 			accepted.push(suggestion.shortName);
 			if (!suggestion.installed) installCandidates.push(suggestion.pkg);
+			if (suggestion.shortName === "json") {
+				const dialects = await p.multiselect({
+					message: "Also lint JSON variants? (.json is always included)",
+					options: [
+						{ value: "jsonc", label: "JSONC — JSON with comments (e.g. tsconfig.json)" },
+						{ value: "json5", label: "JSON5 — relaxed JSON (trailing commas, unquoted keys)" },
+					],
+					required: false,
+				});
+				if (p.isCancel(dialects)) {
+					p.cancel("Setup cancelled.");
+					return;
+				}
+				if (dialects.length > 0) {
+					overrides.json = { ...(overrides.json ?? {}), dialects: dialects.join(",") };
+				}
+			}
 		} else if (choice === "later") {
 			deferred.push(suggestion.shortName);
 		}
@@ -100,6 +118,7 @@ async function runInteractive(cwd: string): Promise<void> {
 	const nextConfig = {
 		...config,
 		lint: [...new Set([...config.lint, ...accepted])],
+		...(Object.keys(overrides).length > 0 ? { overrides } : {}),
 	};
 	writeConfig(cwd, nextConfig);
 

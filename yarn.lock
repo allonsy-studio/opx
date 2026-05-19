@@ -92,6 +92,26 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@allons-y/opx-lint-json@workspace:opx/lint-json":
+  version: 0.0.0-use.local
+  resolution: "@allons-y/opx-lint-json@workspace:opx/lint-json"
+  dependencies:
+    "@allons-y/opx": "workspace:^"
+    "@eslint/json": "npm:^1.2.0"
+    eslint: "npm:^10.3.0"
+  languageName: unknown
+  linkType: soft
+
+"@allons-y/opx-lint-md@workspace:opx/lint-md":
+  version: 0.0.0-use.local
+  resolution: "@allons-y/opx-lint-md@workspace:opx/lint-md"
+  dependencies:
+    "@allons-y/opx": "workspace:^"
+    "@eslint/markdown": "npm:^8.0.1"
+    eslint: "npm:^10.3.0"
+  languageName: unknown
+  linkType: soft
+
 "@allons-y/opx@workspace:^, @allons-y/opx@workspace:opx/engine":
   version: 0.0.0-use.local
   resolution: "@allons-y/opx@workspace:opx/engine"
