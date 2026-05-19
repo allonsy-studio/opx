@@ -38,6 +38,7 @@
 	"scripts": {
 		"build": "yarn g:build && yarn g:dts",
 		"clean": "yarn g:clean",
+		"coverage": "yarn g:coverage",
 		"lint": "eslint . --config ../../configs/eslint.config.js",
 		"test": "yarn g:test",
 		"typecheck": "yarn g:typecheck"

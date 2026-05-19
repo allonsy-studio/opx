@@ -34,6 +34,7 @@
 	"scripts": {
 		"build": "yarn g:build && yarn g:dts",
 		"test": "yarn g:test",
+		"coverage": "yarn g:coverage",
 		"typecheck": "yarn g:typecheck",
 		"clean": "yarn g:clean"
 	},

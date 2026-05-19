@@ -32,7 +32,24 @@ jobs:
             - name: Run test suite with coverage
               run: yarn coverage
 
+            - name: Aggregate coverage reports
+              id: coverage
+              run: |
+                  shopt -s globstar nullglob
+                  files=(opx/*/coverage/cobertura-coverage.xml)
+                  if (( ${#files[@]} == 0 )); then
+                      echo "found=false" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  mkdir -p coverage
+                  cp "${files[0]}" coverage/cobertura-coverage.xml
+                  for f in opx/*/coverage/coverage-final.json; do
+                      [[ -e "$f" ]] && cp "$f" "coverage/$(basename "$(dirname "$(dirname "$f")")")-coverage.json"
+                  done
+                  echo "found=true" >> "$GITHUB_OUTPUT"
+
             - name: Upload coverage data
+              if: steps.coverage.outputs.found == 'true'
               uses: actions/upload-artifact@v7
               with:
                   name: coverage-data-${{ github.run_id }}
@@ -40,6 +57,7 @@ jobs:
                       coverage/coverage*.json
 
             - name: Coverage summary
+              if: steps.coverage.outputs.found == 'true'
               uses: irongut/CodeCoverageSummary@v1.3.0
               with:
                   filename: coverage/cobertura-coverage.xml
@@ -47,11 +65,12 @@ jobs:
                   output: "both"
 
             - name: Add coverage PR comment
+              if: steps.coverage.outputs.found == 'true' && github.event_name == 'pull_request'
               uses: marocchino/sticky-pull-request-comment@v2.6.0
               with:
                   recreate: true
                   path: code-coverage-results.md
 
             - name: Write to job summary
-              if: always()
+              if: steps.coverage.outputs.found == 'true'
               run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
