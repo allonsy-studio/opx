@@ -4,7 +4,7 @@ const OFFICIAL_PREFIX = "@allons-y/opx-";
 const OFFICIAL_LINT_PREFIX = "@allons-y/opx-lint-";
 const COMMUNITY_PREFIX = "opx-plugin-";
 
-const NAME_RE = new RegExp(`^(opx-plugin-|@[^/]+/opx-plugin-|@allons-y/opx-)`);
+const NAME_RE = new RegExp("^(opx-plugin-|@[^/]+/opx-plugin-|@allons-y/opx-)");
 
 export function isValidPluginName(name: string): boolean {
 	return NAME_RE.test(name);

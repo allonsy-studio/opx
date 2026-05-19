@@ -52,6 +52,7 @@ export type DetectorContext = {
 	branch: string;
 	logger: Logger;
 	dryRun: boolean;
+	fix: boolean;
 };
 
 export type DetectorDescription = {
