@@ -1,0 +1,10 @@
+. .husky/common.sh
+
+# lint-staged runs `opx lint --fix`, which needs the toolkit's bin output.
+# Build once if it's missing (e.g. a fresh clone); esbuild caches afterwards.
+if [ ! -f opx/cli/bin/index.js ]; then
+  echo "opx: building toolkit before lint-staged…"
+  yarn build
+fi
+
+yarn lint-staged --config configs/lint-staged.config.js

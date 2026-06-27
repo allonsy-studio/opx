@@ -1,0 +1,79 @@
+{
+	"$schema": "https://www.schemastore.org/package.json",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"name": "@allons-y/opx-release",
+	"version": "0.1.0",
+	"description": "opx release — changesets-based release plugin for @allons-y/opx.",
+	"license": "MPL-2.0",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
+	"homepage": "https://github.com/allonsy-studio/opx#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/allonsy-studio/opx.git",
+		"directory": "opx/release"
+	},
+	"bugs": {
+		"url": "https://github.com/allonsy-studio/opx/issues"
+	},
+	"type": "module",
+	"exports": {
+		".": {
+			"import": "./bin/index.js",
+			"types": "./bin/index.d.ts"
+		},
+		"./config.json": "./config.json",
+		"./package.json": "./package.json"
+	},
+	"main": "./bin/index.js",
+	"files": [
+		"bin/",
+		"CHANGELOG.md",
+		"README.md",
+		"package.json",
+		"LICENSE",
+		"config.json"
+	],
+	"scripts": {
+		"build": "yarn g:build && yarn g:dts",
+		"clean": "yarn g:clean",
+		"coverage": "yarn g:coverage",
+		"test": "yarn g:test",
+		"typecheck": "yarn g:typecheck"
+	},
+	"types": "./bin/index.d.ts",
+	"devDependencies": {
+		"@changesets/types": "6.1.0"
+	},
+	"dependencies": {
+		"@allons-y/opx": "workspace:^",
+		"@changesets/cli": "2.31.0",
+		"@changesets/get-github-info": "0.8.0",
+		"@changesets/write": "0.4.0",
+		"@clack/prompts": "1.6.0",
+		"@manypkg/get-packages": "1.1.3",
+		"dotenv": "17.4.2"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0 || ^6.0.0"
+	},
+	"peerDependenciesMeta": {
+		"typescript": {
+			"optional": true
+		}
+	},
+	"keywords": [
+		"opx",
+		"release",
+		"changesets"
+	],
+	"engines": {
+		"node": ">=24"
+	},
+	"opx": {
+		"entry": "src/index.ts",
+		"outfile": "bin/index.js"
+	}
+}

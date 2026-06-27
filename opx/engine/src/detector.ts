@@ -19,16 +19,24 @@ export type PackageJson = {
 	[k: string]: unknown;
 };
 
-export type OpxConfigOverride = Record<string, string>;
+export type DynamicTask = "lint" | "build";
 
-export type OpxConfig = {
+export type DynamicTaskConfig<PluginName extends string = string, PluginConfig = Record<string, unknown>> = {
+	[key in DynamicTask]?: {
+		[key in PluginName]: PluginConfig | boolean;
+	}
+};
+
+export type StaticTask = "release" | "test";
+
+export type StaticTaskConfig = {
+	[key in StaticTask]?: boolean;
+};
+
+export type OpxConfig<PluginName extends string = string, PluginConfig = Record<string, unknown>> = {
 	$schema?: string;
 	version: 1;
-	lint: string[];
-	test?: string[];
-	build?: string[];
-	overrides?: Record<string, OpxConfigOverride>;
-};
+} & DynamicTaskConfig<PluginName, PluginConfig> & StaticTaskConfig;
 
 export type OpxStateDeferral = {
 	branch: string;
@@ -53,6 +61,13 @@ export type DetectorContext = {
 	logger: Logger;
 	dryRun: boolean;
 	fix: boolean;
+	/**
+	 * Sink for a detector's primary (report) output — e.g. an ESLint results
+	 * report. Defaults to stdout, but the CLI may swap in a buffer so concurrent
+	 * detectors' output can be flushed grouped instead of interleaved. Use this
+	 * instead of writing to `process.stdout` directly.
+	 */
+	write(chunk: string): void;
 };
 
 export type DetectorDescription = {
@@ -64,7 +79,8 @@ export type Detector = {
 	id: DetectorId;
 	shortName: string;
 	displayName: string;
-	fileTypes: string[];
+	concern: "lint" | "test" | "build" | "release";
+	fileTypes?: string[];
 	detect(ctx: DetectorContext): boolean | Promise<boolean>;
 	describe(ctx: DetectorContext): DetectorDescription;
 	run?(ctx: DetectorContext, args: string[]): Promise<number>;

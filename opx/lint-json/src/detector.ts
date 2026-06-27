@@ -1,12 +1,12 @@
 import type { Detector, DetectorContext } from "@allons-y/opx";
 
-import { runEslint } from "./runner.js";
+import run from "./runner.js";
+import { JSON_EXTENSIONS } from "./extensions.js";
 
-const JSON_EXTENSIONS = new Set([".json", ".jsonc", ".json5"]);
-
-export const opxLintJsonDetector: Detector = {
+export default {
 	id: "@allons-y/opx-lint-json",
 	shortName: "json",
+	concern: "lint",
 	displayName: "JSON / JSONC / JSON5 (ESLint + @eslint/json)",
 	fileTypes: [...JSON_EXTENSIONS],
 
@@ -28,6 +28,6 @@ export const opxLintJsonDetector: Detector = {
 	},
 
 	async run(ctx: DetectorContext, args: string[]): Promise<number> {
-		return runEslint(ctx, args);
+		return run(ctx, args);
 	},
-};
+} as Detector;

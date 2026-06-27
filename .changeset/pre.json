@@ -1,0 +1,13 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@allons-y/opx-cli": "0.1.0",
+    "@allons-y/opx": "0.1.0",
+    "@allons-y/opx-lint-js": "0.1.0",
+    "@allons-y/opx-lint-json": "0.1.0",
+    "@allons-y/opx-lint-md": "0.1.0",
+    "@allons-y/opx-release": "0.1.0"
+  },
+  "changesets": []
+}

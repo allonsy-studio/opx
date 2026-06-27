@@ -42,19 +42,33 @@ Lint runs through ESLint's Node API with caching at `.opx/cache/eslint/cache`.
 
 ## Override the config
 
-To swap in your own ESLint flat config, set `overrides.js.eslint` in `opx.config.json`:
+To swap in your own ESLint flat config, set `lint.js` in `.opx/config.json`:
 
 ```json
 {
   "version": 1,
-  "lint": ["js"],
-  "overrides": {
-    "js": { "eslint": "./eslint.config.js" }
+  "lint": {
+    "js": "./eslint.config.js",
   }
 }
 ```
 
 Paths are resolved relative to the host repo root.
+
+## Compose with other configs
+
+The flat config is exported at `@allons-y/opx-lint-js/eslint.config.js` as a plain array, so you can spread it into your own root `eslint.config.js` for editor / `eslint .` parity and layer your own or third-party rules on top:
+
+```js
+import js from "@allons-y/opx-lint-js/eslint.config.js";
+
+export default [
+  ...js,
+  { files: ["**/*.ts"], rules: { "no-console": "warn" } },
+];
+```
+
+Every block is `files`-scoped, so the JS/TS formatting rules never leak onto other languages — it composes cleanly with `@allons-y/opx-lint-json`, `@allons-y/opx-lint-md`, and third-party plugins. `opx init` scaffolds this file for you. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.
 
 ## Requirements
 

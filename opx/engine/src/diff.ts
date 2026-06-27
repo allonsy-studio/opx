@@ -25,7 +25,7 @@ export async function diff(
 	ctx: DetectorContext,
 	today: string = new Date().toISOString().slice(0, 10),
 ): Promise<DiffResult> {
-	const enabledSet = new Set(ctx.config.lint);
+	const enabledSet = new Set(Object.keys(ctx.config.lint ?? {}) as string[]);
 	const entries: DiffEntry[] = [];
 
 	for (const detector of detectors) {

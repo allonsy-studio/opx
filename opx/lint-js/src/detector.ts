@@ -1,10 +1,10 @@
 import type { Detector, DetectorContext } from "@allons-y/opx";
 
 import { runEslint } from "./runner.js";
-
-const JS_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".mts", ".cts"]);
+import { JS_EXTENSIONS } from "./extensions.js";
 
 export const opxLintJsDetector: Detector = {
+	concern: "lint",
 	id: "@allons-y/opx-lint-js",
 	shortName: "js",
 	displayName: "JavaScript / TypeScript (ESLint + @stylistic)",

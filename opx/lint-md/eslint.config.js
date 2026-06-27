@@ -8,7 +8,19 @@ import markdown from "@eslint/markdown";
  */
 export default defineConfig([
 	{
-		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.opx/**", "**/bin/**", "**/dist/**", "**/coverage/**"],
+		ignores: [
+			"**/node_modules/**",
+			"**/.yarn/**",
+			"**/.opx/**",
+			"**/bin/**",
+			"**/dist/**",
+			"**/coverage/**",
+			// GitHub markdown templates use task-list / placeholder syntax that
+			// trips Markdown rules (e.g. no-missing-label-refs); don't lint them.
+			"**/.github/PULL_REQUEST_TEMPLATE.md",
+			"**/.github/PULL_REQUEST_TEMPLATE/**",
+			"**/.github/ISSUE_TEMPLATE/**",
+		],
 	},
 	{
 		files: ["**/*.md"],

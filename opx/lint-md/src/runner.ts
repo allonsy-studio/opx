@@ -3,8 +3,11 @@ import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { DetectorContext } from "@allons-y/opx";
+import { filterPathsByExtension } from "@allons-y/opx";
 
 import type { Linter } from "eslint";
+
+import { MD_EXTENSIONS } from "./extensions.js";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -12,12 +15,12 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  * Resolve the ESLint flat config opx-lint-md should hand to the ESLint Node API.
  *
  * Order:
- *   1. user override (`opx.config.json` → overrides.md.eslint), resolved relative to host cwd
+ *   1. user override (.opx/config.json` → lint.md), resolved relative to host cwd
  *   2. bundled default (`eslint.config.js` shipped at this package's root)
  */
 function resolveConfigPath(ctx: DetectorContext): string {
-	const override = ctx.config.overrides?.md?.eslint;
-	if (override) {
+	const override = ctx.config.lint?.md as string | undefined;
+	if (typeof override === "string") {
 		return isAbsolute(override) ? override : resolve(ctx.cwd, override);
 	}
 	return resolve(HERE, "..", "eslint.config.js");
@@ -35,10 +38,12 @@ async function gitignoreBaseConfig(ctx: DetectorContext): Promise<Linter.Config[
 	return [includeIgnoreFile(gitignorePath)];
 }
 
-export async function runEslint(ctx: DetectorContext, args: string[]): Promise<number> {
+export default async function runEslint(ctx: DetectorContext, args: string[]): Promise<number> {
 	const { ESLint } = (await import("eslint")) as typeof import("eslint");
 
-	const cachePath = join(ctx.cwd, ".opx", "cache", "eslint", "cache");
+	// Per-language cache file so detectors running in parallel don't clobber a
+	// shared cache.
+	const cachePath = join(ctx.cwd, ".opx", "cache", "eslint", "md");
 
 	const eslint = new ESLint({
 		cwd: ctx.cwd,
@@ -47,16 +52,23 @@ export async function runEslint(ctx: DetectorContext, args: string[]): Promise<n
 		cache: true,
 		cacheLocation: cachePath,
 		fix: ctx.fix,
+		// A configured language whose patterns match no files (e.g. no .mdx in
+		// the tree) should be a no-op, not a hard error.
+		errorOnUnmatchedPattern: false,
 	});
 
-	const paths = args.length > 0 ? args : ["**/*.md", "**/*.mdx"];
+	// When the CLI forwards explicit paths, lint only the ones we own; if none
+	// are ours, there's nothing to do.
+	const requested = args.length > 0 ? filterPathsByExtension(args, MD_EXTENSIONS) : null;
+	if (requested && requested.length === 0) return 0;
+	const paths = requested ?? ["**/*.md", "**/*.mdx"];
 	const results = await eslint.lintFiles(paths);
 
 	if (ctx.fix) await ESLint.outputFixes(results);
 
 	const formatter = await eslint.loadFormatter("stylish");
 	const output = await formatter.format(results);
-	if (output) process.stdout.write(`${output}\n`);
+	if (output) ctx.write(`${output}\n`);
 
 	return results.some((r) => r.errorCount > 0) ? 1 : 0;
 }

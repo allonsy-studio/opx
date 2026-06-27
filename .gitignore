@@ -25,7 +25,8 @@ node_modules/
 .eslintcache
 
 # opx local state + tool caches
-.opx/
+.opx/*
+!.opx/config.json
 
 # package build outputs
 opx/*/bin/
@@ -63,3 +64,6 @@ Thumbs.db
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# scratch / temp artifacts
+.tmp*

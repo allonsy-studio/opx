@@ -9,6 +9,9 @@ on:
 jobs:
     test:
         permissions:
+            # `permissions` is a full override, not a merge — without an explicit
+            # `contents: read`, checkout fails on a private repo ("not found").
+            contents: read
             pull-requests: write
         runs-on: ubuntu-latest
         steps:

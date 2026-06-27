@@ -5,7 +5,7 @@ import json from "@eslint/json";
 /**
  * Opinionated default ESLint flat config shipped by @allons-y/opx-lint-json.
  * Lints .json by default. JSONC and JSON5 support activate only when the user
- * opts in via `opx init` (stored as overrides.json.dialects in opx.config.json);
+ * opts in via `opx init` (stored as lint.json.dialects in .opx/config.json);
  * the runner then includes the matching glob patterns in lintFiles.
  */
 export default defineConfig([

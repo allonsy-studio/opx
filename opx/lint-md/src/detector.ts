@@ -1,12 +1,12 @@
 import type { Detector, DetectorContext } from "@allons-y/opx";
 
-import { runEslint } from "./runner.js";
+import runEslint from "./runner.js";
+import { MD_EXTENSIONS } from "./extensions.js";
 
-const MD_EXTENSIONS = new Set([".md", ".mdx"]);
-
-export const opxLintMdDetector: Detector = {
+export default {
 	id: "@allons-y/opx-lint-md",
 	shortName: "md",
+	concern: "lint",
 	displayName: "Markdown (ESLint + @eslint/markdown)",
 	fileTypes: [...MD_EXTENSIONS],
 
@@ -30,4 +30,4 @@ export const opxLintMdDetector: Detector = {
 	async run(ctx: DetectorContext, args: string[]): Promise<number> {
 		return runEslint(ctx, args);
 	},
-};
+} as Detector;

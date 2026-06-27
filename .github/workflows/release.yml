@@ -4,18 +4,18 @@ on:
     push:
         branches: [main]
 
-jobs:
-    publish:
-        runs-on: ubuntu-latest
-        permissions: write-all
-        env:
-            GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            pull-requests: write
+            id-token: write
         steps:
             - name: Check out code
               uses: actions/checkout@v6
-              with:
-                  persist-credentials: false
 
             - name: Setup Node
               uses: actions/setup-node@v4
@@ -26,11 +26,15 @@ jobs:
             - name: Install dependencies
               run: yarn install --immutable
 
-            - name: Run build
-              run: yarn ci
+            - name: Build
+              run: yarn build
 
-            - name: Semantic release
-              uses: cycjimmy/semantic-release-action@v6
+            - name: Create release pull request or publish
+              uses: changesets/action@v1
+              with:
+                  version: yarn version-packages
+                  publish: yarn release
               env:
-                  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-                  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: "true"

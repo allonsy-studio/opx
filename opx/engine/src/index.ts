@@ -4,8 +4,9 @@ export type {
 	DetectorDescription,
 	DetectorId,
 	Logger,
+	DynamicTask,
+	StaticTask,
 	OpxConfig,
-	OpxConfigOverride,
 	OpxState,
 	OpxStateDeferral,
 	PackageJson,
@@ -26,5 +27,6 @@ export {
 export { applyDeferral, defaultSkipUntilDate, diff } from "./diff.js";
 export { detectPackageManager, installCommand } from "./pkg-manager.js";
 export { resolveTool } from "./resolver.js";
+export { filterPathsByExtension } from "./paths.js";
 export { ensureGitignored, installPostCommitHook } from "./hooks.js";
 export { createConsoleLogger } from "./logger.js";

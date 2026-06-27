@@ -7,16 +7,16 @@
 	"name": "@allons-y/opx-lint-md",
 	"version": "0.1.0",
 	"description": "opx detector + runner for Markdown. Bundles ESLint with @eslint/markdown.",
-	"license": "MIT",
+	"license": "MPL-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
-	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/lint-md#readme",
+	"homepage": "https://github.com/allonsy-studio/opx#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/allons-y/toolkit.git",
-		"directory": "packages/lint-md"
+		"url": "git+https://github.com/allonsy-studio/opx.git",
+		"directory": "opx/lint-md"
 	},
 	"bugs": {
-		"url": "https://github.com/allons-y/toolkit/issues"
+		"url": "https://github.com/allonsy-studio/opx/issues"
 	},
 	"type": "module",
 	"exports": {
@@ -39,16 +39,16 @@
 		"build": "yarn g:build && yarn g:dts",
 		"clean": "yarn g:clean",
 		"coverage": "yarn g:coverage",
-		"lint": "eslint . --config ../../configs/eslint.config.js",
+		"lint": "eslint . --config ../lint-js/eslint.config.js",
 		"test": "yarn g:test",
 		"typecheck": "yarn g:typecheck"
 	},
 	"types": "./bin/index.d.ts",
 	"dependencies": {
 		"@allons-y/opx": "workspace:^",
-		"@eslint/compat": "^1.4.1",
-		"@eslint/markdown": "^8.0.1",
-		"eslint": "^10.3.0"
+		"@eslint/compat": "^2.1.0",
+		"@eslint/markdown": "^8.0.2",
+		"eslint": "^10.6.0"
 	},
 	"keywords": [
 		"opx",
