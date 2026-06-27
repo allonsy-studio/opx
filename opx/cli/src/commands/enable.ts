@@ -1,22 +1,28 @@
-import type { Command } from "commander";
+import { Command, Option } from "commander";
 
-import { readConfig, writeConfig } from "@allons-y/opx";
+import { readConfig, writeConfig, type DynamicTask, type OpxConfig } from "@allons-y/opx";
+import { CLI_NAME } from "../plugin-kit.js";
 
-export function registerEnable(program: Command): void {
+export default function register(program: Command): void {
 	program
 		.command("enable <name>")
 		.description("Enable a detector by short name (e.g. 'js') or fully-qualified package id")
-		.option("--concern <concern>", "which concern array to add to (lint|test|build)", "lint")
-		.action((name: string, opts: { concern: "lint" | "test" | "build" }) => {
+		.addOption(new Option("--task <tasks...>", "which tasks to enable this plugin for").choices(["lint", "build"]).default(["lint", "build"]))
+		.action((name: string, opts: { task?: DynamicTask[] }) => {
 			const cwd = process.cwd();
 			const config = readConfig(cwd);
-			const array = (config[opts.concern] ?? []) as string[];
-			if (array.includes(name)) {
-				console.log(`opx: "${name}" is already enabled in ${opts.concern}.`);
+			const tasks: DynamicTask[] = Array.isArray(opts.task) && opts.task.length > 0 ? opts.task : ["lint", "build"];
+
+			if (tasks.every((task) => config[task]?.[name] === true)) {
+				console.log(`${CLI_NAME}: "${name}" is already enabled in ${tasks.join(", ")}.`);
 				return;
 			}
-			const next = { ...config, [opts.concern]: [...array, name] };
+			// Merge the new plugin into each requested task, preserving existing entries.
+			const next: OpxConfig = { ...config };
+			for (const task of tasks) {
+				next[task] = { ...(config[task] ?? {}), [name]: true };
+			}
 			writeConfig(cwd, next);
-			console.log(`opx: enabled "${name}" in ${opts.concern}.`);
+			console.log(`${CLI_NAME}: enabled "${name}" in ${tasks.join(", ")}.`);
 		});
 }

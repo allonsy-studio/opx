@@ -7,16 +7,16 @@
 	"name": "@allons-y/opx",
 	"version": "0.1.0",
 	"description": "opx engine — pure detector registry, scanner contract, state, plugin loader, and resolver. Consumed by @allons-y/opx-cli and @allons-y/opx-mcp.",
-	"license": "MIT",
+	"license": "MPL-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
-	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/engine#readme",
+	"homepage": "https://github.com/allonsy-studio/opx#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/allons-y/toolkit.git",
-		"directory": "packages/engine"
+		"url": "git+https://github.com/allonsy-studio/opx.git",
+		"directory": "opx/engine"
 	},
 	"bugs": {
-		"url": "https://github.com/allons-y/toolkit/issues"
+		"url": "https://github.com/allonsy-studio/opx/issues"
 	},
 	"type": "module",
 	"exports": {
@@ -29,7 +29,10 @@
 	"types": "./bin/index.d.ts",
 	"files": [
 		"bin/",
-		"opx.schema.json"
+		"schema/config.json",
+		"package.json",
+		"README.md",
+		"LICENSE"
 	],
 	"scripts": {
 		"build": "yarn g:build && yarn g:dts",

@@ -7,16 +7,16 @@
 	"name": "@allons-y/opx-cli",
 	"version": "0.1.0",
 	"description": "opx CLI (bin: opx) — scans the committed tree, suggests language tooling, drives the opx engine.",
-	"license": "MIT",
+	"license": "MPL-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
-	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/cli#readme",
+	"homepage": "https://github.com/allonsy-studio/opx#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/allons-y/toolkit.git",
-		"directory": "packages/cli"
+		"url": "git+https://github.com/allonsy-studio/opx.git",
+		"directory": "opx/cli"
 	},
 	"bugs": {
-		"url": "https://github.com/allons-y/toolkit/issues"
+		"url": "https://github.com/allonsy-studio/opx/issues"
 	},
 	"type": "module",
 	"bin": {
@@ -46,8 +46,8 @@
 	},
 	"dependencies": {
 		"@allons-y/opx": "workspace:^",
-		"@clack/prompts": "^0.11.0",
-		"commander": "^14.0.1"
+		"@clack/prompts": "^1.6.0",
+		"commander": "^14.0.3"
 	},
 	"keywords": [
 		"opx",

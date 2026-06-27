@@ -1,12 +1,14 @@
 import type { Command } from "commander";
+import type { BuiltInShortName } from "../built-in.js";
+
+import { extname, basename } from "node:path";
 
 import { readConfig, readState, writeState } from "@allons-y/opx";
 
 import { getCurrentBranch, getHeadCommit, listFilesInHeadCommit } from "../scanner.js";
-import { BUILTIN_LINT_PACKAGE_HINTS, suggestBuiltins, type BuiltinLintShortName } from "../built-in.js";
-import { extname, basename } from "node:path";
+import builtIns from "../built-in.js";
 
-export function registerHook(program: Command): void {
+export default function register(program: Command): void {
 	const hook = program.command("hook").description("Internal — invoked by git hooks");
 
 	hook
@@ -38,21 +40,21 @@ function runPostCommit(): void {
 		if (ext) newTypes.add(ext.toLowerCase());
 	}
 
-	const enabled = new Set(config.lint);
+	const enabledLinters = new Set(Object.keys(config.lint ?? {}) as string[]);
 	const branch = getCurrentBranch(cwd);
 	const today = new Date().toISOString().slice(0, 10);
 
-	const suggested = suggestBuiltins(newTypes);
+	const suggested = builtIns.suggest(newTypes);
 	const toNudge = suggested.filter((shortName) => {
-		if (enabled.has(shortName)) return false;
+		if (enabledLinters.has(shortName)) return false;
 		const deferral = state.deferrals[shortName];
 		if (deferral && deferral.branch === branch && deferral.skipUntilDate >= today) return false;
 		return true;
 	});
 
-	for (const shortName of toNudge as BuiltinLintShortName[]) {
-		const pkg = BUILTIN_LINT_PACKAGE_HINTS[shortName];
-		console.log(`opx: new ${shortName} files detected — run \`opx enable ${shortName}\` to wire up ${pkg}.`);
+	for (const shortName of toNudge as BuiltInShortName[]) {
+		const pkgs = builtIns.PACKAGE_HINTS[shortName];
+		console.log(`opx: new ${shortName} files detected. Run \`opx enable ${shortName}\` to wire up ${pkgs.join(", ")}.`);
 	}
 
 	const head = getHeadCommit(cwd);

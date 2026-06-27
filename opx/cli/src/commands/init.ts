@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import * as p from "@clack/prompts";
 import type { Command } from "commander";
+import { CLI_NAME } from "../plugin-kit.js";
 
 import {
 	configPath,
@@ -15,22 +16,24 @@ import {
 	readState,
 	writeConfig,
 	writeState,
+	type OpxConfig,
 } from "@allons-y/opx";
 
 import { buildContext, readHostPackage } from "../context.js";
-import { virtualBuiltinDetectors } from "../built-in.js";
+import { virtualDetectors } from "../built-in.js";
+import { scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { defaultSkipUntilDate } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
 
-type InitOptions = {
+export type InitOptions = {
 	auto: boolean;
 	quiet: boolean;
 };
 
-export function registerInit(program: Command): void {
+export default function register(program: Command): void {
 	program
 		.command("init")
-		.description("Scan the repo and interactively wire up opx tooling")
+		.description(`Scan the repo and interactively wire up ${CLI_NAME} tooling`)
 		.option("--auto", "auto-mode (used by postinstall); only proceeds in TTY", false)
 		.option("--quiet", "suppress informational output when --auto exits early", false)
 		.action(async (opts: InitOptions) => {
@@ -39,7 +42,7 @@ export function registerInit(program: Command): void {
 
 			if (opts.auto && mode !== "interactive") {
 				if (!opts.quiet) {
-					console.log("opx: run `opx init` in an interactive shell to wire up tooling.");
+					console.log(`${CLI_NAME}: run \`${CLI_NAME} init\` in an interactive shell to wire up tooling.`);
 				}
 				return;
 			}
@@ -53,33 +56,42 @@ export function registerInit(program: Command): void {
 }
 
 async function runInteractive(cwd: string): Promise<void> {
-	p.intro("opx — front-end dev ops setup");
+	p.intro(`${CLI_NAME} toolkit setup`);
 
 	if (!existsSync(configPath(cwd))) {
 		writeConfig(cwd, defaultConfig());
-		p.log.info("Wrote starter opx.config.json.");
+		p.log.info(`Wrote starter ${CLI_NAME}.config.json at the detected repo root (${cwd}).`);
 	}
 
 	const config = readConfig(cwd);
 	const state = readState(cwd);
 	const ctx = buildContext({ cwd });
 
-	const suggestions = virtualBuiltinDetectors(ctx.fileTypes, ctx.hostPkg);
-	const enabled = new Set(config.lint);
-	const remaining = suggestions.filter((s) => !enabled.has(s.shortName));
+	// Suggested tooling that is indicated by files present in the committed tree.
+	const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
+
+	const enabledLinters = new Set(Object.keys(config.lint ?? {}));
+	const enabledBuilders = new Set(Object.keys(config.build ?? {}));
+
+	// A suggestion is already covered if its concern is enabled for that short name.
+	const remaining = suggestions.filter((s) => {
+		if (s.shortName === "release") return config.release !== true;
+		if (s.shortName === "test") return config.test !== true;
+		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);
+		return !enabledLinters.has(s.shortName);
+	});
 
 	if (remaining.length === 0) {
 		p.log.success("No new tooling to suggest — your committed tree is fully covered.");
 	}
 
-	const accepted: string[] = [];
+	const accepted: typeof suggestions = [];
 	const deferred: string[] = [];
 	const installCandidates: string[] = [];
-	const overrides: Record<string, Record<string, string>> = { ...(config.overrides ?? {}) };
 
 	for (const suggestion of remaining) {
 		const choice = await p.select({
-			message: `Enable ${suggestion.shortName} linting? (${suggestion.pkg}) — ${suggestion.reason}`,
+			message: `Enable ${suggestion.shortName} (${suggestion.pkg})? — ${suggestion.reason}`,
 			options: [
 				{ value: "yes", label: "Yes — enable now" },
 				{ value: "no", label: "No — never (decline)" },
@@ -91,35 +103,43 @@ async function runInteractive(cwd: string): Promise<void> {
 			return;
 		}
 		if (choice === "yes") {
-			accepted.push(suggestion.shortName);
+			accepted.push(suggestion);
 			if (!suggestion.installed) installCandidates.push(suggestion.pkg);
-			if (suggestion.shortName === "json") {
-				const dialects = await p.multiselect({
-					message: "Also lint JSON variants? (.json is always included)",
-					options: [
-						{ value: "jsonc", label: "JSONC — JSON with comments (e.g. tsconfig.json)" },
-						{ value: "json5", label: "JSON5 — relaxed JSON (trailing commas, unquoted keys)" },
-					],
-					required: false,
-				});
-				if (p.isCancel(dialects)) {
-					p.cancel("Setup cancelled.");
-					return;
-				}
-				if (dialects.length > 0) {
-					overrides.json = { ...(overrides.json ?? {}), dialects: dialects.join(",") };
-				}
-			}
+			// if (suggestion.shortName === "json") {
+			// 	const dialects = await p.multiselect({
+			// 		message: "Also lint JSON variants? (.json is always included)",
+			// 		options: [
+			// 			{ value: "jsonc", label: "JSONC — JSON with comments (e.g. tsconfig.json)" },
+			// 			{ value: "json5", label: "JSON5 — relaxed JSON (trailing commas, unquoted keys)" },
+			// 		],
+			// 		required: false,
+			// 	});
+			// 	if (p.isCancel(dialects)) {
+			// 		p.cancel("Setup cancelled.");
+			// 		return;
+			// 	}
+			// }
 		} else if (choice === "later") {
 			deferred.push(suggestion.shortName);
 		}
 	}
 
+	const acceptedLint = accepted.filter((s) => s.pkg.includes("opx-lint-")).map((s) => s.shortName);
+	const acceptedBuild = accepted.filter((s) => s.pkg.includes("opx-build-")).map((s) => s.shortName);
+
 	const nextConfig = {
 		...config,
-		lint: [...new Set([...config.lint, ...accepted])],
-		...(Object.keys(overrides).length > 0 ? { overrides } : {}),
-	};
+		lint: {
+			...(config.lint ?? {}),
+			...Object.fromEntries(acceptedLint.map((shortName) => [shortName, true])),
+		},
+		build: {
+			...(config.build ?? {}),
+			...Object.fromEntries(acceptedBuild.map((shortName) => [shortName, true])),
+		},
+		release: config.release === true || accepted.some((s) => s.shortName === "release"),
+		test: config.test === true || accepted.some((s) => s.shortName === "test"),
+	} as OpxConfig;
 	writeConfig(cwd, nextConfig);
 
 	let nextState = state;
@@ -156,6 +176,14 @@ async function runInteractive(cwd: string): Promise<void> {
 		}
 	}
 
+	// Scaffold a composable root eslint.config.js so editors and a plain
+	// `eslint .` see the same rules as `opx lint`. Never clobbers an existing
+	// file, and only includes detectors that are actually installed.
+	const scaffolded = scaffoldEslintConfig(cwd, Object.keys(nextConfig.lint ?? {}));
+	if (scaffolded) {
+		p.log.success("Wrote a composable eslint.config.js — edit it to add your own or third-party rules.");
+	}
+
 	// Patch host package.json scripts opportunistically.
 	if (accepted.length > 0) {
 		const hostPath = join(cwd, "package.json");
@@ -165,11 +193,11 @@ async function runInteractive(cwd: string): Promise<void> {
 			pkg.scripts ??= {};
 			if (!pkg.scripts.lint) {
 				const addLint = await p.confirm({
-					message: 'Add `"lint": "opx lint"` to package.json scripts?',
+					message: `Add \`"lint": "${CLI_NAME} lint"\` to package.json scripts?`,
 					initialValue: true,
 				});
 				if (!p.isCancel(addLint) && addLint) {
-					pkg.scripts.lint = "opx lint";
+					pkg.scripts.lint = `${CLI_NAME} lint`;
 					writeFileSync(hostPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf8");
 				}
 			}
@@ -181,8 +209,8 @@ async function runInteractive(cwd: string): Promise<void> {
 	if (hookResult.created) {
 		p.log.success(`Installed git hook at ${hookResult.path}`);
 	}
-	if (ensureGitignored(cwd, ".opx")) {
-		p.log.success("Added .opx/ to .gitignore");
+	if (ensureGitignored(cwd, `.${CLI_NAME}`)) {
+		p.log.success(`Added .${CLI_NAME}/ to .gitignore`);
 	}
 
 	p.outro("Setup complete.");
@@ -191,19 +219,25 @@ async function runInteractive(cwd: string): Promise<void> {
 function runReport(cwd: string): void {
 	if (!existsSync(configPath(cwd))) {
 		writeConfig(cwd, defaultConfig());
-		console.log("opx: wrote starter opx.config.json.");
+		console.log(`${CLI_NAME}: wrote starter ${CLI_NAME}.config.json.`);
 	}
 	const hostPkg = readHostPackage(cwd);
 	const ctx = buildContext({ cwd });
-	const suggestions = virtualBuiltinDetectors(ctx.fileTypes, hostPkg);
-	const enabled = new Set(ctx.config.lint);
-	const remaining = suggestions.filter((s) => !enabled.has(s.shortName));
+	const suggestions = virtualDetectors(ctx.fileTypes, hostPkg);
+	const enabledLinters = new Set(Object.keys(ctx.config.lint ?? {}));
+	const enabledBuilders = new Set(Object.keys(ctx.config.build ?? {}));
+	const remaining = suggestions.filter((s) => {
+		if (s.shortName === "release") return ctx.config.release !== true;
+		if (s.shortName === "test") return ctx.config.test !== true;
+		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);
+		return !enabledLinters.has(s.shortName);
+	});
 	if (remaining.length === 0) {
-		console.log("opx: nothing new to suggest.");
+		console.log(`${CLI_NAME}: nothing new to suggest.`);
 		return;
 	}
-	console.log("opx: detected file types that match these built-in detectors:");
+	console.log(`${CLI_NAME}: detected file types that match these built-in detectors:`);
 	for (const s of remaining) {
-		console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`opx enable ${s.shortName}\``);
+		console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
 	}
 }

@@ -1,9 +1,14 @@
+import { globSync } from "node:fs";
+
 import { build } from "esbuild";
 
+// Build every source module except test files, which must never ship in `bin/`.
+const entryPoints = globSync("src/**/*.ts").filter((file) => !file.endsWith(".test.ts"));
+
 await build({
-	entryPoints: ["src/index.ts"],
-	outfile: "bin/index.js",
-	bundle: true,
+	entryPoints,
+	bundle: false,
+	outdir: "bin",
 	platform: "node",
 	target: "node24",
 	format: "esm",

@@ -1,4 +1,4 @@
-import { opxLintJsonDetector } from "./detector.js";
+import detector from "./detector.js";
 
-export { opxLintJsonDetector };
-export default opxLintJsonDetector;
+export { detector };
+export default detector;

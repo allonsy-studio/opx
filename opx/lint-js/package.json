@@ -7,16 +7,16 @@
 	"name": "@allons-y/opx-lint-js",
 	"version": "0.1.0",
 	"description": "opx detector + runner for JavaScript/TypeScript. Bundles ESLint, @stylistic/eslint-plugin, and typescript-eslint.",
-	"license": "MIT",
+	"license": "MPL-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
-	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/lint-js#readme",
+	"homepage": "https://github.com/allonsy-studio/opx#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/allons-y/toolkit.git",
-		"directory": "packages/lint-js"
+		"url": "git+https://github.com/allonsy-studio/opx.git",
+		"directory": "opx/lint-js"
 	},
 	"bugs": {
-		"url": "https://github.com/allons-y/toolkit/issues"
+		"url": "https://github.com/allonsy-studio/opx/issues"
 	},
 	"type": "module",
 	"exports": {
@@ -45,18 +45,15 @@
 	"types": "./bin/index.d.ts",
 	"dependencies": {
 		"@allons-y/opx": "workspace:^",
-		"@eslint/compat": "^1.4.1",
+		"@eslint/compat": "^2.1.0",
 		"@eslint/js": "^10.0.1",
-		"@eslint/json": "^1.2.0",
-		"@eslint/markdown": "^8.0.1",
-		"@stylistic/eslint-plugin": "^2.13.0",
-		"eslint": "^10.3.0",
-		"eslint-config-prettier": "^10.1.8",
-		"eslint-plugin-jest": "^29.15.2",
-		"eslint-plugin-jsonc": "^3.1.2",
-		"eslint-plugin-node": "^11.1.0",
-		"globals": "^17.6.0",
-		"typescript-eslint": "^8.59.3"
+		"@stylistic/eslint-plugin": "^5.10.0",
+		"eslint": "^10.6.0",
+		"globals": "^17.7.0",
+		"typescript-eslint": "^8.62.0"
+	},
+	"devDependencies": {
+		"eslint-plugin-jest": "^29.15.3"
 	},
 	"peerDependencies": {
 		"typescript": "^5.0.0 || ^6.0.0"

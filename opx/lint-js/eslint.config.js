@@ -12,7 +12,7 @@ import stylistic from "@stylistic/eslint-plugin";
  */
 export default defineConfig([
 	{
-		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.opx/**", "**/bin/**", "**/dist/**", "**/coverage/**"],
+		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.opx/**", "**/bin/**", "**/dist/**"],
 	},
 	{
 		files: ["**/*.{js,mjs,cjs}"],
@@ -29,6 +29,10 @@ export default defineConfig([
 		extends: ["ts/recommended"],
 	},
 	{
+		// Scope formatting rules to JS/TS so this config composes cleanly: when
+		// spread alongside opx-lint-json / opx-lint-md (or third-party configs),
+		// these rules must not leak onto .json/.md files.
+		files: ["**/*.{js,mjs,cjs,jsx,ts,tsx,mts,cts}"],
 		plugins: { "@stylistic": stylistic },
 		rules: {
 			"@stylistic/indent": ["error", "tab"],

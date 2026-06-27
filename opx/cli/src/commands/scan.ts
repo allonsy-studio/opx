@@ -1,8 +1,9 @@
 import type { Command } from "commander";
 
 import { buildContext } from "../context.js";
-import { virtualBuiltinDetectors } from "../built-in.js";
+import { virtualDetectors } from "../built-in.js";
 import { detectMode } from "../tty.js";
+import { CLI_NAME } from "../plugin-kit.js";
 
 type ScanOptions = {
 	report: boolean;
@@ -10,7 +11,7 @@ type ScanOptions = {
 	strict: boolean;
 };
 
-export function registerScan(program: Command): void {
+export default function register(program: Command): void {
 	program
 		.command("scan")
 		.description("Scan the committed tree and report which detectors would activate")
@@ -20,10 +21,10 @@ export function registerScan(program: Command): void {
 		.action(async (opts: ScanOptions) => {
 			const cwd = process.cwd();
 			const ctx = buildContext({ cwd });
-			const suggestions = virtualBuiltinDetectors(ctx.fileTypes, ctx.hostPkg);
+			const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
 
-			const enabled = new Set(ctx.config.lint);
-			const needsPrompt = suggestions.filter((s) => !enabled.has(s.shortName));
+			const enabledLinters = new Set(Object.keys(ctx.config.lint ?? {}) as string[]);
+			const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName));
 
 			const mode = detectMode(opts.report || opts.json);
 
@@ -31,15 +32,15 @@ export function registerScan(program: Command): void {
 				const payload = {
 					branch: ctx.branch,
 					fileTypes: [...ctx.fileTypes].sort(),
-					enabled: ctx.config.lint,
+					enabled: [...enabledLinters],
 					suggestions,
 					needsPrompt: needsPrompt.map((s) => s.shortName),
 				};
 				process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 			} else if (mode === "report") {
-				renderReport(ctx.fileTypes, ctx.config.lint, suggestions);
+				renderReport(ctx.fileTypes, [...enabledLinters], suggestions);
 			} else {
-				renderInteractive(ctx.fileTypes, ctx.config.lint, suggestions);
+				renderInteractive(ctx.fileTypes, [...enabledLinters], suggestions);
 			}
 
 			if (opts.strict && needsPrompt.length > 0) {
@@ -51,7 +52,7 @@ export function registerScan(program: Command): void {
 function renderReport(
 	fileTypes: Set<string>,
 	enabled: string[],
-	suggestions: ReturnType<typeof virtualBuiltinDetectors>,
+	suggestions: ReturnType<typeof virtualDetectors>,
 ): void {
 	console.log(`File types in committed tree: ${[...fileTypes].sort().join(", ") || "(none)"}`);
 	console.log(`Enabled lint detectors: ${enabled.length > 0 ? enabled.join(", ") : "(none)"}`);
@@ -69,8 +70,8 @@ function renderReport(
 function renderInteractive(
 	fileTypes: Set<string>,
 	enabled: string[],
-	suggestions: ReturnType<typeof virtualBuiltinDetectors>,
+	suggestions: ReturnType<typeof virtualDetectors>,
 ): void {
 	renderReport(fileTypes, enabled, suggestions);
-	console.log("\nRun `opx init` to enable suggestions interactively.");
+	console.log(`\nRun \`${CLI_NAME} init\` to enable suggestions interactively.`);
 }

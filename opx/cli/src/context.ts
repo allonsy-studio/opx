@@ -37,5 +37,6 @@ export function buildContext(options: BuildContextOptions): DetectorContext {
 		logger: createConsoleLogger({ debug }),
 		dryRun,
 		fix,
+		write: (chunk) => void process.stdout.write(chunk),
 	};
 }

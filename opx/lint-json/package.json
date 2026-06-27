@@ -7,16 +7,16 @@
 	"name": "@allons-y/opx-lint-json",
 	"version": "0.1.0",
 	"description": "opx detector + runner for JSON, JSONC, and JSON5. Bundles ESLint with @eslint/json.",
-	"license": "MIT",
+	"license": "MPL-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
-	"homepage": "https://github.com/allons-y/toolkit/tree/main/packages/lint-json#readme",
+	"homepage": "https://github.com/allonsy-studio/opx#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/allons-y/toolkit.git",
-		"directory": "packages/lint-json"
+		"url": "git+https://github.com/allonsy-studio/opx.git",
+		"directory": "opx/lint-json"
 	},
 	"bugs": {
-		"url": "https://github.com/allons-y/toolkit/issues"
+		"url": "https://github.com/allonsy-studio/opx/issues"
 	},
 	"type": "module",
 	"exports": {
@@ -39,16 +39,16 @@
 		"build": "yarn g:build && yarn g:dts",
 		"clean": "yarn g:clean",
 		"coverage": "yarn g:coverage",
-		"lint": "eslint . --config ../../configs/eslint.config.js",
+		"lint": "eslint . --config ../lint-js/eslint.config.js",
 		"test": "yarn g:test",
 		"typecheck": "yarn g:typecheck"
 	},
 	"types": "./bin/index.d.ts",
 	"dependencies": {
 		"@allons-y/opx": "workspace:^",
-		"@eslint/compat": "^1.4.1",
-		"@eslint/json": "^1.2.0",
-		"eslint": "^10.3.0"
+		"@eslint/compat": "^2.1.0",
+		"@eslint/json": "^2.0.0",
+		"eslint": "^10.6.0"
 	},
 	"keywords": [
 		"opx",

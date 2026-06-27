@@ -1,7 +1,6 @@
 import type { Detector, Logger, PackageJson } from "./detector.js";
 
 const OFFICIAL_PREFIX = "@allons-y/opx-";
-const OFFICIAL_LINT_PREFIX = "@allons-y/opx-lint-";
 const COMMUNITY_PREFIX = "opx-plugin-";
 
 const NAME_RE = new RegExp("^(opx-plugin-|@[^/]+/opx-plugin-|@allons-y/opx-)");
@@ -16,19 +15,12 @@ export function isValidPluginName(name: string): boolean {
  */
 export function resolvePluginPackageName(
 	entry: string,
-	concern: "lint" | "test" | "build" = "lint",
 ): string[] {
 	if (entry.startsWith("@") || entry.startsWith(COMMUNITY_PREFIX)) {
 		return [entry];
 	}
-	if (concern === "lint") {
-		return [
-			`${OFFICIAL_LINT_PREFIX}${entry}`,
-			`${COMMUNITY_PREFIX}${entry}`,
-		];
-	}
 	return [
-		`${OFFICIAL_PREFIX}${concern}-${entry}`,
+		`${OFFICIAL_PREFIX}${entry}`,
 		`${COMMUNITY_PREFIX}${entry}`,
 	];
 }
@@ -40,13 +32,12 @@ export function resolvePluginPackageName(
 export function normalizeDetectorId(
 	entry: string,
 	hostPkg: PackageJson,
-	concern: "lint" | "test" | "build" = "lint",
 ): string | null {
 	const deps = {
 		...(hostPkg.dependencies ?? {}),
 		...(hostPkg.devDependencies ?? {}),
 	};
-	for (const candidate of resolvePluginPackageName(entry, concern)) {
+	for (const candidate of resolvePluginPackageName(entry)) {
 		if (candidate in deps) return candidate;
 	}
 	return null;
@@ -62,7 +53,6 @@ export type LoadOptions = {
 	hostPkg: PackageJson;
 	cwd: string;
 	logger: Logger;
-	concern?: "lint" | "test" | "build";
 };
 
 /**
@@ -77,16 +67,16 @@ export async function loadPlugins(
 	entries: string[],
 	options: LoadOptions,
 ): Promise<LoadedPlugin[]> {
-	const { hostPkg, logger, concern = "lint" } = options;
+	const { hostPkg, logger } = options;
 	const loaded: LoadedPlugin[] = [];
 
 	for (const entry of entries) {
-		const candidates = resolvePluginPackageName(entry, concern);
-		const installed = normalizeDetectorId(entry, hostPkg, concern);
+		const candidates = resolvePluginPackageName(entry);
+		const installed = normalizeDetectorId(entry, hostPkg);
 
 		if (!installed) {
 			logger.warn(
-				`opx: "${entry}" is declared in opx.config.json but no matching package is installed. Tried: ${candidates.join(", ")}. Install one of those packages to enable this detector.`,
+				`opx: "${entry}" is declared in .opx/config.json but no matching package is installed. Tried: ${candidates.join(", ")}. Install one of those packages to enable this detector.`,
 			);
 			continue;
 		}

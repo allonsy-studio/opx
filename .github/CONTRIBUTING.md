@@ -22,14 +22,15 @@ yarn install
 
 ## Commit conventions
 
-Commits must follow [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint via a pre-commit hook. The commit type drives the next release via semantic-release:
+Commits must follow [Conventional Commits](https://www.conventionalcommits.org), enforced by commitlint via a pre-commit hook.
 
-- `fix:` → patch release
-- `feat:` → minor release
-- `feat!:` or any commit with a `BREAKING CHANGE:` footer → major release
-- `chore:`, `docs:`, `refactor:`, `test:`, `ci:`, `build:` → no release
+Releases are managed with [changesets](https://github.com/changesets/changesets). When you make a user-facing change, add a changeset so the version bump and changelog entry are recorded:
 
-If you're not sure, `fix:` is almost always a safe choice for bug fixes.
+```sh
+yarn changeset
+```
+
+Pick `patch` for bug fixes, `minor` for new features, and `major` for breaking changes. Internal-only changes (refactors, tests, CI, tooling) don't need a changeset.
 
 ## Pull requests
 
@@ -37,7 +38,7 @@ If you're not sure, `fix:` is almost always a safe choice for bug fixes.
 - Keep PRs focused. One change per PR is easier to review.
 - Update tests for any behavior change.
 - The CI workflow runs build, lint, and the full test suite — make sure it's green.
-- Releases are automatic: once a PR merges to `main`, semantic-release decides the next version based on commit types and publishes a tag (and updates the floating `vN` major tag).
+- Releases are managed by changesets: merging PRs with changesets into `main` opens a "Version Packages" PR; merging that PR publishes the updated packages.
 
 ## Questions
 
