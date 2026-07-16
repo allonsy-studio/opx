@@ -1,4 +1,7 @@
+<!-- weaver:header:START -->
 # opx
+
+<!-- weaver:header:END -->
 
 **opx** is the _optionally_ opinionated front-end toolkit — a tiny CLI plus a
 family of installable detector plugins for linting, building, and releasing.
@@ -162,15 +165,13 @@ yarn test        # run the test suites
 yarn typecheck   # type-check every package
 ```
 
-Commits follow [Conventional Commits](https://www.conventionalcommits.org)
-(enforced by commitlint) and releases are managed with changesets — run
-`yarn changeset` to record a user-facing change. See
-[CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 
-## License
+<!-- weaver:contribution:START -->
+<!-- weaver:contribution:END -->
 
-[MPL-2.0](LICENSE)
+<!-- weaver:license:START -->
+<!-- weaver:license:END -->
 
----
+<!-- weaver:funding:START -->
+<!-- weaver:funding:END -->
 
-<sub>Built and maintained by [Allons-y Studio](https://allons-y.studio) — a US-based studio specializing in design systems, front-end architecture, and accessibility.</sub>
