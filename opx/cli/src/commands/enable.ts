@@ -1,28 +1,25 @@
 import { Command, Option } from "commander";
 
-import { readConfig, writeConfig, type DynamicTask, type OpxConfig } from "@allons-y/opx";
+import { readConfig, writeConfig } from "@allons-y/opx";
+import type { TaskKind } from "../plugin-catalog.js";
+import { readHostPackage } from "../context.js";
 import { CLI_NAME } from "../plugin-kit.js";
+import { toggle } from "../toggle.js";
 
 export default function register(program: Command): void {
 	program
 		.command("enable <name>")
 		.description("Enable a detector by short name (e.g. 'js') or fully-qualified package id")
-		.addOption(new Option("--task <tasks...>", "which tasks to enable this plugin for").choices(["lint", "build"]).default(["lint", "build"]))
-		.action((name: string, opts: { task?: DynamicTask[] }) => {
+		.addOption(new Option("--task <tasks...>", "which tasks to enable this plugin for (default: all it provides)").choices(["lint", "build"]))
+		.action((name: string, opts: { task?: TaskKind[] }) => {
 			const cwd = process.cwd();
-			const config = readConfig(cwd);
-			const tasks: DynamicTask[] = Array.isArray(opts.task) && opts.task.length > 0 ? opts.task : ["lint", "build"];
-
-			if (tasks.every((task) => config[task]?.[name] === true)) {
-				console.log(`${CLI_NAME}: "${name}" is already enabled in ${tasks.join(", ")}.`);
+			const result = toggle(readConfig(cwd), name, true, readHostPackage(cwd), opts.task);
+			if ("error" in result) {
+				console.error(`${CLI_NAME}: ${result.error}`);
+				process.exitCode = 1;
 				return;
 			}
-			// Merge the new plugin into each requested task, preserving existing entries.
-			const next: OpxConfig = { ...config };
-			for (const task of tasks) {
-				next[task] = { ...(config[task] ?? {}), [name]: true };
-			}
-			writeConfig(cwd, next);
-			console.log(`${CLI_NAME}: enabled "${name}" in ${tasks.join(", ")}.`);
+			writeConfig(cwd, result.config);
+			console.log(`${CLI_NAME}: ${result.message}`);
 		});
 }

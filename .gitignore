@@ -45,9 +45,6 @@ opx/*/dist/
 dist
 bin/
 
-# opx local state + tool caches
-.opx/
-
 # OS generated files
 .DS_Store*
 ehthumbs.db

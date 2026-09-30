@@ -35,13 +35,13 @@ function ctx(partial: Partial<DetectorContext>): DetectorContext {
 
 describe("derived constants", () => {
 	it("SUPPORTED_FILE_EXTS contains detectable short names only", () => {
-		expect(SUPPORTED_FILE_EXTS).toEqual(expect.arrayContaining(["js", "ts", "css", "md", "json"]));
+		expect(SUPPORTED_FILE_EXTS).toEqual(expect.arrayContaining(["js", "md", "json"]));
 		expect(SUPPORTED_FILE_EXTS).not.toContain("release");
 		expect(SUPPORTED_FILE_EXTS).not.toContain("test");
 	});
 
 	it("UNDETECTABLE_PLUGINS contains plugins with no extensions", () => {
-		expect(UNDETECTABLE_PLUGINS).toEqual(expect.arrayContaining(["release", "test"]));
+		expect(UNDETECTABLE_PLUGINS).toEqual(expect.arrayContaining(["release"]));
 		expect(UNDETECTABLE_PLUGINS).not.toContain("js");
 	});
 
@@ -53,23 +53,27 @@ describe("derived constants", () => {
 
 describe("suggest", () => {
 	it("returns short names whose extensions appear in the file set", () => {
-		expect(suggest(new Set([".css"]))).toContain("css");
-		expect(suggest(new Set([".ts"]))).toEqual(expect.arrayContaining(["js", "ts"]));
+		expect(suggest(new Set([".md"]))).toContain("md");
+		expect(suggest(new Set([".ts"]))).toEqual(["js"]);
 	});
 
 	it("returns empty when nothing matches", () => {
 		expect(suggest(new Set([".unknown"]))).toEqual([]);
 	});
+
+	it("does not suggest plugins that have not shipped", () => {
+		expect(suggest(new Set([".css"]))).toEqual([]);
+	});
 });
 
 describe("virtualDetectors", () => {
 	it("includes matched detectors and undetectable plugins, flagging installed packages", () => {
-		const result = virtualDetectors(new Set([".css"]), {
-			dependencies: { "@allons-y/opx-lint-css": "1" },
+		const result = virtualDetectors(new Set([".md"]), {
+			dependencies: { "@allons-y/opx-lint-md": "1" },
 		});
-		const css = result.find((r) => r.pkg === "@allons-y/opx-lint-css");
-		expect(css?.installed).toBe(true);
-		expect(css?.reason).toContain("committed tree");
+		const md = result.find((r) => r.pkg === "@allons-y/opx-lint-md");
+		expect(md?.installed).toBe(true);
+		expect(md?.reason).toContain("committed tree");
 
 		const release = result.find((r) => r.shortName === "release");
 		expect(release).toBeDefined();
@@ -80,7 +84,7 @@ describe("virtualDetectors", () => {
 	it("works with no deps and no matches (still lists undetectable plugins)", () => {
 		const result = virtualDetectors(new Set(), {});
 		expect(result.every((r) => r.installed === false)).toBe(true);
-		expect(result.some((r) => r.shortName === "test")).toBe(true);
+		expect(result.some((r) => r.shortName === "release")).toBe(true);
 	});
 });
 
