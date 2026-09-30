@@ -35,13 +35,29 @@ export function statePath(cwd: string): string {
 	return join(cwd, STATE_FILE);
 }
 
+/**
+ * Read and parse a JSON object file.
+ *
+ * @throws An error naming the file when it is empty, malformed, or not an object.
+ */
+function parseJsonFile<T extends object>(path: string): T {
+	try {
+		const parsed: unknown = JSON.parse(readFileSync(path, "utf8"));
+		if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+			throw new Error("expected a JSON object");
+		}
+		return parsed as T;
+	} catch (err) {
+		throw new Error(`could not read ${path}: ${(err as Error).message}`, { cause: err });
+	}
+}
+
 export function readConfig(cwd: string): OpxConfig {
 	const path = configPath(cwd);
 	if (!existsSync(path)) {
 		return defaultConfig();
 	}
-	const raw = readFileSync(path, "utf8");
-	const parsed = JSON.parse(raw) as Partial<OpxConfig>;
+	const parsed = parseJsonFile<Partial<OpxConfig>>(path);
 	// @todo: deep-merge the default config with the parsed config
 	return {
 		...defaultConfig(),
@@ -72,8 +88,13 @@ export function readState(cwd: string): OpxState {
 	if (!existsSync(path)) {
 		return defaultState();
 	}
-	const raw = readFileSync(path, "utf8");
-	const parsed = JSON.parse(raw) as Partial<OpxState>;
+	// State is a disposable cache: an unreadable file falls back to defaults.
+	let parsed: Partial<OpxState>;
+	try {
+		parsed = parseJsonFile<Partial<OpxState>>(path);
+	} catch {
+		return defaultState();
+	}
 	return {
 		version: 1,
 		lastScanCommit: parsed.lastScanCommit,
