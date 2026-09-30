@@ -36,7 +36,7 @@
 		"precommit": "lint-staged --config configs/lint-staged.config.js",
 		"prepare": "husky && envoy || true",
 		"changeset": "opx release",
-		"version-packages": "opx release version",
+		"version-packages": "opx release version && yarn install --mode update-lockfile",
 		"release": "run-s clean build && opx release publish"
 	},
 	"devDependencies": {

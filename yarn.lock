@@ -24,7 +24,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allons-y/opx-cli@workspace:opx/cli"
   dependencies:
-    "@allons-y/opx": "workspace:^"
+    "@allons-y/opx": "npm:^0.1.0"
     "@clack/prompts": "npm:^1.6.0"
     commander: "npm:^14.0.3"
   bin:
@@ -36,7 +36,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allons-y/opx-lint-js@workspace:opx/lint-js"
   dependencies:
-    "@allons-y/opx": "workspace:^"
+    "@allons-y/opx": "npm:^0.1.0"
     "@eslint/compat": "npm:^2.1.0"
     "@eslint/js": "npm:^10.0.1"
     "@stylistic/eslint-plugin": "npm:^5.10.0"
@@ -56,7 +56,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allons-y/opx-lint-json@workspace:opx/lint-json"
   dependencies:
-    "@allons-y/opx": "workspace:^"
+    "@allons-y/opx": "npm:^0.1.0"
     "@eslint/compat": "npm:^2.1.0"
     "@eslint/json": "npm:^2.0.0"
     eslint: "npm:^10.6.0"
@@ -67,7 +67,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allons-y/opx-lint-md@workspace:opx/lint-md"
   dependencies:
-    "@allons-y/opx": "workspace:^"
+    "@allons-y/opx": "npm:^0.1.0"
     "@eslint/compat": "npm:^2.1.0"
     "@eslint/markdown": "npm:^8.0.2"
     eslint: "npm:^10.6.0"
@@ -78,7 +78,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allons-y/opx-release@workspace:opx/release"
   dependencies:
-    "@allons-y/opx": "workspace:^"
+    "@allons-y/opx": "npm:^0.1.0"
     "@changesets/cli": "npm:2.31.0"
     "@changesets/get-github-info": "npm:0.8.0"
     "@changesets/types": "npm:6.1.0"
@@ -94,7 +94,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allons-y/opx@workspace:^, @allons-y/opx@workspace:opx/engine":
+"@allons-y/opx@npm:^0.1.0, @allons-y/opx@workspace:opx/engine":
   version: 0.0.0-use.local
   resolution: "@allons-y/opx@workspace:opx/engine"
   languageName: unknown

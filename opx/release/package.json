@@ -48,7 +48,7 @@
 		"@changesets/types": "6.1.0"
 	},
 	"dependencies": {
-		"@allons-y/opx": "workspace:^",
+		"@allons-y/opx": "^0.1.0",
 		"@changesets/cli": "2.31.0",
 		"@changesets/get-github-info": "0.8.0",
 		"@changesets/write": "0.4.0",

@@ -45,7 +45,7 @@
 	},
 	"types": "./bin/index.d.ts",
 	"dependencies": {
-		"@allons-y/opx": "workspace:^",
+		"@allons-y/opx": "^0.1.0",
 		"@eslint/compat": "^2.1.0",
 		"@eslint/markdown": "^8.0.2",
 		"eslint": "^10.6.0"
