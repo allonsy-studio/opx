@@ -43,4 +43,11 @@ registerLint(program);
 registerRelease(program);
 registerScan(program);
 
-await program.parseAsync(process.argv);
+try {
+	await program.parseAsync(process.argv);
+} catch (err) {
+	// Show a one-line message instead of a stack trace unless --debug is set.
+	const message = err instanceof Error ? err.message : String(err);
+	console.error(`${CLI_NAME}: ${program.opts<{ debug?: boolean }>().debug && err instanceof Error ? (err.stack ?? message) : message}`);
+	process.exitCode = 1;
+}

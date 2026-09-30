@@ -78,3 +78,25 @@ describe("state read/write", () => {
 		rmSync(dir, { recursive: true });
 	});
 });
+
+describe("corrupt files", () => {
+	it("falls back to default state for empty, malformed, or non-object state", () => {
+		const dir = tmp();
+		mkdirSync(join(dir, ".opx"), { recursive: true });
+		for (const body of ["", "{oops", "[]", "null"]) {
+			writeFileSync(statePath(dir), body);
+			expect(readState(dir)).toEqual({ version: 1, deferrals: {} });
+		}
+		rmSync(dir, { recursive: true });
+	});
+
+	it("throws an error naming the file for a corrupt config", () => {
+		const dir = tmp();
+		mkdirSync(join(dir, ".opx"), { recursive: true });
+		writeFileSync(configPath(dir), "{oops");
+		expect(() => readConfig(dir)).toThrow(`could not read ${configPath(dir)}`);
+		writeFileSync(configPath(dir), "[]");
+		expect(() => readConfig(dir)).toThrow("expected a JSON object");
+		rmSync(dir, { recursive: true });
+	});
+});
