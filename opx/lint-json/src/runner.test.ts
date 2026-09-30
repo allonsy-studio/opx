@@ -93,4 +93,11 @@ describe("lint-json runner", () => {
 		// No args -> defaultPaths(ctx) runs the jsonc/json5 branches.
 		expect(await run(ctx, [])).toBe(0);
 	});
+
+	it("ignores lockfiles by default", async () => {
+		const dir = makeDir();
+		writeFileSync(join(dir, "package-lock.json"), '{"": 1, "a": 1,}');
+		const ctx = makeCtx(dir);
+		expect(await run(ctx, [])).toBe(0);
+	});
 });

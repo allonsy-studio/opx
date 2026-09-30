@@ -76,7 +76,6 @@ async function runInteractive(cwd: string): Promise<void> {
 	// A suggestion is already covered if its concern is enabled for that short name.
 	const remaining = suggestions.filter((s) => {
 		if (s.shortName === "release") return config.release !== true;
-		if (s.shortName === "test") return config.test !== true;
 		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);
 		return !enabledLinters.has(s.shortName);
 	});
@@ -138,7 +137,7 @@ async function runInteractive(cwd: string): Promise<void> {
 			...Object.fromEntries(acceptedBuild.map((shortName) => [shortName, true])),
 		},
 		release: config.release === true || accepted.some((s) => s.shortName === "release"),
-		test: config.test === true || accepted.some((s) => s.shortName === "test"),
+		test: config.test === true,
 	} as OpxConfig;
 	writeConfig(cwd, nextConfig);
 
@@ -228,7 +227,6 @@ function runReport(cwd: string): void {
 	const enabledBuilders = new Set(Object.keys(ctx.config.build ?? {}));
 	const remaining = suggestions.filter((s) => {
 		if (s.shortName === "release") return ctx.config.release !== true;
-		if (s.shortName === "test") return ctx.config.test !== true;
 		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);
 		return !enabledLinters.has(s.shortName);
 	});
