@@ -60,7 +60,7 @@ Use your own ESLint flat config for JavaScript, and lint JSONC and JSON5 too:
 
 The settings each plugin understands are documented on its page: [js](../../plugins/lint-js/), [json](../../plugins/lint-json/), [md](../../plugins/lint-md/), [release](../../plugins/release/).
 
-## Defaults and errors
+## Defaults & errors
 
 - If `.opx/config.json` doesn't exist, opx behaves as if every task were empty and `release` and `test` were `false`.
 - If it exists but isn't a valid JSON object, opx stops with an error that names the file.

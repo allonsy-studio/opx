@@ -54,7 +54,7 @@ export default fooDetector;
 
 Write report output through `ctx.write()` rather than `process.stdout`, so opx can group output from concurrent detectors. Read `ctx.fix` to know whether `--fix` was passed, and `ctx.config` for the user's settings.
 
-## Naming and packaging
+## Naming & packaging
 
 opx loads a plugin only if it is in the project's dependencies and its name matches one of:
 
