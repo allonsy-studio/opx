@@ -28,5 +28,5 @@ export { applyDeferral, defaultSkipUntilDate, diff } from "./diff.js";
 export { detectPackageManager, installCommand } from "./pkg-manager.js";
 export { resolveTool } from "./resolver.js";
 export { filterPathsByExtension } from "./paths.js";
-export { ensureGitignored, installPostCommitHook } from "./hooks.js";
+export { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
 export { createConsoleLogger } from "./logger.js";

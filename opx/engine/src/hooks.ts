@@ -47,3 +47,24 @@ export function ensureGitignored(cwd: string, entry: string): boolean {
 	writeFileSync(path, next, "utf8");
 	return true;
 }
+
+/**
+ * Ignore opx's local files while keeping `.opx/config.json` committable.
+ *
+ * Replaces a bare `.opx` / `.opx/` entry, which would also hide the config,
+ * with `.opx/*` plus a `!.opx/config.json` exception.
+ *
+ * @returns true if `.gitignore` was changed.
+ */
+export function ensureOpxIgnored(cwd: string): boolean {
+	const path = join(cwd, ".gitignore");
+	const current = existsSync(path) ? readFileSync(path, "utf8") : "";
+	const lines = current.split("\n");
+	if (lines.includes(".opx/*") && lines.includes("!.opx/config.json")) return false;
+
+	const kept = lines.filter((line) => line !== ".opx" && line !== ".opx/" && line !== ".opx/*" && line !== "!.opx/config.json");
+	const base = kept.join("\n").replace(/\n*$/, "");
+	const next = `${base}${base ? "\n" : ""}.opx/*\n!.opx/config.json\n`;
+	writeFileSync(path, next, "utf8");
+	return true;
+}

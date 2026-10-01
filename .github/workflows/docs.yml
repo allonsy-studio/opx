@@ -1,0 +1,55 @@
+name: Docs
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+# Only cancel superseded PR builds; never interrupt a deploy in progress.
+concurrency:
+    group: docs-${{ github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+    docs:
+        runs-on: ubuntu-latest
+        permissions:
+            # Needed to push the built site to the gh-pages branch on main.
+            contents: write
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v6
+              with:
+                  persist-credentials: false
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+
+            - name: Install dependencies
+              run: yarn install --immutable
+
+            - name: Build docs site
+              env:
+                  DOCS_BASE_URL: ${{ github.event_name == 'push' && format('/{0}/', github.event.repository.name) || '/' }}
+              run: yarn docs:build
+
+            # Publishing pushes the built files to the gh-pages branch instead of
+            # uploading a Pages artifact, so it doesn't use Actions artifact storage.
+            # Set Pages to "Deploy from a branch: gh-pages / (root)" in repo settings.
+            - name: Deploy to gh-pages
+              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+              working-directory: opx/docs/_site
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  touch .nojekyll
+                  git init --quiet --initial-branch=gh-pages
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add --all
+                  git commit --quiet --message "docs: deploy ${GITHUB_SHA}"
+                  git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages

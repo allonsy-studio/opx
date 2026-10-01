@@ -1,0 +1,13 @@
+---
+layout: layouts/base.njk
+---
+<div class="docs-shell">
+	<aside class="docs-sidebar">
+		{% include "components/search.njk" %}
+		{% include "components/sidebar.njk" %}
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body>
+		{% if title %}<h1 data-pagefind-meta="title">{{ title }}</h1>{% endif %}
+		{{ content | safe }}
+	</main>
+</div>

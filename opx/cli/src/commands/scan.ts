@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 
 import { buildContext } from "../context.js";
-import { virtualDetectors } from "../built-in.js";
+import { UNDETECTABLE_PLUGINS, enabledNames, virtualDetectors } from "../built-in.js";
 import { detectMode } from "../tty.js";
 import { CLI_NAME } from "../plugin-kit.js";
 
@@ -23,8 +23,9 @@ export default function register(program: Command): void {
 			const ctx = buildContext({ cwd });
 			const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
 
-			const enabledLinters = new Set(Object.keys(ctx.config.lint ?? {}) as string[]);
-			const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName));
+			const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(ctx.config.release === true ? ["release"] : [])]);
+			// Plugins like release can't be inferred from files, so they never count as missing.
+			const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName) && !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName));
 
 			const mode = detectMode(opts.report || opts.json);
 

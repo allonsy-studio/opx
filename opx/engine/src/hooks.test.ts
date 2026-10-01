@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "nod
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { ensureGitignored, installPostCommitHook } from "./hooks.js";
+import { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
 
 function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-hooks-"));
@@ -61,6 +61,32 @@ describe("ensureGitignored", () => {
 
 		writeFileSync(join(dir, ".gitignore"), ".opx/\n", "utf8");
 		expect(ensureGitignored(dir, ".opx")).toBe(false);
+		rmSync(dir, { recursive: true });
+	});
+});
+
+describe("ensureOpxIgnored", () => {
+	it("creates a .gitignore that ignores local files but not the config", () => {
+		const dir = tmp();
+		expect(ensureOpxIgnored(dir)).toBe(true);
+		expect(readFileSync(join(dir, ".gitignore"), "utf8")).toBe(".opx/*\n!.opx/config.json\n");
+		rmSync(dir, { recursive: true });
+	});
+
+	it("replaces a bare .opx/ entry that would hide the config", () => {
+		const dir = tmp();
+		writeFileSync(join(dir, ".gitignore"), "node_modules\n.opx/\ndist\n", "utf8");
+		expect(ensureOpxIgnored(dir)).toBe(true);
+		const contents = readFileSync(join(dir, ".gitignore"), "utf8");
+		expect(contents).not.toMatch(/^\.opx\/$/m);
+		expect(contents).toContain("node_modules\ndist\n.opx/*\n!.opx/config.json\n");
+		rmSync(dir, { recursive: true });
+	});
+
+	it("is idempotent", () => {
+		const dir = tmp();
+		ensureOpxIgnored(dir);
+		expect(ensureOpxIgnored(dir)).toBe(false);
 		rmSync(dir, { recursive: true });
 	});
 });

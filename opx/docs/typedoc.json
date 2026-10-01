@@ -1,0 +1,28 @@
+{
+	"$schema": "https://typedoc.org/schema.json",
+	"entryPoints": [
+		"../engine/src/index.ts"
+	],
+	"tsconfig": "./tsconfig.typedoc.json",
+	"out": "src/api",
+	"plugin": [
+		"typedoc-plugin-markdown",
+		"typedoc-plugin-frontmatter"
+	],
+	"readme": "none",
+	"hideGenerator": true,
+	"hidePageHeader": true,
+	"hideBreadcrumbs": true,
+	"useCodeBlocks": true,
+	"expandObjects": true,
+	"parametersFormat": "table",
+	"propertiesFormat": "table",
+	"indexFormat": "table",
+	"frontmatterGlobals": {
+		"layout": "layouts/docs.njk"
+	},
+	"excludeInternal": true,
+	"excludePrivate": true,
+	"entryFileName": "index",
+	"flattenOutputFiles": false
+}
