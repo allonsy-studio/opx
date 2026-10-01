@@ -7,8 +7,8 @@ body:
     id: location
     attributes:
       label: Where in the docs?
-      description: Link or path to the section with the problem (e.g. `README.md#inputs`).
-      placeholder: README.md#inputs
+      description: Link or path to the section with the problem (e.g. `opx/docs/src/cli/lint.md`).
+      placeholder: opx/docs/src/cli/lint.md
     validations:
       required: true
 
