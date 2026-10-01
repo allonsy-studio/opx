@@ -6,11 +6,12 @@ import { join } from "node:path";
 import type { DetectorContext } from "@allons-y/opx";
 
 import { runAdd } from "./add.js";
+import { detectBaseBranch } from "./base-branch.js";
 
 /**
  * A lightweight, sensible-default changesets config for a host repo. Mirrors a
  * minimal `.changeset/config.json` so a project can start recording changes
- * without hand-authoring the file.
+ * without hand-authoring the file. `baseBranch` is filled in per repository.
  */
 const DEFAULT_CHANGESET_CONFIG = {
 	$schema: "https://unpkg.com/@changesets/config@3.1.4/schema.json",
@@ -19,7 +20,6 @@ const DEFAULT_CHANGESET_CONFIG = {
 	fixed: [],
 	linked: [],
 	access: "public",
-	baseBranch: "main",
 	updateInternalDependencies: "patch",
 	ignore: [],
 };
@@ -46,7 +46,8 @@ export function init(ctx: DetectorContext): boolean {
 	if (existsSync(configFile)) return false;
 
 	mkdirSync(dir, { recursive: true });
-	writeFileSync(configFile, `${JSON.stringify(DEFAULT_CHANGESET_CONFIG, null, 2)}\n`, "utf8");
+	const config = { ...DEFAULT_CHANGESET_CONFIG, baseBranch: detectBaseBranch(ctx.cwd) };
+	writeFileSync(configFile, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 
 	const readme = join(dir, "README.md");
 	if (!existsSync(readme)) writeFileSync(readme, CHANGESET_README, "utf8");

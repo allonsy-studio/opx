@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import { EventEmitter } from "node:events";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -41,6 +41,20 @@ beforeEach(() => {
 	spawnCalls.length = 0;
 });
 
+describe("init baseBranch", () => {
+	it("uses the repository's own default branch", () => {
+		const dir = tmp();
+		try {
+			mkdirSync(join(dir, ".git", "refs", "heads"), { recursive: true });
+			writeFileSync(join(dir, ".git", "refs", "heads", "master"), "abc\n");
+			init(ctx(dir));
+			expect(JSON.parse(readFileSync(join(dir, ".changeset", "config.json"), "utf8")).baseBranch).toBe("master");
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+});
+
 describe("init", () => {
 	it("writes config + README and is idempotent", () => {
 		const dir = tmp();
@@ -54,6 +68,7 @@ describe("init", () => {
 			expect(parsed.changelog).toBe("@changesets/cli/changelog");
 			expect(parsed.baseBranch).toBe("main");
 
+			// No git repository here, so it falls back to main.
 			// Second call: config already present → returns false.
 			expect(init(ctx(dir))).toBe(false);
 		} finally {
