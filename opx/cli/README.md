@@ -1,6 +1,6 @@
 # @allons-y/opx-cli
 
-The `opx` command-line interface. Scans the committed tree of a git repository, suggests language tooling, and drives lint/test/build via opx detectors.
+The `opx` command-line interface. Scans the committed tree of a git repository, suggests language tooling, and drives lint, build, and release via opx detectors.
 
 ## Install
 

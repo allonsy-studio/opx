@@ -6,7 +6,7 @@
 	},
 	"name": "@allons-y/opx",
 	"version": "0.1.0",
-	"description": "opx engine — pure detector registry, scanner contract, state, plugin loader, and resolver. Consumed by @allons-y/opx-cli and @allons-y/opx-mcp.",
+	"description": "opx engine — pure detector registry, scanner contract, state, plugin loader, and resolver. Consumed by @allons-y/opx-cli; build your own plugin or host on it.",
 	"license": "MPL-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
 	"homepage": "https://github.com/allonsy-studio/opx#readme",

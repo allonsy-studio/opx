@@ -38,7 +38,7 @@ opx lint
 opx lint src
 ```
 
-Lint runs through ESLint's Node API with caching at `.opx/cache/eslint/cache`.
+Lint runs through ESLint's Node API with caching at `.opx/cache/eslint/js`.
 
 ## Override the config
 
@@ -48,7 +48,7 @@ To swap in your own ESLint flat config, set `lint.js` in `.opx/config.json`:
 {
   "version": 1,
   "lint": {
-    "js": "./eslint.config.js",
+    "js": "./eslint.config.js"
   }
 }
 ```
