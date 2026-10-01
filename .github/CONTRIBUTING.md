@@ -10,6 +10,8 @@ corepack enable    # Yarn 4
 yarn install
 ```
 
+Yarn doesn't run a root `prepare` script on install, so install the git hooks once with `yarn prepare`. Dependency install scripts are disabled (`enableScripts: false` in `.yarnrc.yml`); if a dependency genuinely needs one, opt it in with `dependenciesMeta.<name>.built: true`.
+
 opx is a Yarn workspaces monorepo. Each package lives in `opx/<name>`:
 
 | Directory | Package |
