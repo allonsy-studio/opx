@@ -46,7 +46,7 @@
 	},
 	"dependencies": {
 		"@allons-y/opx": "^0.1.0",
-		"@clack/prompts": "^1.6.0",
+		"@clack/prompts": "^1.8.1",
 		"commander": "^14.0.3"
 	},
 	"keywords": [

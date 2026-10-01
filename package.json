@@ -50,12 +50,12 @@
 		"@allons-y/opx-lint-md": "workspace:*",
 		"@allons-y/opx-release": "workspace:*",
 		"cross-env": "^10.1.0",
-		"esbuild": "^0.28.1",
+		"esbuild": "^0.28.2",
 		"husky": "^9.1.7",
-		"jest": "^30.4.2",
-		"lint-staged": "^17.0.8",
-		"npm-run-all2": "^9.0.2",
-		"ts-jest": "^29.4.11",
+		"jest": "^30.5.2",
+		"lint-staged": "^17.6.0",
+		"npm-run-all2": "^9.0.3",
+		"ts-jest": "^29.4.14",
 		"typescript": "^6.0.3"
 	},
 	"keywords": [

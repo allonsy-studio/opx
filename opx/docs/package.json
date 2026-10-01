@@ -26,16 +26,16 @@
 		"clean": "rm -rf _site src/api"
 	},
 	"devDependencies": {
-		"@11ty/eleventy": "^3.0.0",
+		"@11ty/eleventy": "^3.1.6",
 		"@11ty/eleventy-navigation": "^0.3.5",
-		"@11ty/eleventy-plugin-syntaxhighlight": "^5.0.0",
-		"markdown-it": "^14.1.0",
-		"markdown-it-anchor": "^9.2.0",
-		"npm-run-all2": "^9.0.2",
-		"pagefind": "^1.4.0",
-		"typedoc": "^0.28.0",
-		"typedoc-plugin-frontmatter": "^1.3.0",
-		"typedoc-plugin-markdown": "^4.9.0"
+		"@11ty/eleventy-plugin-syntaxhighlight": "^5.0.2",
+		"markdown-it": "^14.3.2",
+		"markdown-it-anchor": "^9.2.1",
+		"npm-run-all2": "^9.0.3",
+		"pagefind": "^1.5.2",
+		"typedoc": "^0.28.20",
+		"typedoc-plugin-frontmatter": "^1.3.2",
+		"typedoc-plugin-markdown": "^4.13.1"
 	},
 	"engines": {
 		"node": ">=24"

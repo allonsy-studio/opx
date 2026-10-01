@@ -46,9 +46,9 @@
 	"types": "./bin/index.d.ts",
 	"dependencies": {
 		"@allons-y/opx": "^0.1.0",
-		"@eslint/compat": "^2.1.0",
-		"@eslint/markdown": "^8.0.2",
-		"eslint": "^10.6.0"
+		"@eslint/compat": "^2.1.1",
+		"@eslint/markdown": "^8.0.3",
+		"eslint": "^10.11.0"
 	},
 	"keywords": [
 		"opx",
