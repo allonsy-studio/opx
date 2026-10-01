@@ -3,10 +3,10 @@ import type { BuiltInShortName } from "../built-in.js";
 
 import { extname, basename } from "node:path";
 
-import { readConfig, readState, writeState } from "@allons-y/opx";
+import { enabledNames, isDeferred, readConfig, readState, writeState } from "@allons-y/opx";
 
 import { getCurrentBranch, getHeadCommit, listFilesInHeadCommit } from "../scanner.js";
-import builtIns, { enabledNames } from "../built-in.js";
+import builtIns from "../built-in.js";
 
 export default function register(program: Command): void {
 	const hook = program.command("hook").description("Internal — invoked by git hooks");
@@ -19,8 +19,16 @@ export default function register(program: Command): void {
 		});
 }
 
-function runPostCommit(): void {
-	const cwd = process.cwd();
+/**
+ * Nudge about plugins that could handle file types in the latest commit.
+ *
+ * Skips plugins that are already enabled and ones the user answered "later"
+ * for on this branch. Never throws: a git hook must not fail a commit.
+ *
+ * @param cwd - The repository root.
+ * @param today - Today's date as `YYYY-MM-DD`; injectable for tests.
+ */
+export function runPostCommit(cwd: string = process.cwd(), today: string = new Date().toISOString().slice(0, 10)): void {
 	let config;
 	let state;
 	try {
@@ -42,15 +50,9 @@ function runPostCommit(): void {
 
 	const enabledLinters = new Set(enabledNames(config.lint));
 	const branch = getCurrentBranch(cwd);
-	const today = new Date().toISOString().slice(0, 10);
 
 	const suggested = builtIns.suggest(newTypes);
-	const toNudge = suggested.filter((shortName) => {
-		if (enabledLinters.has(shortName)) return false;
-		const deferral = state.deferrals[shortName];
-		if (deferral && deferral.branch === branch && deferral.skipUntilDate >= today) return false;
-		return true;
-	});
+	const toNudge = suggested.filter((shortName) => !enabledLinters.has(shortName) && !isDeferred(state, shortName, branch, today));
 
 	for (const shortName of toNudge as BuiltInShortName[]) {
 		const pkgs = builtIns.PACKAGE_HINTS[shortName];

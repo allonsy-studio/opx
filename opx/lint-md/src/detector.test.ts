@@ -13,6 +13,10 @@ describe("opx-lint-md detector", () => {
 		expect(d.detect(ctx(new Set([".md"])))).toBe(true);
 	});
 
+	it("detects an .mdx-only repository", () => {
+		expect(d.detect(ctx(new Set([".mdx"])))).toBe(true);
+	});
+
 	it("does not detect when no owned extension is present", () => {
 		expect(d.detect(ctx(new Set([".ts"])))).toBe(false);
 	});

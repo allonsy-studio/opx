@@ -1,4 +1,4 @@
-import { applyDeferral, defaultSkipUntilDate, diff } from "./diff.js";
+import { applyDeferral, defaultSkipUntilDate, diff, isDeferred } from "./diff.js";
 import type { Detector, DetectorContext, OpxState } from "./detector.js";
 
 function fakeDetector(shortName: string, matched: boolean): Detector {
@@ -61,5 +61,54 @@ describe("defaultSkipUntilDate / applyDeferral", () => {
 		const next = applyDeferral(state, "js", "feat", "2026-06-01");
 		expect(next.deferrals.js).toEqual({ branch: "feat", skipUntilDate: "2026-06-01", reason: "later" });
 		expect(state.deferrals).toEqual({});
+	});
+});
+
+describe("isDeferred", () => {
+	const state = (over: Partial<OpxState["deferrals"][string]> = {}): OpxState => ({
+		version: 1,
+		deferrals: { js: { branch: "main", skipUntilDate: "2026-01-02", reason: "later", ...over } },
+	});
+
+	it("is active through the skip date, inclusive", () => {
+		expect(isDeferred(state(), "js", "main", "2026-01-01")).toBe(true);
+		expect(isDeferred(state(), "js", "main", "2026-01-02")).toBe(true);
+	});
+
+	it("expires the day after the skip date", () => {
+		expect(isDeferred(state(), "js", "main", "2026-01-03")).toBe(false);
+	});
+
+	it("never applies on a different branch", () => {
+		expect(isDeferred(state(), "js", "feature", "2026-01-01")).toBe(false);
+	});
+
+	it("is false for a plugin with no deferral", () => {
+		expect(isDeferred(state(), "md", "main", "2026-01-01")).toBe(false);
+	});
+
+	it("defaults to today's date", () => {
+		const today = new Date().toISOString().slice(0, 10);
+		expect(isDeferred(state({ skipUntilDate: today }), "js", "main")).toBe(true);
+		expect(isDeferred(state({ skipUntilDate: "2000-01-01" }), "js", "main")).toBe(false);
+	});
+});
+
+describe("diff and disabled plugins", () => {
+	it("treats a plugin set to false as not enabled", async () => {
+		const result = await diff([fakeDetector("js", true)], ctx({ lint: { js: false } }), "2026-01-01");
+		expect(result.entries[0]?.enabled).toBe(false);
+		expect(result.needsPrompt).toHaveLength(1);
+	});
+
+	it("does not re-prompt on the skip date, but does the day after", async () => {
+		const deferrals = { js: { branch: "main", skipUntilDate: "2026-01-02", reason: "later" } };
+		expect((await diff([fakeDetector("js", true)], ctx({ deferrals }), "2026-01-02")).needsPrompt).toHaveLength(0);
+		expect((await diff([fakeDetector("js", true)], ctx({ deferrals }), "2026-01-03")).needsPrompt).toHaveLength(1);
+	});
+
+	it("ignores a deferral recorded on another branch", async () => {
+		const deferrals = { js: { branch: "other", skipUntilDate: "2026-01-02", reason: "later" } };
+		expect((await diff([fakeDetector("js", true)], ctx({ deferrals, branch: "main" }), "2026-01-01")).needsPrompt).toHaveLength(1);
 	});
 });

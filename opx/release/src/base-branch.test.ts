@@ -48,6 +48,14 @@ describe("detectBaseBranch", () => {
 		expect(detectBaseBranch(make((git) => write(join(git, "refs", "heads", "master"), "abc\n")))).toBe("master");
 	});
 
+	it("prefers main when both main and master exist", () => {
+		const dir = make((git) => {
+			write(join(git, "refs", "heads", "master"), "abc\n");
+			write(join(git, "refs", "heads", "main"), "abc\n");
+		});
+		expect(detectBaseBranch(dir)).toBe("main");
+	});
+
 	it("finds branches that only exist in packed-refs", () => {
 		const dir = make((git) => write(join(git, "packed-refs"), "# pack-refs\nabc123 refs/heads/master\n"));
 		expect(detectBaseBranch(dir)).toBe("master");

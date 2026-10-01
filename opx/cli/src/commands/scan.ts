@@ -1,15 +1,55 @@
 import type { Command } from "commander";
 
+import { enabledNames, type DetectorContext } from "@allons-y/opx";
+
 import { buildContext } from "../context.js";
-import { UNDETECTABLE_PLUGINS, enabledNames, virtualDetectors } from "../built-in.js";
+import { UNDETECTABLE_PLUGINS, virtualDetectors } from "../built-in.js";
 import { detectMode } from "../tty.js";
 import { CLI_NAME } from "../plugin-kit.js";
 
-type ScanOptions = {
+export type ScanOptions = {
 	report: boolean;
 	json: boolean;
 	strict: boolean;
 };
+
+/**
+ * Report which plugins match the committed tree.
+ *
+ * Output is JSON with `--json`, a plain list with `--report` or in a
+ * non-interactive shell, and the same list plus a hint otherwise. `release`
+ * can't be inferred from files, so it never counts toward `--strict`.
+ *
+ * @param ctx - The detector context for the host repo.
+ * @param opts - The command's flags.
+ * @returns `1` when `--strict` is set and a file-based plugin isn't enabled, otherwise `0`.
+ */
+export function runScan(ctx: DetectorContext, opts: ScanOptions): number {
+	const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
+
+	const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(ctx.config.release === true ? ["release"] : [])]);
+	// Plugins like release can't be inferred from files, so they never count as missing.
+	const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName) && !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName));
+
+	const mode = detectMode(opts.report || opts.json);
+
+	if (opts.json) {
+		const payload = {
+			branch: ctx.branch,
+			fileTypes: [...ctx.fileTypes].sort(),
+			enabled: [...enabledLinters],
+			suggestions,
+			needsPrompt: needsPrompt.map((s) => s.shortName),
+		};
+		process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+	} else if (mode === "report") {
+		renderReport(ctx.fileTypes, [...enabledLinters], suggestions);
+	} else {
+		renderInteractive(ctx.fileTypes, [...enabledLinters], suggestions);
+	}
+
+	return opts.strict && needsPrompt.length > 0 ? 1 : 0;
+}
 
 export default function register(program: Command): void {
 	program
@@ -18,35 +58,8 @@ export default function register(program: Command): void {
 		.option("--report", "non-interactive table output", false)
 		.option("--json", "machine-readable JSON output", false)
 		.option("--strict", "exit non-zero if any detector needs prompting", false)
-		.action(async (opts: ScanOptions) => {
-			const cwd = process.cwd();
-			const ctx = buildContext({ cwd });
-			const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
-
-			const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(ctx.config.release === true ? ["release"] : [])]);
-			// Plugins like release can't be inferred from files, so they never count as missing.
-			const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName) && !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName));
-
-			const mode = detectMode(opts.report || opts.json);
-
-			if (opts.json) {
-				const payload = {
-					branch: ctx.branch,
-					fileTypes: [...ctx.fileTypes].sort(),
-					enabled: [...enabledLinters],
-					suggestions,
-					needsPrompt: needsPrompt.map((s) => s.shortName),
-				};
-				process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
-			} else if (mode === "report") {
-				renderReport(ctx.fileTypes, [...enabledLinters], suggestions);
-			} else {
-				renderInteractive(ctx.fileTypes, [...enabledLinters], suggestions);
-			}
-
-			if (opts.strict && needsPrompt.length > 0) {
-				process.exit(1);
-			}
+		.action((opts: ScanOptions) => {
+			process.exit(runScan(buildContext({ cwd: process.cwd() }), opts));
 		});
 }
 

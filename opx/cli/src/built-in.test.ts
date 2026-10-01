@@ -67,6 +67,11 @@ describe("suggest", () => {
 });
 
 describe("virtualDetectors", () => {
+	it("suggests markdown linting for an .mdx-only tree", () => {
+		const result = virtualDetectors(new Set([".mdx"]), {});
+		expect(result.some((r) => r.pkg === "@allons-y/opx-lint-md")).toBe(true);
+	});
+
 	it("includes matched detectors and undetectable plugins, flagging installed packages", () => {
 		const result = virtualDetectors(new Set([".md"]), {
 			dependencies: { "@allons-y/opx-lint-md": "1" },
@@ -113,13 +118,5 @@ describe("load", () => {
 			}),
 		);
 		expect(loaded).toEqual([]);
-	});
-});
-
-describe("enabledNames", () => {
-	it("omits plugins set to false and handles a missing task", async () => {
-		const { enabledNames } = await import("./built-in.js");
-		expect(enabledNames({ js: true, md: false, json: { dialects: [] }, css: "./x.js" })).toEqual(["js", "json", "css"]);
-		expect(enabledNames(undefined)).toEqual([]);
 	});
 });

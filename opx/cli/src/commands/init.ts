@@ -9,6 +9,7 @@ import {
 	configPath,
 	defaultConfig,
 	defaultState,
+	enabledNames,
 	ensureOpxIgnored,
 	installCommand,
 	installPostCommitHook,
@@ -20,7 +21,7 @@ import {
 } from "@allons-y/opx";
 
 import { buildContext, readHostPackage } from "../context.js";
-import { enabledNames, virtualDetectors } from "../built-in.js";
+import { virtualDetectors } from "../built-in.js";
 import { scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { defaultSkipUntilDate } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
@@ -55,7 +56,26 @@ export default function register(program: Command): void {
 		});
 }
 
-async function runInteractive(cwd: string): Promise<void> {
+/** Runs an install command in the project; injectable so tests don't spawn a package manager. */
+export type InstallRunner = (cmd: string, cwd: string) => Promise<void> | void;
+
+const runInstall: InstallRunner = async (cmd, cwd) => {
+	const { execFileSync } = await import("node:child_process");
+	const [bin, ...args] = cmd.split(" ");
+	if (bin) execFileSync(bin, args, { cwd, stdio: "inherit" });
+};
+
+/**
+ * Interactively choose and wire up tooling for the repository.
+ *
+ * Asks about each plugin the committed tree suggests (yes, no, or later),
+ * saves the choices, offers to install missing packages and add a `lint`
+ * script, scaffolds `eslint.config.js`, and installs the post-commit hook.
+ *
+ * @param cwd - The repository root.
+ * @param install - Runs the package manager; defaults to spawning it.
+ */
+export async function runInteractive(cwd: string, install: InstallRunner = runInstall): Promise<void> {
 	p.intro(`${CLI_NAME} toolkit setup`);
 
 	if (!existsSync(configPath(cwd))) {
@@ -165,11 +185,7 @@ async function runInteractive(cwd: string): Promise<void> {
 			initialValue: true,
 		});
 		if (!p.isCancel(confirmed) && confirmed) {
-			const { execFileSync } = await import("node:child_process");
-			const [bin, ...args] = cmd.split(" ");
-			if (bin) {
-				execFileSync(bin, args, { cwd, stdio: "inherit" });
-			}
+			await install(cmd, cwd);
 		} else {
 			p.log.info(`Run when ready: ${cmd}`);
 		}
@@ -215,10 +231,15 @@ async function runInteractive(cwd: string): Promise<void> {
 	p.outro("Setup complete.");
 }
 
-function runReport(cwd: string): void {
+/**
+ * Non-interactive `init`: print what would be suggested instead of prompting.
+ *
+ * @param cwd - The repository root.
+ */
+export function runReport(cwd: string): void {
 	if (!existsSync(configPath(cwd))) {
 		writeConfig(cwd, defaultConfig());
-		console.log(`${CLI_NAME}: wrote starter ${CLI_NAME}.config.json.`);
+		console.log(`${CLI_NAME}: wrote starter .${CLI_NAME}/config.json.`);
 	}
 	const hostPkg = readHostPackage(cwd);
 	const ctx = buildContext({ cwd });

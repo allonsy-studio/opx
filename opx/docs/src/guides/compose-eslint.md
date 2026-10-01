@@ -19,7 +19,7 @@ import md from "@allons-y/opx-lint-md/eslint.config.js";
 export default [...js, ...json, ...md];
 ```
 
-## Add third-party plugins and your own rules
+## Add third-party plugins & your own rules
 
 Each block in opx's configs is scoped with `files`, so they don't collide. Flat config is evaluated top to bottom and the last matching block wins, so put opx first and your overrides last:
 
