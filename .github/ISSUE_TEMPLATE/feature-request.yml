@@ -6,13 +6,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for the idea! Filling this out completely helps maintainers gauge whether it fits the action's scope.
+        Thanks for the idea! Filling this out completely helps maintainers gauge whether it fits opx's scope. If you want a new tool supported, say whether it belongs in a first-party plugin or in a community plugin.
 
   - type: textarea
     id: problem
     attributes:
       label: What problem are you trying to solve?
-      description: Describe the use case. What does the action not do today that you wish it did?
+      description: Describe the use case. What can't you do with opx today?
     validations:
       required: true
 
@@ -20,7 +20,7 @@ body:
     id: proposal
     attributes:
       label: Proposed solution
-      description: How would you like this to work? An input name, behavior sketch, or example workflow snippet are all helpful.
+      description: How would you like this to work? A command, a config key, or a sketch of the output all help.
     validations:
       required: true
 

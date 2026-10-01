@@ -25,6 +25,7 @@
 		"coverage": "yarn workspaces foreach --all --parallel --interlaced --no-private run coverage",
 		"lint": "yarn build && opx lint",
 		"format": "yarn build && opx lint --fix",
+		"smoke": "yarn build && node scripts/smoke.mjs",
 		"typecheck": "yarn workspaces foreach --all --parallel --interlaced --no-private run typecheck",
 		"clean": "yarn workspaces foreach --all --parallel --no-private run clean",
 		"docs:build": "yarn workspace @allons-y/opx-docs run build",

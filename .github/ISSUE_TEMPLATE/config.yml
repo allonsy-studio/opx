@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: 🙋 Question or support request
-    url: https://github.com/castastrophe/actions-pr-auto-update/discussions/new?category=q-a
+    url: https://github.com/allonsy-studio/opx/discussions/new?category=q-a
     about: Have a usage question? Start a discussion — please search existing threads first.
   - name: 📖 Read the docs
-    url: https://github.com/castastrophe/actions-pr-auto-update#readme
-    about: The README covers configuration, scheduled runs, outputs, and common patterns.
+    url: https://github.com/allonsy-studio/opx#readme
+    about: The README and the docs site cover installation, the CLI, configuration, and writing plugins.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/allonsy-studio/opx/blob/main/.github/SECURITY.md
+    about: Please don't open a public issue for security problems. Follow the instructions in SECURITY.md.

@@ -46,3 +46,23 @@ jobs:
 
             - name: Run lint
               run: yarn lint
+
+    smoke:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v6
+              with:
+                  persist-credentials: false
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+
+            - name: Install dependencies
+              run: yarn install --immutable
+
+            - name: Pack, install, and run the CLI
+              run: yarn smoke

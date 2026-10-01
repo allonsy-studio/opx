@@ -1,5 +1,5 @@
 name: 🐛 Bug report
-description: Report a problem with this action
+description: Report a problem with opx
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -8,25 +8,55 @@ body:
       value: |
         Thanks for taking the time to file a bug. The more concrete the repro, the faster the fix.
 
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      description: Which package is the problem in?
+      options:
+        - "@allons-y/opx-cli"
+        - "@allons-y/opx (engine)"
+        - "@allons-y/opx-lint-js"
+        - "@allons-y/opx-lint-json"
+        - "@allons-y/opx-lint-md"
+        - "@allons-y/opx-release"
+        - Not sure
+    validations:
+      required: true
+
   - type: input
     id: version
     attributes:
-      label: Action version
-      description: Which tag, branch, or commit SHA were you using? (e.g. `v3`, `v3.0.0`, `main`)
-      placeholder: v3
+      label: Version
+      description: Output of `opx --version` (e.g. `0.2.0-beta.0`).
+      placeholder: 0.2.0-beta.0
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Node.js version, package manager, and operating system.
+      placeholder: Node 24.1, yarn 4.18, macOS 15
     validations:
       required: true
 
   - type: textarea
-    id: workflow
+    id: config
     attributes:
-      label: Workflow snippet
-      description: Paste the relevant section of your `.github/workflows/*.yml` (or a minimal reproducer). Redact any secrets.
-      render: yaml
+      label: Your .opx/config.json
+      description: Paste your config, if relevant.
+      render: json
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: The commands you ran, in order. A link to a minimal repository is ideal.
       placeholder: |
-        - uses: castastrophe/actions-pr-auto-update@v3
-          with:
-            limit: 10
+        1. opx init
+        2. opx lint
     validations:
       required: true
 
@@ -34,7 +64,7 @@ body:
     id: expected
     attributes:
       label: Expected behavior
-      description: What did you expect the action to do?
+      description: What did you expect to happen?
     validations:
       required: true
 
@@ -42,19 +72,13 @@ body:
     id: actual
     attributes:
       label: Actual behavior
-      description: What happened instead? Include error messages and a link to the failing Actions run if it's public.
+      description: What happened instead? Include error messages. Re-run with `--debug` for the full stack trace.
+      render: text
     validations:
       required: true
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Relevant logs
-      description: Paste any error output or relevant log lines. (Wrap long output in `<details>` if needed.)
-      render: text
 
   - type: textarea
     id: context
     attributes:
       label: Additional context
-      description: Anything else worth knowing — repo characteristics, unusual permissions setup, custom token, etc.
+      description: Anything else worth knowing.

@@ -36,7 +36,7 @@ opx lint
 opx lint docs
 ```
 
-Lint runs through ESLint's Node API with caching at `.opx/cache/eslint/cache`.
+Lint runs through ESLint's Node API with caching at `.opx/cache/eslint/md`.
 
 ## Override the config
 

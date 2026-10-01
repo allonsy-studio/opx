@@ -35,7 +35,7 @@ JSONC and JSON5 are off by default — `opx init` asks whether to enable them an
 {
   "version": 1,
   "lint": {
-    "json": { "dialects": ["jsonc" , "json5"] }
+    "json": { "dialects": ["jsonc", "json5"] }
   }
 }
 ```
@@ -51,7 +51,7 @@ opx lint
 opx lint package.json tsconfig.json
 ```
 
-When no paths are passed, the runner lints `**/*.json` plus the enabled dialect globs. Caching writes to `.opx/cache/eslint/cache`.
+When no paths are passed, the runner lints `**/*.json` plus the enabled dialect globs. Caching writes to `.opx/cache/eslint/json`.
 
 ## Override the config
 
@@ -62,7 +62,7 @@ To swap in your own ESLint flat config, set `lint.json` in `.opx/config.json`:
   "version": 1,
   "lint": {
     "json": "./eslint.json.config.js"
-  },
+  }
 }
 ```
 

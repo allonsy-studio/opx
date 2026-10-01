@@ -37,7 +37,7 @@
 
 **opx** is the _optionally_ opinionated front-end toolkit — a tiny CLI plus a
 family of installable detector plugins for linting, building, and releasing.
-This is the private monorepo root for the `@allons-y/opx-*` packages.
+This repository is the monorepo for the `@allons-y/opx-*` packages.
 
 The core idea: the CLI stays tiny and knows nothing about ESLint, changesets, or
 any specific tool. It scans your repository, figures out which languages and
