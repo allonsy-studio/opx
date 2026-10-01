@@ -67,6 +67,11 @@ describe("suggest", () => {
 });
 
 describe("virtualDetectors", () => {
+	it("suggests markdown linting for an .mdx-only tree", () => {
+		const result = virtualDetectors(new Set([".mdx"]), {});
+		expect(result.some((r) => r.pkg === "@allons-y/opx-lint-md")).toBe(true);
+	});
+
 	it("includes matched detectors and undetectable plugins, flagging installed packages", () => {
 		const result = virtualDetectors(new Set([".md"]), {
 			dependencies: { "@allons-y/opx-lint-md": "1" },

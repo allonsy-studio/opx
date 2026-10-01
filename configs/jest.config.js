@@ -21,8 +21,8 @@ export default {
 	},
 	verbose: true,
 	collectCoverageFrom: [
-		"src/*.ts",
-		"!src/*.test.ts",
+		"src/**/*.ts",
+		"!src/**/*.test.ts",
 		// Entry points are thin re-exports / commander bootstrap — exercised via
 		// integration, not unit coverage.
 		"!src/index.ts",
