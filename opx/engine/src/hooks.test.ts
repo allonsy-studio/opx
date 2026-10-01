@@ -19,9 +19,24 @@ describe("installPostCommitHook", () => {
 
 	it("is idempotent when the marker is already present", () => {
 		const dir = tmp();
-		installPostCommitHook(dir);
+		const first = installPostCommitHook(dir);
+		const before = readFileSync(first.path, "utf8");
 		const result = installPostCommitHook(dir);
 		expect(result.created).toBe(false);
+		expect(readFileSync(result.path, "utf8")).toBe(before);
+		rmSync(dir, { recursive: true });
+	});
+
+	it("does not append the line again to a hook that already has it", () => {
+		const dir = tmp();
+		mkdirSync(join(dir, ".husky"), { recursive: true });
+		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", "utf8");
+		installPostCommitHook(dir);
+		const once = readFileSync(join(dir, ".husky", "post-commit"), "utf8");
+		installPostCommitHook(dir);
+		const twice = readFileSync(join(dir, ".husky", "post-commit"), "utf8");
+		expect(twice).toBe(once);
+		expect(twice.match(/opx hook post-commit/g)).toHaveLength(1);
 		rmSync(dir, { recursive: true });
 	});
 

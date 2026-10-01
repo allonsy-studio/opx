@@ -52,6 +52,17 @@ function parseJsonFile<T extends object>(path: string): T {
 	}
 }
 
+/**
+ * Names of the plugins switched on in a task map. A plugin set to `false` is
+ * present in the config but disabled, so it is excluded.
+ *
+ * @param tasks - A `lint` or `build` map from `.opx/config.json`.
+ * @returns The enabled plugin short names, in config order.
+ */
+export function enabledNames(tasks: Record<string, unknown> | undefined): string[] {
+	return Object.entries(tasks ?? {}).filter(([, setting]) => setting !== false).map(([name]) => name);
+}
+
 export function readConfig(cwd: string): OpxConfig {
 	const path = configPath(cwd);
 	if (!existsSync(path)) {

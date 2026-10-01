@@ -18,13 +18,14 @@ export {
 	configPath,
 	defaultConfig,
 	defaultState,
+	enabledNames,
 	readConfig,
 	readState,
 	statePath,
 	writeConfig,
 	writeState,
 } from "./state.js";
-export { applyDeferral, defaultSkipUntilDate, diff } from "./diff.js";
+export { applyDeferral, defaultSkipUntilDate, diff, isDeferred } from "./diff.js";
 export { detectPackageManager, installCommand } from "./pkg-manager.js";
 export { resolveTool } from "./resolver.js";
 export { filterPathsByExtension } from "./paths.js";

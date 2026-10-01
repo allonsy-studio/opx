@@ -9,6 +9,7 @@ import {
 	configPath,
 	defaultConfig,
 	defaultState,
+	enabledNames,
 	ensureOpxIgnored,
 	installCommand,
 	installPostCommitHook,
@@ -20,7 +21,7 @@ import {
 } from "@allons-y/opx";
 
 import { buildContext, readHostPackage } from "../context.js";
-import { enabledNames, virtualDetectors } from "../built-in.js";
+import { virtualDetectors } from "../built-in.js";
 import { scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { defaultSkipUntilDate } from "@allons-y/opx";
 import { detectMode } from "../tty.js";

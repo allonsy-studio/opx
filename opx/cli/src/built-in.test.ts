@@ -115,11 +115,3 @@ describe("load", () => {
 		expect(loaded).toEqual([]);
 	});
 });
-
-describe("enabledNames", () => {
-	it("omits plugins set to false and handles a missing task", async () => {
-		const { enabledNames } = await import("./built-in.js");
-		expect(enabledNames({ js: true, md: false, json: { dialects: [] }, css: "./x.js" })).toEqual(["js", "json", "css"]);
-		expect(enabledNames(undefined)).toEqual([]);
-	});
-});

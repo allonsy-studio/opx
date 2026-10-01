@@ -1,7 +1,9 @@
 import type { Command } from "commander";
 
+import { enabledNames } from "@allons-y/opx";
+
 import { buildContext } from "../context.js";
-import { UNDETECTABLE_PLUGINS, enabledNames, virtualDetectors } from "../built-in.js";
+import { UNDETECTABLE_PLUGINS, virtualDetectors } from "../built-in.js";
 import { detectMode } from "../tty.js";
 import { CLI_NAME } from "../plugin-kit.js";
 

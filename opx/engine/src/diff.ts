@@ -1,4 +1,5 @@
 import type { Detector, DetectorContext, OpxState } from "./detector.js";
+import { enabledNames } from "./state.js";
 
 export type DiffEntry = {
 	detector: Detector;
@@ -15,6 +16,26 @@ export type DiffResult = {
 };
 
 /**
+ * Whether a plugin's suggestion is currently deferred: a "later" answer
+ * recorded for this branch that has not yet expired. A deferral stays active
+ * through `skipUntilDate` inclusive, and never applies on another branch.
+ *
+ * @param state - The persisted opx state.
+ * @param shortName - The plugin short name.
+ * @param branch - The current git branch.
+ * @param today - Today's date as `YYYY-MM-DD`.
+ */
+export function isDeferred(
+	state: OpxState,
+	shortName: string,
+	branch: string,
+	today: string = new Date().toISOString().slice(0, 10),
+): boolean {
+	const deferral = state.deferrals[shortName];
+	return !!deferral && deferral.branch === branch && deferral.skipUntilDate >= today;
+}
+
+/**
  * Reconcile detector matches against config + state.
  *   - enabled: the detector's short name is present in config.lint.
  *   - deferred: state has a deferral whose branch matches AND date hasn't expired.
@@ -25,14 +46,14 @@ export async function diff(
 	ctx: DetectorContext,
 	today: string = new Date().toISOString().slice(0, 10),
 ): Promise<DiffResult> {
-	const enabledSet = new Set(Object.keys(ctx.config.lint ?? {}) as string[]);
+	const enabledSet = new Set(enabledNames(ctx.config.lint));
 	const entries: DiffEntry[] = [];
 
 	for (const detector of detectors) {
 		const matched = await detector.detect(ctx);
 		const enabled = enabledSet.has(detector.shortName);
 		const deferral = ctx.state.deferrals[detector.shortName];
-		const deferred = !!deferral && deferral.branch === ctx.branch && deferral.skipUntilDate >= today;
+		const deferred = isDeferred(ctx.state, detector.shortName, ctx.branch, today);
 		const deferralExpired = !!deferral && !deferred;
 
 		const needsPrompt = matched && !enabled && !deferred;

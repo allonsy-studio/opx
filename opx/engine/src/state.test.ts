@@ -6,6 +6,7 @@ import {
 	configPath,
 	defaultConfig,
 	defaultState,
+	enabledNames,
 	readConfig,
 	readState,
 	statePath,
@@ -97,6 +98,37 @@ describe("corrupt files", () => {
 		expect(() => readConfig(dir)).toThrow(`could not read ${configPath(dir)}`);
 		writeFileSync(configPath(dir), "[]");
 		expect(() => readConfig(dir)).toThrow("expected a JSON object");
+		rmSync(dir, { recursive: true });
+	});
+});
+
+describe("enabledNames", () => {
+	it("omits plugins set to false and handles a missing task", () => {
+		expect(enabledNames({ js: true, md: false, json: { dialects: [] }, css: "./x.js" })).toEqual(["js", "json", "css"]);
+		expect(enabledNames(undefined)).toEqual([]);
+	});
+});
+
+describe("readConfig defaults", () => {
+	it("defaults release and test to false when the config omits them", () => {
+		const dir = tmp();
+		mkdirSync(join(dir, ".opx"), { recursive: true });
+		writeFileSync(configPath(dir), JSON.stringify({ version: 1, lint: { js: true } }));
+		const read = readConfig(dir);
+		expect(read.release).toBe(false);
+		expect(read.test).toBe(false);
+		expect(read.lint).toEqual({ js: true });
+		expect(read.build).toEqual({});
+		rmSync(dir, { recursive: true });
+	});
+
+	it("keeps explicit release and test values", () => {
+		const dir = tmp();
+		mkdirSync(join(dir, ".opx"), { recursive: true });
+		writeFileSync(configPath(dir), JSON.stringify({ version: 1, release: true, test: true }));
+		const read = readConfig(dir);
+		expect(read.release).toBe(true);
+		expect(read.test).toBe(true);
 		rmSync(dir, { recursive: true });
 	});
 });

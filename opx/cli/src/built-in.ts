@@ -1,5 +1,5 @@
 import type { Detector, DetectorContext, PackageJson } from "@allons-y/opx";
-import { loadPlugins, normalizeDetectorId } from "@allons-y/opx";
+import { enabledNames, loadPlugins, normalizeDetectorId } from "@allons-y/opx";
 
 import { PLUGIN_CATALOG, type BuiltInShortName } from "./plugin-catalog.js";
 
@@ -14,11 +14,6 @@ export type { BuiltInShortName };
  * The constants and helpers below are all derived from {@link PLUGIN_CATALOG},
  * the single source of truth for short names, packages, and file extensions.
  */
-
-/** Names of plugins switched on in a task map; a `false` value means disabled. */
-export function enabledNames(tasks: Record<string, unknown> | undefined): string[] {
-	return Object.entries(tasks ?? {}).filter(([, setting]) => setting !== false).map(([name]) => name);
-}
 
 /** Short names that can be detected from file types alone (e.g. "js", "css"). */
 export const SUPPORTED_FILE_EXTS: BuiltInShortName[] = PLUGIN_CATALOG
@@ -104,7 +99,6 @@ export function virtualDetectors(
 
 export default {
 	PACKAGE_HINTS,
-	enabledNames,
 	suggest,
 	load,
 	virtualDetectors,
