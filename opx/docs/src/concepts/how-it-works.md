@@ -54,6 +54,18 @@ All of opx's files live in `.opx/`.
 
 If `state.json` is missing or unreadable, opx starts from a clean state. An unreadable `config.json` is an error that names the file, because opx won't guess at your settings.
 
+## Trust model
+
+opx runs the tools a project configures, with your privileges. Running `opx lint`, `opx build` or `opx release` in a repository you don't trust therefore runs that repository's code:
+
+- `.opx/config.json` can point a plugin at a config file in the repository, such as an ESLint flat config, and ESLint executes it.
+- Plugins installed from the repository's `package.json` are imported and run.
+- Those plugins' own dependencies and install scripts run when you install the project.
+
+This is the same as running ESLint, a build, or `npm test` in a cloned repository, and it is by design. `opx scan` only reads the file list from git and runs nothing, and opx never installs a package during `lint` or `build`.
+
+Treat an untrusted repository like any other untrusted code: review it first, or run opx inside a sandbox or CI job that has no secrets. For pull requests from forks, see [Use opx in CI](../../guides/ci/#pull-requests-from-forks).
+
 ## The post-commit hook
 
 `opx init` installs a husky `post-commit` hook that runs `opx hook post-commit` in the background. When a commit introduces file types that an uninstalled plugin could handle, it prints a one-line suggestion. It always exits `0` and never blocks a commit.

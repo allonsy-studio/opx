@@ -30,4 +30,6 @@ opx runs in developers' repositories and in CI, and it executes code from the pl
 - unsafe handling of repository content, such as paths, config files, or git output,
 - secrets (such as `NPM_TOKEN` or `GITHUB_TOKEN`) being exposed by the release flow.
 
+Running opx in a repository you don't trust executes that repository's configuration and plugins, exactly as running ESLint or a build does. That is expected behavior rather than a vulnerability. Reports about opx running code that the repository did *not* configure or install are in scope.
+
 Vulnerabilities in third-party plugins should be reported to those plugins' maintainers.
