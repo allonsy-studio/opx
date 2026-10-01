@@ -15,6 +15,11 @@ export type { BuiltInShortName };
  * the single source of truth for short names, packages, and file extensions.
  */
 
+/** Names of plugins switched on in a task map; a `false` value means disabled. */
+export function enabledNames(tasks: Record<string, unknown> | undefined): string[] {
+	return Object.entries(tasks ?? {}).filter(([, setting]) => setting !== false).map(([name]) => name);
+}
+
 /** Short names that can be detected from file types alone (e.g. "js", "css"). */
 export const SUPPORTED_FILE_EXTS: BuiltInShortName[] = PLUGIN_CATALOG
 	.filter((entry) => entry.extensions.length > 0)
@@ -54,10 +59,10 @@ export function suggest(fileTypes: Set<string>): BuiltInShortName[] {
  * trust-check flow.
  */
 export async function load(ctx: DetectorContext): Promise<Detector[]> {
-	const installedLinters = Object.keys(ctx.config.lint ?? {})
+	const installedLinters = enabledNames(ctx.config.lint)
 		.map((shortName) => `lint-${shortName}`)
 		.filter((entry) => normalizeDetectorId(entry, ctx.hostPkg) !== null);
-	const installedBuilders = Object.keys(ctx.config.build ?? {})
+	const installedBuilders = enabledNames(ctx.config.build)
 		.map((shortName) => `build-${shortName}`)
 		.filter((entry) => normalizeDetectorId(entry, ctx.hostPkg) !== null);
 	const installedRelease = ctx.config.release === true ? ["release"] : [];
@@ -99,6 +104,7 @@ export function virtualDetectors(
 
 export default {
 	PACKAGE_HINTS,
+	enabledNames,
 	suggest,
 	load,
 	virtualDetectors,

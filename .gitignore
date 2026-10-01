@@ -32,6 +32,10 @@ node_modules/
 opx/*/bin/
 opx/*/dist/
 
+# docs site build outputs
+opx/docs/_site/
+opx/docs/src/api/
+
 # Output of 'npm pack'
 *.tgz
 

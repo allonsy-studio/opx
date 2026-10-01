@@ -6,7 +6,7 @@ import { extname, basename } from "node:path";
 import { readConfig, readState, writeState } from "@allons-y/opx";
 
 import { getCurrentBranch, getHeadCommit, listFilesInHeadCommit } from "../scanner.js";
-import builtIns from "../built-in.js";
+import builtIns, { enabledNames } from "../built-in.js";
 
 export default function register(program: Command): void {
 	const hook = program.command("hook").description("Internal — invoked by git hooks");
@@ -40,7 +40,7 @@ function runPostCommit(): void {
 		if (ext) newTypes.add(ext.toLowerCase());
 	}
 
-	const enabledLinters = new Set(Object.keys(config.lint ?? {}) as string[]);
+	const enabledLinters = new Set(enabledNames(config.lint));
 	const branch = getCurrentBranch(cwd);
 	const today = new Date().toISOString().slice(0, 10);
 

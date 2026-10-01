@@ -45,6 +45,8 @@ workflows are present, and loads the matching detector packages from your own
 `node_modules` — only the ones you've chosen to install. You opt into as much
 opinion as you want.
 
+Full documentation lives in [`opx/docs`](opx/docs) and is built with `yarn docs:build`.
+
 ## Packages
 
 | Package | Description |

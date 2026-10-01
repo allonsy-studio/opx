@@ -9,7 +9,7 @@ import {
 	configPath,
 	defaultConfig,
 	defaultState,
-	ensureGitignored,
+	ensureOpxIgnored,
 	installCommand,
 	installPostCommitHook,
 	readConfig,
@@ -20,7 +20,7 @@ import {
 } from "@allons-y/opx";
 
 import { buildContext, readHostPackage } from "../context.js";
-import { virtualDetectors } from "../built-in.js";
+import { enabledNames, virtualDetectors } from "../built-in.js";
 import { scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { defaultSkipUntilDate } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
@@ -60,7 +60,7 @@ async function runInteractive(cwd: string): Promise<void> {
 
 	if (!existsSync(configPath(cwd))) {
 		writeConfig(cwd, defaultConfig());
-		p.log.info(`Wrote starter ${CLI_NAME}.config.json at the detected repo root (${cwd}).`);
+		p.log.info(`Wrote starter .${CLI_NAME}/config.json at the detected repo root (${cwd}).`);
 	}
 
 	const config = readConfig(cwd);
@@ -70,8 +70,8 @@ async function runInteractive(cwd: string): Promise<void> {
 	// Suggested tooling that is indicated by files present in the committed tree.
 	const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
 
-	const enabledLinters = new Set(Object.keys(config.lint ?? {}));
-	const enabledBuilders = new Set(Object.keys(config.build ?? {}));
+	const enabledLinters = new Set(enabledNames(config.lint));
+	const enabledBuilders = new Set(enabledNames(config.build));
 
 	// A suggestion is already covered if its concern is enabled for that short name.
 	const remaining = suggestions.filter((s) => {
@@ -208,8 +208,8 @@ async function runInteractive(cwd: string): Promise<void> {
 	if (hookResult.created) {
 		p.log.success(`Installed git hook at ${hookResult.path}`);
 	}
-	if (ensureGitignored(cwd, `.${CLI_NAME}`)) {
-		p.log.success(`Added .${CLI_NAME}/ to .gitignore`);
+	if (ensureOpxIgnored(cwd)) {
+		p.log.success(`Updated .gitignore to ignore local .${CLI_NAME}/ files (config.json stays tracked)`);
 	}
 
 	p.outro("Setup complete.");
@@ -223,8 +223,8 @@ function runReport(cwd: string): void {
 	const hostPkg = readHostPackage(cwd);
 	const ctx = buildContext({ cwd });
 	const suggestions = virtualDetectors(ctx.fileTypes, hostPkg);
-	const enabledLinters = new Set(Object.keys(ctx.config.lint ?? {}));
-	const enabledBuilders = new Set(Object.keys(ctx.config.build ?? {}));
+	const enabledLinters = new Set(enabledNames(ctx.config.lint));
+	const enabledBuilders = new Set(enabledNames(ctx.config.build));
 	const remaining = suggestions.filter((s) => {
 		if (s.shortName === "release") return ctx.config.release !== true;
 		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);

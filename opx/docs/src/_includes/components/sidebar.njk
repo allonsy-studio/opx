@@ -1,0 +1,16 @@
+<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		{%- for entry in collections.all | eleventyNavigation %}
+		<li>
+			<a href="{{ entry.url }}"{% if entry.url == page.url %} aria-current="page"{% endif %}>{{ entry.title }}</a>
+			{%- if entry.children.length %}
+			<ul>
+				{%- for child in entry.children %}
+				<li><a href="{{ child.url }}"{% if child.url == page.url %} aria-current="page"{% endif %}>{{ child.title }}</a></li>
+				{%- endfor %}
+			</ul>
+			{%- endif %}
+		</li>
+		{%- endfor %}
+	</ul>
+</nav>
