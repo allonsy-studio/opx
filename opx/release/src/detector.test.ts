@@ -41,7 +41,7 @@ describe("opxReleaseDetector", () => {
 
 	describe("describe", () => {
 		it("returns a summary and the bundled deps", () => {
-			const d = opxReleaseDetector.describe!();
+			const d = opxReleaseDetector.describe!(ctx(true));
 			expect(d.summary).toMatch(/changesets/i);
 			expect(d.bundledDeps).toEqual([
 				"@changesets/cli",

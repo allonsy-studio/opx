@@ -40,12 +40,12 @@ describe("runDetectorsGrouped", () => {
 			ctx(),
 			[
 				detector({ shortName: "a", run: async () => 0 }),
-				detector({ shortName: "b", run: async (c) => { c.write("noise"); return 0; } }),
+				detector({ shortName: "b", run: async (c: DetectorContext) => { c.write("noise"); return 0; } }),
 			],
 			[],
 		);
 		expect(code).toBe(0);
-		const out = spy.mock.calls.map((c) => String(c[0])).join("");
+		const out = spy.mock.calls.map((c: unknown[]) => String(c[0])).join("");
 		expect(out).toContain("All checks passed");
 		expect(out).toContain("noise");
 	});
@@ -60,7 +60,7 @@ describe("runDetectorsGrouped", () => {
 			[],
 		);
 		expect(code).toBe(2);
-		const out = spy.mock.calls.map((c) => String(c[0])).join("");
+		const out = spy.mock.calls.map((c: unknown[]) => String(c[0])).join("");
 		expect(out).toContain("Some checks failed");
 		expect(out).toContain("boom");
 	});
@@ -68,7 +68,7 @@ describe("runDetectorsGrouped", () => {
 	it("treats a detector without a run function as passing (code 0)", async () => {
 		const code = await runDetectorsGrouped(ctx(), [detector({ shortName: "noop" })], []);
 		expect(code).toBe(0);
-		const out = spy.mock.calls.map((c) => String(c[0])).join("");
+		const out = spy.mock.calls.map((c: unknown[]) => String(c[0])).join("");
 		expect(out).toContain("no issues");
 	});
 });
