@@ -16,12 +16,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Check out code
-              uses: actions/checkout@v6
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   persist-credentials: false
 
             - name: Setup Node
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version-file: .nvmrc
                   cache: yarn
@@ -53,7 +53,7 @@ jobs:
 
             - name: Upload coverage data
               if: steps.coverage.outputs.found == 'true'
-              uses: actions/upload-artifact@v7
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
               with:
                   name: coverage-data-${{ github.run_id }}
                   path: |
@@ -61,15 +61,20 @@ jobs:
 
             - name: Coverage summary
               if: steps.coverage.outputs.found == 'true'
-              uses: irongut/CodeCoverageSummary@v1.3.0
+              uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 # v1.3.0
               with:
                   filename: coverage/cobertura-coverage.xml
                   format: "markdown"
                   output: "both"
 
             - name: Add coverage PR comment
-              if: steps.coverage.outputs.found == 'true' && github.event_name == 'pull_request'
-              uses: marocchino/sticky-pull-request-comment@v2.6.0
+              # Fork PRs get a read-only token, so the comment can't be posted;
+              # the job summary below still carries the report.
+              if: >-
+                  steps.coverage.outputs.found == 'true' &&
+                  github.event_name == 'pull_request' &&
+                  github.event.pull_request.head.repo.full_name == github.repository
+              uses: marocchino/sticky-pull-request-comment@78a72662e4e5d4233fa5f28f436806292cc66b65 # v2.6.0
               with:
                   recreate: true
                   path: code-coverage-results.md
