@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>How opx works · opx</title>
+		<meta name="description" content="Scanning, detectors, tasks, and how plugins are loaded.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/" aria-current="page">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/">opx init</a></li>
+				<li><a href="/opx/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">How opx works</h1>
+		<h2 id="the-flow" tabindex="-1"><a class="header-anchor" href="#the-flow">The flow</a></h2>
+<ol>
+<li><strong>Scan.</strong> opx lists the files in your git <code>HEAD</code> and collects their extensions.</li>
+<li><strong>Match.</strong> Each installed plugin's detector decides whether it applies to that set of file types.</li>
+<li><strong>Load.</strong> Only plugins that are both enabled in <code>.opx/config.json</code> and installed in your <code>package.json</code> are loaded.</li>
+<li><strong>Run.</strong> <code>opx lint</code> and <code>opx build</code> run every loaded detector for that task, in parallel, and combine the exit codes.</li>
+</ol>
+<p>Because opx reads the committed tree, untracked and ignored files never influence what it suggests.</p>
+<h2 id="detectors" tabindex="-1"><a class="header-anchor" href="#detectors">Detectors</a></h2>
+<p>A detector is the unit of work. It is a small object with an <code>id</code>, a <code>shortName</code> (such as <code>js</code>), a <code>concern</code>, a <code>detect()</code> function, and an optional <code>run()</code> function that invokes the real tool. See <a href="../../guides/writing-a-detector/">Writing a detector</a> and the <a href="../../api/"><code>Detector</code> type</a>.</p>
+<h2 id="tasks" tabindex="-1"><a class="header-anchor" href="#tasks">Tasks</a></h2>
+<p>The config groups detectors by task.</p>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Kind</th>
+<th>Shape in config</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lint</code></td>
+<td>dynamic</td>
+<td>object keyed by plugin short name</td>
+<td><code>opx lint</code></td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td>dynamic</td>
+<td>object keyed by plugin short name</td>
+<td><code>opx build</code></td>
+</tr>
+<tr>
+<td><code>release</code></td>
+<td>static</td>
+<td>boolean (or a setting)</td>
+<td><code>opx release</code></td>
+</tr>
+<tr>
+<td><code>test</code></td>
+<td>static</td>
+<td>boolean</td>
+<td>reserved, no official plugin yet</td>
+</tr>
+</tbody>
+</table>
+<h2 id="how-plugins-are-found" tabindex="-1"><a class="header-anchor" href="#how-plugins-are-found">How plugins are found</a></h2>
+<p>A short name such as <code>js</code> resolves to <code>@allons-y/opx-lint-js</code> (or <code>-build-</code> for the build task). For other plugins the loader accepts these names:</p>
+<ul>
+<li><code>@allons-y/opx-*</code> for first-party plugins</li>
+<li><code>opx-plugin-*</code> for community plugins</li>
+<li><code>@scope/opx-plugin-*</code> for scoped community plugins</li>
+</ul>
+<p>A plugin must appear in your <code>dependencies</code> or <code>devDependencies</code>. If an enabled plugin isn't installed, opx prints a warning naming the packages it tried and skips it. It never installs anything on its own during <code>lint</code> or <code>build</code>.</p>
+<h2 id="local-files" tabindex="-1"><a class="header-anchor" href="#local-files">Local files</a></h2>
+<p>All of opx's files live in <code>.opx/</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Purpose</th>
+<th>Commit it?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.opx/config.json</code></td>
+<td>Which plugins are enabled</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>.opx/state.json</code></td>
+<td>Last scanned commit and per-branch &quot;later&quot; deferrals</td>
+<td>No</td>
+</tr>
+<tr>
+<td><code>.opx/cache/</code></td>
+<td>Tool caches, such as ESLint's</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p>If <code>state.json</code> is missing or unreadable, opx starts from a clean state. An unreadable <code>config.json</code> is an error that names the file, because opx won't guess at your settings.</p>
+<h2 id="trust-model" tabindex="-1"><a class="header-anchor" href="#trust-model">Trust model</a></h2>
+<p>opx runs the tools a project configures, with your privileges. Running <code>opx lint</code>, <code>opx build</code> or <code>opx release</code> in a repository you don't trust therefore runs that repository's code:</p>
+<ul>
+<li><code>.opx/config.json</code> can point a plugin at a config file in the repository, such as an ESLint flat config, and ESLint executes it.</li>
+<li>Plugins installed from the repository's <code>package.json</code> are imported and run.</li>
+<li>Those plugins' own dependencies and install scripts run when you install the project.</li>
+</ul>
+<p>This is the same as running ESLint, a build, or <code>npm test</code> in a cloned repository, and it is by design. <code>opx scan</code> only reads the file list from git and runs nothing, and opx never installs a package during <code>lint</code> or <code>build</code>.</p>
+<p>Treat an untrusted repository like any other untrusted code: review it first, or run opx inside a sandbox or CI job that has no secrets. For pull requests from forks, see <a href="../../guides/ci/#pull-requests-from-forks">Use opx in CI</a>.</p>
+<h2 id="the-post-commit-hook" tabindex="-1"><a class="header-anchor" href="#the-post-commit-hook">The post-commit hook</a></h2>
+<p><code>opx init</code> installs a husky <code>post-commit</code> hook that runs <code>opx hook post-commit</code> in the background. When a commit introduces file types that an uninstalled plugin could handle, it prints a one-line suggestion. It always exits <code>0</code> and never blocks a commit.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>

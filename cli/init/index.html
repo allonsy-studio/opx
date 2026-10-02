@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>opx init · opx</title>
+		<meta name="description" content="Interactively set up opx for this repo.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/" aria-current="page">opx init</a></li>
+				<li><a href="/opx/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">opx init</h1>
+		<p>Scan the committed tree and interactively wire up opx.</p>
+<h2 id="synopsis" tabindex="-1"><a class="header-anchor" href="#synopsis">Synopsis</a></h2>
+<pre class="language-sh"><code class="language-sh">opx init <span class="token punctuation">[</span>--auto<span class="token punctuation">]</span> <span class="token punctuation">[</span>--quiet<span class="token punctuation">]</span></code></pre>
+<h2 id="options" tabindex="-1"><a class="header-anchor" href="#options">Options</a></h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--auto</code></td>
+<td><code>false</code></td>
+<td>Only proceed in an interactive terminal. Intended for <code>postinstall</code> scripts.</td>
+</tr>
+<tr>
+<td><code>--quiet</code></td>
+<td><code>false</code></td>
+<td>Suppress informational output when <code>--auto</code> exits early</td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-it-does" tabindex="-1"><a class="header-anchor" href="#what-it-does">What it does</a></h2>
+<ol>
+<li>Creates <code>.opx/config.json</code> if there isn't one.</li>
+<li>For each suggested plugin not yet enabled, asks <strong>Yes</strong>, <strong>No</strong>, or <strong>Later</strong>. &quot;Later&quot; records a deferral in <code>.opx/state.json</code> for the current branch.</li>
+<li>Saves your choices and offers to install any missing packages with the detected package manager (npm, yarn, or pnpm).</li>
+<li>Scaffolds a root <code>eslint.config.js</code> composed from your enabled lint plugins. It never overwrites an existing file.</li>
+<li>Offers to add <code>&quot;lint&quot;: &quot;opx lint&quot;</code> to your <code>package.json</code> scripts.</li>
+<li>Installs the <code>post-commit</code> husky hook and updates <code>.gitignore</code> to ignore <code>.opx/*</code> except <code>.opx/config.json</code>, which stays tracked.</li>
+</ol>
+<h2 id="non-interactive-use" tabindex="-1"><a class="header-anchor" href="#non-interactive-use">Non-interactive use</a></h2>
+<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>

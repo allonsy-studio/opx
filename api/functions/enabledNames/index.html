@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>opx</title>
+		<meta name="description" content="The optionally opinionated front-end toolkit">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/">opx init</a></li>
+				<li><a href="/opx/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		
+		<h1 id="function%3A-enablednames()" tabindex="-1"><a class="header-anchor" href="#function%3A-enablednames()">Function: enabledNames()</a></h1>
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">enabledNames</span><span class="token punctuation">(</span>tasks<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span></code></pre>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/b692e0da39efa6744ecb270776ae3a85299a66cc/opx/engine/src/state.ts#L62">state.ts:62</a></p>
+<p>Names of the plugins switched on in a task map. A plugin set to <code>false</code> is
+present in the config but disabled, so it is excluded.</p>
+<h2 id="parameters" tabindex="-1"><a class="header-anchor" href="#parameters">Parameters</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tasks</code></td>
+<td><code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt; | <code>undefined</code></td>
+<td>A <code>lint</code> or <code>build</code> map from <code>.opx/config.json</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="returns" tabindex="-1"><a class="header-anchor" href="#returns">Returns</a></h2>
+<p><code>string</code>[]</p>
+<p>The enabled plugin short names, in config order.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>

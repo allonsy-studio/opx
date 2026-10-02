@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Configuration · opx</title>
+		<meta name="description" content="Every key in .opx/config.json.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/">opx init</a></li>
+				<li><a href="/opx/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/" aria-current="page">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">Configuration</h1>
+		<p>opx reads <code>.opx/config.json</code> from the repository root. <code>opx init</code> and <a href="../../cli/enable/"><code>opx enable</code></a> write it; you can edit it by hand.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"$schema"</span><span class="token operator">:</span> <span class="token string">"https://unpkg.com/@allons-y/opx/schema/config.json"</span><span class="token punctuation">,</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token property">"lint"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"js"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token property">"json"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token property">"md"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"release"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token property">"test"</span><span class="token operator">:</span> <span class="token boolean">false</span>
+<span class="token punctuation">}</span></code></pre>
+<h2 id="keys" tabindex="-1"><a class="header-anchor" href="#keys">Keys</a></h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$schema</code></td>
+<td>string</td>
+<td>Optional. Enables editor validation and completion.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code>1</code></td>
+<td>Required. The config format version.</td>
+</tr>
+<tr>
+<td><code>lint</code></td>
+<td>object</td>
+<td>Lint plugins, keyed by short name</td>
+</tr>
+<tr>
+<td><code>build</code></td>
+<td>object</td>
+<td>Build plugins, keyed by short name</td>
+</tr>
+<tr>
+<td><code>release</code></td>
+<td>plugin setting</td>
+<td>Enables the release plugin</td>
+</tr>
+<tr>
+<td><code>test</code></td>
+<td>plugin setting</td>
+<td>Reserved for a future test plugin</td>
+</tr>
+</tbody>
+</table>
+<p>Short names must be lowercase letters and digits (<code>js</code>, <code>md</code>).</p>
+<h2 id="plugin-settings" tabindex="-1"><a class="header-anchor" href="#plugin-settings">Plugin settings</a></h2>
+<p>Wherever a plugin is configured, the value can be any one of:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>true</code></td>
+<td>Enabled with defaults</td>
+</tr>
+<tr>
+<td><code>false</code></td>
+<td>Disabled</td>
+</tr>
+<tr>
+<td><code>&quot;./path.js&quot;</code></td>
+<td>Enabled, using your own config file. Resolved from the repository root.</td>
+</tr>
+<tr>
+<td><code>{ ... }</code></td>
+<td>Enabled, with inline settings the plugin understands</td>
+</tr>
+</tbody>
+</table>
+<h3 id="examples" tabindex="-1"><a class="header-anchor" href="#examples">Examples</a></h3>
+<p>Use your own ESLint flat config for JavaScript, and lint JSONC and JSON5 too:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token property">"lint"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"js"</span><span class="token operator">:</span> <span class="token string">"./eslint.config.js"</span><span class="token punctuation">,</span>
+    <span class="token property">"json"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"dialects"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"jsonc"</span><span class="token punctuation">,</span> <span class="token string">"json5"</span><span class="token punctuation">]</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>The settings each plugin understands are documented on its page: <a href="../../plugins/lint-js/">js</a>, <a href="../../plugins/lint-json/">json</a>, <a href="../../plugins/lint-md/">md</a>, <a href="../../plugins/release/">release</a>.</p>
+<h2 id="defaults-%26-errors" tabindex="-1"><a class="header-anchor" href="#defaults-%26-errors">Defaults &amp; errors</a></h2>
+<ul>
+<li>If <code>.opx/config.json</code> doesn't exist, opx behaves as if every task were empty and <code>release</code> and <code>test</code> were <code>false</code>.</li>
+<li>If it exists but isn't a valid JSON object, opx stops with an error that names the file.</li>
+</ul>
+<h2 id="state-file" tabindex="-1"><a class="header-anchor" href="#state-file">State file</a></h2>
+<p><code>.opx/state.json</code> is written by opx for its own bookkeeping. You shouldn't need to edit it, and it shouldn't be committed.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token property">"lastScanCommit"</span><span class="token operator">:</span> <span class="token string">"a1b2c3d"</span><span class="token punctuation">,</span>
+  <span class="token property">"deferrals"</span><span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token property">"md"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"branch"</span><span class="token operator">:</span> <span class="token string">"main"</span><span class="token punctuation">,</span> <span class="token property">"skipUntilDate"</span><span class="token operator">:</span> <span class="token string">"2026-10-07"</span><span class="token punctuation">,</span> <span class="token property">"reason"</span><span class="token operator">:</span> <span class="token string">"later"</span> <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>

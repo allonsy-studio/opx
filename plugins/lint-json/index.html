@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>lint-json · opx</title>
+		<meta name="description" content="JSON, JSONC, and JSON5 linting.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/">opx init</a></li>
+				<li><a href="/opx/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/" aria-current="page">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">lint-json</h1>
+		<p><code>@allons-y/opx-lint-json</code> lints <strong>JSON</strong> with ESLint and <a href="https://github.com/eslint/json"><code>@eslint/json</code></a>, pre-configured.</p>
+<h2 id="install" tabindex="-1"><a class="header-anchor" href="#install">Install</a></h2>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-lint-json
+<span class="token function">yarn</span> opx <span class="token builtin class-name">enable</span> json</code></pre>
+<h2 id="covers" tabindex="-1"><a class="header-anchor" href="#covers">Covers</a></h2>
+<table>
+<thead>
+<tr>
+<th>Files</th>
+<th>Language mode</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.json</code></td>
+<td><code>json/json</code></td>
+<td>always on</td>
+</tr>
+<tr>
+<td><code>.jsonc</code></td>
+<td><code>json/jsonc</code></td>
+<td>opt in</td>
+</tr>
+<tr>
+<td><code>.json5</code></td>
+<td><code>json/json5</code></td>
+<td>opt in</td>
+</tr>
+</tbody>
+</table>
+<p>Lockfiles (<code>package-lock.json</code>, <code>npm-shrinkwrap.json</code>) are ignored.</p>
+<h2 id="configure" tabindex="-1"><a class="header-anchor" href="#configure">Configure</a></h2>
+<p>Opt in to JSONC and JSON5 with <code>dialects</code>:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token property">"lint"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"json"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"dialects"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"jsonc"</span><span class="token punctuation">,</span> <span class="token string">"json5"</span><span class="token punctuation">]</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Or replace the bundled config with your own flat config:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token property">"lint"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"json"</span><span class="token operator">:</span> <span class="token string">"./eslint.json.config.js"</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2 id="export" tabindex="-1"><a class="header-anchor" href="#export">Export</a></h2>
+<p>The flat config is exported at <code>@allons-y/opx-lint-json/eslint.config.js</code>. See <a href="../../guides/compose-eslint/">Compose your ESLint config</a>.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>

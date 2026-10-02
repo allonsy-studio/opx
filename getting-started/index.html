@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Getting started · opx</title>
+		<meta name="description" content="Install opx, let it scan your repo, and run your first lint.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/" aria-current="page">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/">opx init</a></li>
+				<li><a href="/opx/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">Getting started</h1>
+		<h2 id="requirements" tabindex="-1"><a class="header-anchor" href="#requirements">Requirements</a></h2>
+<ul>
+<li>Node.js 24 or newer</li>
+<li>A git repository (opx scans the committed tree)</li>
+</ul>
+<h2 id="install" tabindex="-1"><a class="header-anchor" href="#install">Install</a></h2>
+<p>opx is currently published under the <code>beta</code> tag.</p>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-cli@beta
+<span class="token comment"># or</span>
+<span class="token function">npm</span> <span class="token function">install</span> --save-dev @allons-y/opx-cli@beta</code></pre>
+<p>The CLI is deliberately small. Plugins are separate packages that you install yourself, or let <code>opx init</code> install for you.</p>
+<h2 id="set-up" tabindex="-1"><a class="header-anchor" href="#set-up">Set up</a></h2>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx init</code></pre>
+<p><code>opx init</code> looks at the file types in your committed tree and, for each matching plugin, asks whether to enable it now, never, or later. It then:</p>
+<ol>
+<li>Writes your choices to <code>.opx/config.json</code>.</li>
+<li>Offers to install the plugin packages with your package manager.</li>
+<li>Scaffolds a root <code>eslint.config.js</code> (only if you don't already have one) so your editor matches <code>opx lint</code>.</li>
+<li>Offers to add a <code>&quot;lint&quot;: &quot;opx lint&quot;</code> script.</li>
+<li>Installs a post-commit git hook that nudges you when a commit introduces new file types.</li>
+</ol>
+<p>Prefer to skip the prompts? Install a plugin and enable it by hand:</p>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-lint-js
+<span class="token function">yarn</span> opx <span class="token builtin class-name">enable</span> js</code></pre>
+<h2 id="run-it" tabindex="-1"><a class="header-anchor" href="#run-it">Run it</a></h2>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx lint          <span class="token comment"># lint everything that's enabled</span>
+<span class="token function">yarn</span> opx lint <span class="token parameter variable">--fix</span>    <span class="token comment"># auto-fix where the tool supports it</span>
+<span class="token function">yarn</span> opx lint src      <span class="token comment"># lint specific paths</span></code></pre>
+<p>Each enabled plugin runs as its own pass, in parallel, with grouped output. The command exits <code>1</code> if any plugin reports errors.</p>
+<h2 id="commit-the-config%2C-ignore-the-rest" tabindex="-1"><a class="header-anchor" href="#commit-the-config%2C-ignore-the-rest">Commit the config, ignore the rest</a></h2>
+<p><code>.opx/config.json</code> describes your setup and belongs in version control. <code>.opx/state.json</code> and <code>.opx/cache/</code> are local. Ignore everything else in the directory:</p>
+<pre class="language-gitignore"><code class="language-gitignore"><span class="token entry string">.opx<span class="token punctuation">/</span><span class="token operator">*</span></span>
+<span class="token entry string"><span class="token operator">!</span>.opx<span class="token punctuation">/</span>config.json</span></code></pre>
+<h2 id="next-steps" tabindex="-1"><a class="header-anchor" href="#next-steps">Next steps</a></h2>
+<ul>
+<li><a href="../concepts/how-it-works/">How opx works</a></li>
+<li><a href="../cli/">CLI reference</a></li>
+<li><a href="../reference/config/">Configuration reference</a></li>
+<li><a href="../guides/compose-eslint/">Compose your ESLint config</a></li>
+</ul>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>opx</title>
+		<meta name="description" content="The optionally opinionated front-end toolkit">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/">opx init</a></li>
+				<li><a href="/opx/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		
+		<h1 id="%40allons-y%2Fopx" tabindex="-1"><a class="header-anchor" href="#%40allons-y%2Fopx">@allons-y/opx</a></h1>
+<h2 id="type-aliases" tabindex="-1"><a class="header-anchor" href="#type-aliases">Type Aliases</a></h2>
+<table>
+<thead>
+<tr>
+<th>Type Alias</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/opx/api/type-aliases/Detector/">Detector</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/DetectorContext/">DetectorContext</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/DetectorDescription/">DetectorDescription</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/DetectorId/">DetectorId</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/DynamicTask/">DynamicTask</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/Logger/">Logger</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/OpxConfig/">OpxConfig</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/OpxState/">OpxState</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/OpxStateDeferral/">OpxStateDeferral</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/PackageJson/">PackageJson</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/PackageManager/">PackageManager</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/StaticTask/">StaticTask</a></td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h2 id="functions" tabindex="-1"><a class="header-anchor" href="#functions">Functions</a></h2>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/opx/api/functions/applyDeferral/">applyDeferral</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/configPath/">configPath</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/createConsoleLogger/">createConsoleLogger</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/defaultConfig/">defaultConfig</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/defaultSkipUntilDate/">defaultSkipUntilDate</a></td>
+<td>Compute a default skipUntilDate for a &quot;later&quot; choice: today (the deferral expires when the calendar day rolls over). The diff function treats a deferral as active while skipUntilDate &gt;= today, so storing today suppresses for the rest of the day on the current branch.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/defaultState/">defaultState</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/detectPackageManager/">detectPackageManager</a></td>
+<td>Detect the host project's package manager.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/diff/">diff</a></td>
+<td>Reconcile detector matches against config + state. - enabled: the detector's short name is present in config.lint. - deferred: state has a deferral whose branch matches AND date hasn't expired. - needsPrompt: detector matches files, is not enabled, and not currently deferred.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/enabledNames/">enabledNames</a></td>
+<td>Names of the plugins switched on in a task map. A plugin set to <code>false</code> is present in the config but disabled, so it is excluded.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/ensureGitignored/">ensureGitignored</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/ensureOpxIgnored/">ensureOpxIgnored</a></td>
+<td>Ignore opx's local files while keeping <code>.opx/config.json</code> committable.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/filterPathsByExtension/">filterPathsByExtension</a></td>
+<td>Filter CLI path arguments to those a detector should handle, given the file extensions it owns.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/installCommand/">installCommand</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/installPostCommitHook/">installPostCommitHook</a></td>
+<td>Install the husky post-commit hook that nudges the user about new file types after each commit. Runs in a backgrounded subshell and always exits 0, so it never blocks the commit.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/isDeferred/">isDeferred</a></td>
+<td>Whether a plugin's suggestion is currently deferred: a &quot;later&quot; answer recorded for this branch that has not yet expired. A deferral stays active through <code>skipUntilDate</code> inclusive, and never applies on another branch.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/isValidPluginName/">isValidPluginName</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/loadPlugins/">loadPlugins</a></td>
+<td>Dynamically load plugin packages declared in the concern array. Enforces: 1. The fully-qualified package id matches the official/community naming pattern. 2. The package is present in the host's deps/devDeps (warn + skip otherwise).</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/normalizeDetectorId/">normalizeDetectorId</a></td>
+<td>Normalize a detector reference (short or full) to a canonical package id by checking the host's dependencies. Returns null if no candidate is installed.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/readConfig/">readConfig</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/readState/">readState</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/resolvePluginPackageName/">resolvePluginPackageName</a></td>
+<td>Resolve a short slug or fully-qualified package name to a candidate ordered list of package ids to try. The first one that exists in the host's deps wins.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/resolveTool/">resolveTool</a></td>
+<td>Try to resolve a tool (e.g. &quot;eslint&quot;) from the host project first; fall back to the bundled copy that ships with the calling detector package.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/statePath/">statePath</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/writeConfig/">writeConfig</a></td>
+<td>-</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/writeState/">writeState</a></td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>

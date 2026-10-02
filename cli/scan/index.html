@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>opx scan · opx</title>
+		<meta name="description" content="Report which plugins match the committed tree.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/">opx init</a></li>
+				<li><a href="/opx/cli/scan/" aria-current="page">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">opx scan</h1>
+		<p>Report which plugins would activate for the files in <code>HEAD</code>.</p>
+<h2 id="synopsis" tabindex="-1"><a class="header-anchor" href="#synopsis">Synopsis</a></h2>
+<pre class="language-sh"><code class="language-sh">opx scan <span class="token punctuation">[</span>--report<span class="token punctuation">]</span> <span class="token punctuation">[</span>--json<span class="token punctuation">]</span> <span class="token punctuation">[</span>--strict<span class="token punctuation">]</span></code></pre>
+<h2 id="options" tabindex="-1"><a class="header-anchor" href="#options">Options</a></h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--report</code></td>
+<td>Force plain-text output</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Print machine-readable JSON</td>
+</tr>
+<tr>
+<td><code>--strict</code></td>
+<td>Exit <code>1</code> if a plugin matches your files but isn't enabled</td>
+</tr>
+</tbody>
+</table>
+<h2 id="json-output" tabindex="-1"><a class="header-anchor" href="#json-output">JSON output</a></h2>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"branch"</span><span class="token operator">:</span> <span class="token string">"main"</span><span class="token punctuation">,</span>
+  <span class="token property">"fileTypes"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">".js"</span><span class="token punctuation">,</span> <span class="token string">".json"</span><span class="token punctuation">,</span> <span class="token string">".md"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"enabled"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"js"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"suggestions"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token punctuation">{</span>
+      <span class="token property">"shortName"</span><span class="token operator">:</span> <span class="token string">"md"</span><span class="token punctuation">,</span>
+      <span class="token property">"pkg"</span><span class="token operator">:</span> <span class="token string">"@allons-y/opx-lint-md"</span><span class="token punctuation">,</span>
+      <span class="token property">"reason"</span><span class="token operator">:</span> <span class="token string">"Files matching md found in the committed tree."</span><span class="token punctuation">,</span>
+      <span class="token property">"installed"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"needsPrompt"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"md"</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span></code></pre>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>branch</code></td>
+<td>Current git branch</td>
+</tr>
+<tr>
+<td><code>fileTypes</code></td>
+<td>Sorted file extensions found in <code>HEAD</code></td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>Plugins enabled in <code>.opx/config.json</code> (lint plugins, plus <code>release</code> if on)</td>
+</tr>
+<tr>
+<td><code>suggestions</code></td>
+<td>Plugins that match, with whether their package is installed</td>
+</tr>
+<tr>
+<td><code>needsPrompt</code></td>
+<td>Short names of file-based suggestions that aren't enabled</td>
+</tr>
+</tbody>
+</table>
+<h2 id="using-it-in-ci" tabindex="-1"><a class="header-anchor" href="#using-it-in-ci">Using it in CI</a></h2>
+<pre class="language-sh"><code class="language-sh">opx scan <span class="token parameter variable">--strict</span></code></pre>
+<p>fails the job when the repo contains files that an available plugin could lint but that aren't enabled.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>

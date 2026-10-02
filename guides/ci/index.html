@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Use opx in CI · opx</title>
+		<meta name="description" content="Run opx lint and opx scan in continuous integration.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/pagefind/pagefind-ui.css">
+<script src="/opx/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">Concepts</a>
+			<ul>
+				<li><a href="/opx/concepts/how-it-works/">How opx works</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/cli/init/">opx init</a></li>
+				<li><a href="/opx/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/cli/build/">opx build</a></li>
+				<li><a href="/opx/cli/release/">opx release</a></li>
+				<li><a href="/opx/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/reference/">Reference</a>
+			<ul>
+				<li><a href="/opx/reference/config/">Configuration</a></li>
+				<li><a href="/opx/reference/api/">API reference</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/ci/" aria-current="page">Use opx in CI</a></li>
+				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">Use opx in CI</h1>
+		<p>opx detects <code>CI</code> and runs non-interactively, so the same commands work locally and in a pipeline.</p>
+<pre class="language-yaml"><code class="language-yaml"><span class="token comment"># .github/workflows/lint.yml</span>
+<span class="token key atrule">name</span><span class="token punctuation">:</span> Lint
+<span class="token key atrule">on</span><span class="token punctuation">:</span> <span class="token punctuation">[</span>push<span class="token punctuation">,</span> pull_request<span class="token punctuation">]</span>
+
+<span class="token key atrule">jobs</span><span class="token punctuation">:</span>
+  <span class="token key atrule">lint</span><span class="token punctuation">:</span>
+    <span class="token key atrule">runs-on</span><span class="token punctuation">:</span> ubuntu<span class="token punctuation">-</span>latest
+    <span class="token key atrule">steps</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">uses</span><span class="token punctuation">:</span> actions/checkout@v6
+      <span class="token punctuation">-</span> <span class="token key atrule">uses</span><span class="token punctuation">:</span> actions/setup<span class="token punctuation">-</span>node@v4
+        <span class="token key atrule">with</span><span class="token punctuation">:</span>
+          <span class="token key atrule">node-version</span><span class="token punctuation">:</span> <span class="token number">24</span>
+          <span class="token key atrule">cache</span><span class="token punctuation">:</span> yarn
+      <span class="token punctuation">-</span> <span class="token key atrule">run</span><span class="token punctuation">:</span> yarn install <span class="token punctuation">-</span><span class="token punctuation">-</span>immutable
+      <span class="token punctuation">-</span> <span class="token key atrule">run</span><span class="token punctuation">:</span> yarn opx lint</code></pre>
+<h2 id="fail-when-a-plugin-is-missing" tabindex="-1"><a class="header-anchor" href="#fail-when-a-plugin-is-missing">Fail when a plugin is missing</a></h2>
+<p><code>opx scan --strict</code> exits <code>1</code> when your repository contains files that an available plugin could lint but that aren't enabled. Use it to catch a new language arriving without tooling:</p>
+<pre class="language-yaml"><code class="language-yaml">      <span class="token punctuation">-</span> <span class="token key atrule">run</span><span class="token punctuation">:</span> yarn opx scan <span class="token punctuation">-</span><span class="token punctuation">-</span>strict</code></pre>
+<p>For a machine-readable result, add <code>--json</code>; see the <a href="../../cli/scan/"><code>opx scan</code> reference</a>.</p>
+<h2 id="pull-requests-from-forks" tabindex="-1"><a class="header-anchor" href="#pull-requests-from-forks">Pull requests from forks</a></h2>
+<p>A pull request can change <code>.opx/config.json</code>, ESLint configs, and dependencies, and <code>opx lint</code> runs all of them. See the <a href="../../concepts/how-it-works/#trust-model">trust model</a>. For public repositories:</p>
+<ul>
+<li>Trigger on <code>pull_request</code>, not <code>pull_request_target</code>. Fork runs of <code>pull_request</code> get a read-only token and no secrets.</li>
+<li>Keep publishing and other secret-using steps in a separate workflow that only runs on <code>main</code>.</li>
+<li>Require approval before workflows run for first-time contributors (Settings → Actions → General).</li>
+</ul>
+<h2 id="releasing" tabindex="-1"><a class="header-anchor" href="#releasing">Releasing</a></h2>
+<p>Record changes with flags, since prompts aren't available in CI:</p>
+<pre class="language-sh"><code class="language-sh">opx release <span class="token function">add</span> <span class="token parameter variable">--type</span> minor <span class="token parameter variable">--pkg</span> @acme/cli <span class="token parameter variable">--summary</span> <span class="token string">"Add --json output"</span></code></pre>
+<p>See <a href="../../plugins/release/"><code>@allons-y/opx-release</code></a> for publishing.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>
