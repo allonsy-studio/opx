@@ -7,7 +7,10 @@
     "@allons-y/opx-lint-js": "0.1.0",
     "@allons-y/opx-lint-json": "0.1.0",
     "@allons-y/opx-lint-md": "0.1.0",
-    "@allons-y/opx-release": "0.1.0"
+    "@allons-y/opx-release": "0.1.0",
+    "@allons-y/opx-docs": "0.0.0"
   },
-  "changesets": []
+  "changesets": [
+    "initial-opx-release"
+  ]
 }
