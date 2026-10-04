@@ -40,7 +40,7 @@ For a machine-readable result, add `--json`; see the [`opx scan` reference](../.
 
 ## Pull requests from forks
 
-A pull request can change `.opx/config.json`, ESLint configs, and dependencies, and `opx lint` runs all of them. See the [trust model](../../concepts/how-it-works/#trust-model). For public repositories:
+A pull request can change `.opx/config.json`, ESLint configs, and dependencies, and `opx lint` runs all of them. See the [trust model](../../concepts/#trust-model). For public repositories:
 
 - Trigger on `pull_request`, not `pull_request_target`. Fork runs of `pull_request` get a read-only token and no secrets.
 - Keep publishing and other secret-using steps in a separate workflow that only runs on `main`.

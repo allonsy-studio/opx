@@ -66,7 +66,7 @@ Each enabled plugin runs as its own pass, in parallel, with grouped output. The 
 
 ## Next steps
 
-- [How opx works](../concepts/how-it-works/)
+- [How opx works](../concepts/)
 - [CLI reference](../cli/)
-- [Configuration reference](../reference/config/)
+- [Configuration reference](../reference/)
 - [Compose your ESLint config](../guides/compose-eslint/)
