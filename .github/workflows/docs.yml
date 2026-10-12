@@ -98,3 +98,5 @@ jobs:
                   source-dir: opx/docs/_site
                   preview-branch: gh-pages
                   umbrella-dir: preview
+                  # The org serves Pages from a custom domain; link to it directly.
+                  pages-base-url: projects.allons-y.studio/opx
