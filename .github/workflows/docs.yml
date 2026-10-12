@@ -4,23 +4,31 @@ on:
     push:
         branches: [main]
     pull_request:
-        types: [opened, synchronize, reopened]
+        # open/reopen/update builds and publishes a preview; close tears it down.
+        types: [opened, reopened, synchronize, closed]
+    workflow_dispatch:
 
-# Only cancel superseded PR builds; never interrupt a deploy in progress.
 concurrency:
-    group: docs-${{ github.ref }}
-    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    group: gh-pages-deploy
+    cancel-in-progress: false
+
+permissions:
+    contents: write # push to the gh-pages branch
+    pull-requests: write # pr-preview-action comments the preview URL
+
+env:
+    SITE_BASE: "/opx/"
 
 jobs:
-    docs:
+    production:
+        name: Deploy to gh-pages
+        if: github.event_name != 'pull_request'
         runs-on: ubuntu-latest
-        permissions:
-            # Needed to push the built site to the gh-pages branch on main.
-            contents: write
         steps:
             - name: Check out code
               uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
+                  fetch-depth: 1
                   persist-credentials: false
 
             - name: Setup Node
@@ -34,22 +42,59 @@ jobs:
 
             - name: Build docs site
               env:
-                  DOCS_BASE_URL: ${{ github.event_name == 'push' && format('/{0}/', github.event.repository.name) || '/' }}
+                  DOCS_BASE_URL: ${{ env.SITE_BASE }}
+              run: |
+                  yarn docs:build
+                  touch opx/docs/_site/.nojekyll
+
+            - name: Deploy to gh-pages
+              uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4
+              with:
+                  branch: gh-pages
+                  folder: opx/docs/_site
+                  # Wipe stale files, but keep active PR previews and the
+                  # custom-domain CNAME (a no-op when neither is present).
+                  clean: true
+                  clean-exclude: |
+                      preview/
+                      CNAME
+
+    # Preview: publish each PR under /preview/N/
+    preview:
+        name: Deploy PR preview
+        if: github.event_name == 'pull_request'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out code
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  fetch-depth: 1
+                  persist-credentials: false
+
+            # A closed PR only needs teardown, so skip the build entirely.
+            - name: Setup Node
+              if: github.event.action != 'closed'
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+
+            - name: Install dependencies
+              if: github.event.action != 'closed'
+              run: yarn install --immutable
+
+            - name: Build preview site
+              if: github.event.action != 'closed'
+              env:
+                  DOCS_BASE_URL: ${{ format('{0}preview/{1}/', env.SITE_BASE, github.event.number) }}
               run: yarn docs:build
 
-            # Publishing pushes the built files to the gh-pages branch instead of
-            # uploading a Pages artifact, so it doesn't use Actions artifact storage.
-            # Set Pages to "Deploy from a branch: gh-pages / (root)" in repo settings.
-            - name: Deploy to gh-pages
-              if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-              working-directory: opx/docs/_site
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  touch .nojekyll
-                  git init --quiet --initial-branch=gh-pages
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-                  git add --all
-                  git commit --quiet --message "docs: deploy ${GITHUB_SHA}"
-                  git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+            # Fork PRs get a read-only token, so they build (to catch breakage)
+            # but can't be published.
+            - name: Deploy preview to gh-pages
+              if: github.event.pull_request.head.repo.full_name == github.repository
+              uses: rossjrw/pr-preview-action@ffa7509e91a3ec8dfc2e5536c4d5c1acdf7a6de9 # v1
+              with:
+                  source-dir: opx/docs/_site
+                  preview-branch: gh-pages
+                  umbrella-dir: preview
