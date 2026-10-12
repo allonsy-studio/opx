@@ -24,7 +24,7 @@ yarn opx enable md
 | `.md` | `markdown/commonmark` |
 | `.mdx` | `markdown/gfm` |
 
-GitHub pull request and issue templates (`.github/PULL_REQUEST_TEMPLATE*`, `.github/ISSUE_TEMPLATE/**`) are ignored, because their task lists and placeholders trip Markdown rules.
+GitHub pull request and issue templates (`.github/PULL_REQUEST_TEMPLATE*`, `.github/ISSUE_TEMPLATE/**`) are ignored, because their task lists and placeholders trip Markdown rules. So are `CHANGELOG.md` files, which changesets generates with bracketed commit hashes.
 
 ## Configure
 

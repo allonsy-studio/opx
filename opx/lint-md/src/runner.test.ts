@@ -49,6 +49,16 @@ describe("lint-md runner", () => {
 		expect(ctx._output()).toMatch(/error/i);
 	});
 
+	it("ignores generated changelogs", async () => {
+		const dir = makeDir();
+		// A bracketed commit hash is a missing label reference in ordinary Markdown.
+		const body = "# Changelog\n\n- Updated dependencies [e30e06d]\n";
+		writeFileSync(join(dir, "CHANGELOG.md"), body);
+		writeFileSync(join(dir, "notes.md"), body);
+		expect(await run(makeCtx(dir), ["CHANGELOG.md"])).toBe(0);
+		expect(await run(makeCtx(dir), ["notes.md"])).toBe(1);
+	});
+
 	it("auto-fixes a fixable file when ctx.fix is true", async () => {
 		const dir = makeDir();
 		const file = join(dir, "fixme.md");

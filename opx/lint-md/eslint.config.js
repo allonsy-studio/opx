@@ -15,6 +15,9 @@ export default defineConfig([
 			"**/bin/**",
 			"**/dist/**",
 			"**/coverage/**",
+			// Changesets generates these with commit hashes in brackets, which trip
+			// no-missing-label-refs.
+			"**/CHANGELOG.md",
 			// GitHub markdown templates use task-list / placeholder syntax that
 			// trips Markdown rules (e.g. no-missing-label-refs); don't lint them.
 			"**/.github/PULL_REQUEST_TEMPLATE.md",
