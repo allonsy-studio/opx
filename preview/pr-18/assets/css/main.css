@@ -137,6 +137,7 @@ pre code { background: none; padding: 0; font-size: 0.875rem; }
 .hero-terminal .terminal-bar i { inline-size: 0.7rem; block-size: 0.7rem; border-radius: 50%; background: var(--border); }
 .hero-terminal pre { margin: 0; border: none; border-radius: 0; box-shadow: none; background: var(--code-bg); }
 .landing-section { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem 3rem; }
+.landing-section th { text-align: left; }
 
 @media (max-width: 800px) {
 	.docs-shell { grid-template-columns: 1fr; gap: 1rem; }
