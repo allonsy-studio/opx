@@ -59,7 +59,7 @@ jobs:
                       preview/
                       CNAME
 
-    # Preview: publish each PR under /preview/N/
+    # Preview: publish each PR under /preview/pr-N/
     preview:
         name: Deploy PR preview
         if: github.event_name == 'pull_request'
@@ -86,7 +86,7 @@ jobs:
             - name: Build preview site
               if: github.event.action != 'closed'
               env:
-                  DOCS_BASE_URL: ${{ format('{0}preview/{1}/', env.SITE_BASE, github.event.number) }}
+                  DOCS_BASE_URL: ${{ format('{0}preview/pr-{1}/', env.SITE_BASE, github.event.number) }}
               run: yarn docs:build
 
             # Fork PRs get a read-only token, so they build (to catch breakage)
