@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>opx</title>
+		<meta name="description" content="A tiny CLI and a family of installable plugins for linting, building, and releasing front-end projects. Take as much opinion as you want.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/assets/css/main.css">
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+		</header>
+		<main id="main">
+	<section class="hero">
+		<h1>opx: the <em>optionally</em> opinionated front-end toolkit.</h1>
+		<p class="lede">opx scans your repository, works out which languages and workflows you have, and runs the matching plugins from your own <code>node_modules</code>. Install only the opinions you want.</p>
+		<div class="hero-actions">
+			<a class="button" href="/opx/getting-started/">Get started</a>
+			<a class="button secondary" href="/opx/cli/">CLI reference</a>
+			<a class="button secondary" href="/opx/api/">API reference</a>
+		</div>
+		<p class="facts">Free &amp; open source · MPL-2.0 · Node 24+ · Currently in beta</p>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-cli
+<span class="token function">yarn</span> opx init
+<span class="token function">yarn</span> opx lint</code></pre>
+	</section>
+
+	<section class="features" aria-label="Highlights">
+		<div class="feature">
+			<h2>A tiny core</h2>
+			<p>The CLI knows nothing about ESLint or changesets. It discovers plugins in your dependencies and delegates to them.</p>
+		</div>
+		<div class="feature">
+			<h2>Opt in per tool</h2>
+			<p>Enable only the detectors you want with <code>opx enable</code>. Nothing is installed or configured behind your back.</p>
+		</div>
+		<div class="feature">
+			<h2>Composable configs</h2>
+			<p>Every lint package exports a plain flat-config array. Spread it into your own <code>eslint.config.js</code> and layer your rules on top.</p>
+		</div>
+		<div class="feature">
+			<h2>Release without ceremony</h2>
+			<p>A lightweight changesets flow: record a change, version, and publish with one command family.</p>
+		</div>
+	</section>
+
+	<section class="landing-section">
+		<h2>Packages</h2>
+		<table>
+			<thead><tr><th>Package</th><th>What it does</th></tr></thead>
+			<tbody>
+				<tr><td><a href="/opx/cli/"><code>@allons-y/opx-cli</code></a></td><td>The <code>opx</code> binary.</td></tr>
+				<tr><td><a href="/opx/api/"><code>@allons-y/opx</code></a></td><td>The engine: the <code>Detector</code> contract, config, state, and plugin loader.</td></tr>
+				<tr><td><a href="/opx/plugins/lint-js/"><code>@allons-y/opx-lint-js</code></a></td><td>JavaScript and TypeScript linting and formatting.</td></tr>
+				<tr><td><a href="/opx/plugins/lint-json/"><code>@allons-y/opx-lint-json</code></a></td><td>JSON, JSONC, and JSON5 linting.</td></tr>
+				<tr><td><a href="/opx/plugins/lint-md/"><code>@allons-y/opx-lint-md</code></a></td><td>Markdown linting.</td></tr>
+				<tr><td><a href="/opx/plugins/release/"><code>@allons-y/opx-release</code></a></td><td>A changesets-based release flow.</td></tr>
+			</tbody>
+		</table>
+	</section>
+</main>
+
+		<footer class="site-footer">
+			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+		</footer>
+	</body>
+</html>
