@@ -70,9 +70,9 @@
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/reference/">Reference</a>
-			<ul>
-				<li><a href="/opx/preview/pr-18/reference/api/">API reference</a></li>
-			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-18/api/">API reference</a>
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/guides/">Guides</a>
@@ -95,36 +95,43 @@
    branch<span class="token punctuation">,</span> 
    skipUntilDate
 <span class="token punctuation">)</span><span class="token operator">:</span> OpxState<span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/diff.ts#L79">diff.ts:79</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/diff.ts#L98">diff.ts:98</a></p>
+<p>Record a &quot;later&quot; answer for a plugin on a branch.</p>
 <h2 id="parameters" tabindex="-1"><a class="header-anchor" href="#parameters">Parameters</a></h2>
 <table>
 <thead>
 <tr>
 <th>Parameter</th>
 <th>Type</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>state</code></td>
 <td><a href="/opx/preview/pr-18/api/type-aliases/OpxState/"><code>OpxState</code></a></td>
+<td>The current state.</td>
 </tr>
 <tr>
 <td><code>shortName</code></td>
 <td><code>string</code></td>
+<td>The plugin short name.</td>
 </tr>
 <tr>
 <td><code>branch</code></td>
 <td><code>string</code></td>
+<td>The branch the answer applies to.</td>
 </tr>
 <tr>
 <td><code>skipUntilDate</code></td>
 <td><code>string</code></td>
+<td>The last day, as <code>YYYY-MM-DD</code>, to hide the suggestion.</td>
 </tr>
 </tbody>
 </table>
 <h2 id="returns" tabindex="-1"><a class="header-anchor" href="#returns">Returns</a></h2>
 <p><a href="/opx/preview/pr-18/api/type-aliases/OpxState/"><code>OpxState</code></a></p>
+<p>A new state; the input is not changed.</p>
 
 	</main>
 </div>

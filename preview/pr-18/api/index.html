@@ -3,9 +3,9 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>opx</title>
+		<title>API reference · opx</title>
 		<meta name="color-scheme" content="light dark">
-		<meta name="description" content="The optionally opinionated front-end toolkit">
+		<meta name="description" content="Everything exported by @allons-y/opx, generated from its TypeScript sources.">
 		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
 		<link rel="stylesheet" href="/opx/preview/pr-18/assets/css/main.css">
 		<script src="https://kit.fontawesome.com/42e99b4632.js" crossorigin="anonymous"></script>
@@ -70,9 +70,9 @@
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/reference/">Reference</a>
-			<ul>
-				<li><a href="/opx/preview/pr-18/reference/api/">API reference</a></li>
-			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-18/api/" aria-current="page">API reference</a>
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/guides/">Guides</a>
@@ -100,51 +100,83 @@
 <tbody>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/Detector/">Detector</a></td>
-<td>-</td>
+<td>The contract every opx plugin implements: decide when it applies, then run.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/DetectorContext/">DetectorContext</a></td>
-<td>-</td>
+<td>What a detector is given: the project, its settings, and how to report.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/DetectorDescription/">DetectorDescription</a></td>
-<td>-</td>
+<td>A human-readable description of what a detector does.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/DetectorId/">DetectorId</a></td>
-<td>-</td>
+<td>A detector's package id, such as <code>@allons-y/opx-lint-js</code>.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-18/api/type-aliases/DiffEntry/">DiffEntry</a></td>
+<td>How one detector relates to the project, config, and state.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-18/api/type-aliases/DiffResult/">DiffResult</a></td>
+<td>The outcome of <a href="/opx/preview/pr-18/api/functions/diff/">diff</a>.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/DynamicTask/">DynamicTask</a></td>
-<td>-</td>
+<td>A task whose plugins are chosen per project, so config lists them by short name.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-18/api/type-aliases/DynamicTaskConfig/">DynamicTaskConfig</a></td>
+<td>The config keys for dynamic tasks: each maps a plugin short name to <code>true</code>, <code>false</code>, or that plugin's settings.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-18/api/type-aliases/HookInstallResult/">HookInstallResult</a></td>
+<td>The outcome of <a href="/opx/preview/pr-18/api/functions/installPostCommitHook/">installPostCommitHook</a>.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-18/api/type-aliases/LoadedPlugin/">LoadedPlugin</a></td>
+<td>A plugin package that loaded successfully.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-18/api/type-aliases/LoadOptions/">LoadOptions</a></td>
+<td>Options for <a href="/opx/preview/pr-18/api/functions/loadPlugins/">loadPlugins</a>.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/Logger/">Logger</a></td>
-<td>-</td>
+<td>Leveled logging that detectors write through instead of using <code>console</code> directly.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/OpxConfig/">OpxConfig</a></td>
-<td>-</td>
+<td>The contents of <code>.opx/config.json</code>.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/OpxState/">OpxState</a></td>
-<td>-</td>
+<td>The contents of <code>.opx/state.json</code>, a local cache that opx can rebuild.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/OpxStateDeferral/">OpxStateDeferral</a></td>
-<td>-</td>
+<td>A &quot;later&quot; answer to a plugin suggestion, remembered for one branch.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/PackageJson/">PackageJson</a></td>
-<td>-</td>
+<td>The parts of a <code>package.json</code> that opx reads. Other fields pass through untyped.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/PackageManager/">PackageManager</a></td>
-<td>-</td>
+<td>The package managers opx can detect and install with.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-18/api/type-aliases/ResolvedTool/">ResolvedTool</a></td>
+<td>Where a tool was found.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/type-aliases/StaticTask/">StaticTask</a></td>
-<td>-</td>
+<td>A task with no plugin choice, so config turns it on or off with a boolean.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-18/api/type-aliases/StaticTaskConfig/">StaticTaskConfig</a></td>
+<td>The config keys for static tasks, each a boolean.</td>
 </tr>
 </tbody>
 </table>
@@ -159,19 +191,19 @@
 <tbody>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/applyDeferral/">applyDeferral</a></td>
-<td>-</td>
+<td>Record a &quot;later&quot; answer for a plugin on a branch.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/configPath/">configPath</a></td>
-<td>-</td>
+<td>Locate <code>.opx/config.json</code>.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/createConsoleLogger/">createConsoleLogger</a></td>
-<td>-</td>
+<td>Create a <a href="/opx/preview/pr-18/api/type-aliases/Logger/">Logger</a> that writes to the console.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/defaultConfig/">defaultConfig</a></td>
-<td>-</td>
+<td>Create the starter config: no plugins enabled, and release and test off.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/defaultSkipUntilDate/">defaultSkipUntilDate</a></td>
@@ -179,7 +211,7 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/defaultState/">defaultState</a></td>
-<td>-</td>
+<td>Create an empty state with no deferrals.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/detectPackageManager/">detectPackageManager</a></td>
@@ -195,7 +227,7 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/ensureGitignored/">ensureGitignored</a></td>
-<td>-</td>
+<td>Add an entry to <code>.gitignore</code> unless it is already listed.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/ensureOpxIgnored/">ensureOpxIgnored</a></td>
@@ -207,7 +239,7 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/installCommand/">installCommand</a></td>
-<td>-</td>
+<td>Build the command that installs packages with a package manager.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/installPostCommitHook/">installPostCommitHook</a></td>
@@ -219,7 +251,7 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/isValidPluginName/">isValidPluginName</a></td>
-<td>-</td>
+<td>Whether a package name follows the opx plugin naming convention: <code>@allons-y/opx-*</code>, <code>opx-plugin-*</code>, or <code>@scope/opx-plugin-*</code>.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/loadPlugins/">loadPlugins</a></td>
@@ -231,11 +263,11 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/readConfig/">readConfig</a></td>
-<td>-</td>
+<td>Read <code>.opx/config.json</code>, filling gaps with defaults.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/readState/">readState</a></td>
-<td>-</td>
+<td>Read <code>.opx/state.json</code>. The file is a disposable cache, so a missing or unreadable file gives an empty state rather than an error.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/resolvePluginPackageName/">resolvePluginPackageName</a></td>
@@ -247,15 +279,15 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/statePath/">statePath</a></td>
-<td>-</td>
+<td>Locate <code>.opx/state.json</code>.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/writeConfig/">writeConfig</a></td>
-<td>-</td>
+<td>Write <code>.opx/config.json</code>, creating the folder if needed. Empty task maps are left out.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-18/api/functions/writeState/">writeState</a></td>
-<td>-</td>
+<td>Write <code>.opx/state.json</code>, creating the folder if needed.</td>
 </tr>
 </tbody>
 </table>

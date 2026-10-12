@@ -70,9 +70,9 @@
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/reference/">Reference</a>
-			<ul>
-				<li><a href="/opx/preview/pr-18/reference/api/">API reference</a></li>
-			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-18/api/">API reference</a>
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/guides/">Guides</a>
@@ -102,13 +102,15 @@
   state<span class="token operator">:</span> OpxState<span class="token punctuation">;</span>
   write<span class="token operator">:</span> <span class="token keyword">void</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L53">detector.ts:53</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L91">detector.ts:91</a></p>
+<p>What a detector is given: the project, its settings, and how to report.</p>
 <h2 id="properties" tabindex="-1"><a class="header-anchor" href="#properties">Properties</a></h2>
 <table>
 <thead>
 <tr>
 <th>Property</th>
 <th>Type</th>
+<th>Description</th>
 <th>Defined in</th>
 </tr>
 </thead>
@@ -116,59 +118,69 @@
 <tr>
 <td><a id="branch"></a> <code>branch</code></td>
 <td><code>string</code></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L60">detector.ts:60</a></td>
+<td>The current git branch.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L105">detector.ts:105</a></td>
 </tr>
 <tr>
 <td><a id="config"></a> <code>config</code></td>
 <td><a href="/opx/preview/pr-18/api/type-aliases/OpxConfig/"><code>OpxConfig</code></a></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L58">detector.ts:58</a></td>
+<td>The parsed <code>.opx/config.json</code>.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L101">detector.ts:101</a></td>
 </tr>
 <tr>
 <td><a id="cwd"></a> <code>cwd</code></td>
 <td><code>string</code></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L54">detector.ts:54</a></td>
+<td>The repository root.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L93">detector.ts:93</a></td>
 </tr>
 <tr>
 <td><a id="dryrun"></a> <code>dryRun</code></td>
 <td><code>boolean</code></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L62">detector.ts:62</a></td>
+<td>Whether to report what would change without changing it.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L109">detector.ts:109</a></td>
 </tr>
 <tr>
 <td><a id="filetypes"></a> <code>fileTypes</code></td>
 <td><code>Set</code>&lt;<code>string</code>&gt;</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L55">detector.ts:55</a></td>
+<td>File extensions found in the committed tree, with the leading dot.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L95">detector.ts:95</a></td>
 </tr>
 <tr>
 <td><a id="fix"></a> <code>fix</code></td>
 <td><code>boolean</code></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L63">detector.ts:63</a></td>
+<td>Whether the tool should fix problems it can fix.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L111">detector.ts:111</a></td>
 </tr>
 <tr>
 <td><a id="hostpkg"></a> <code>hostPkg</code></td>
 <td><a href="/opx/preview/pr-18/api/type-aliases/PackageJson/"><code>PackageJson</code></a></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L56">detector.ts:56</a></td>
+<td>The host project's <code>package.json</code>.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L97">detector.ts:97</a></td>
 </tr>
 <tr>
 <td><a id="logger"></a> <code>logger</code></td>
 <td><a href="/opx/preview/pr-18/api/type-aliases/Logger/"><code>Logger</code></a></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L61">detector.ts:61</a></td>
+<td>Where to send log messages.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L107">detector.ts:107</a></td>
 </tr>
 <tr>
 <td><a id="pkgmanager"></a> <code>pkgManager</code></td>
 <td><a href="/opx/preview/pr-18/api/type-aliases/PackageManager/"><code>PackageManager</code></a></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L57">detector.ts:57</a></td>
+<td>The host project's package manager.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L99">detector.ts:99</a></td>
 </tr>
 <tr>
 <td><a id="state"></a> <code>state</code></td>
 <td><a href="/opx/preview/pr-18/api/type-aliases/OpxState/"><code>OpxState</code></a></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L59">detector.ts:59</a></td>
+<td>The parsed <code>.opx/state.json</code>.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L103">detector.ts:103</a></td>
 </tr>
 </tbody>
 </table>
 <h2 id="methods" tabindex="-1"><a class="header-anchor" href="#methods">Methods</a></h2>
 <h3 id="write()" tabindex="-1"><a class="header-anchor" href="#write()">write()</a></h3>
 <pre class="language-ts"><code class="language-ts"><span class="token function">write</span><span class="token punctuation">(</span>chunk<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token keyword">void</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L70">detector.ts:70</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L118">detector.ts:118</a></p>
 <p>Sink for a detector's primary (report) output — e.g. an ESLint results
 report. Defaults to stdout, but the CLI may swap in a buffer so concurrent
 detectors' output can be flushed grouped instead of interleaved. Use this

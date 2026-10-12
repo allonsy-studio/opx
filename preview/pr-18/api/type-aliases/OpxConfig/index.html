@@ -70,9 +70,9 @@
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/reference/">Reference</a>
-			<ul>
-				<li><a href="/opx/preview/pr-18/reference/api/">API reference</a></li>
-			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-18/api/">API reference</a>
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/guides/">Guides</a>
@@ -93,28 +93,34 @@
   $schema<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
   version<span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span> <span class="token operator">&amp;</span> DynamicTaskConfig<span class="token operator">&lt;</span>PluginName<span class="token punctuation">,</span> PluginConfig<span class="token operator">></span> <span class="token operator">&amp;</span> StaticTaskConfig<span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L36">detector.ts:36</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L63">detector.ts:63</a></p>
+<p>The contents of <code>.opx/config.json</code>.</p>
 <h2 id="type-declaration" tabindex="-1"><a class="header-anchor" href="#type-declaration">Type Declaration</a></h2>
 <h3 id="%24schema%3F" tabindex="-1"><a class="header-anchor" href="#%24schema%3F">$schema?</a></h3>
 <pre class="language-ts"><code class="language-ts">optional $schema<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span></code></pre>
+<p>URL of the JSON schema that editors use to validate the file.</p>
 <h3 id="version" tabindex="-1"><a class="header-anchor" href="#version">version</a></h3>
 <pre class="language-ts"><code class="language-ts">version<span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">;</span></code></pre>
+<p>The config format version.</p>
 <h2 id="type-parameters" tabindex="-1"><a class="header-anchor" href="#type-parameters">Type Parameters</a></h2>
 <table>
 <thead>
 <tr>
 <th>Type Parameter</th>
 <th>Default type</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>PluginName</code> <em>extends</em> <code>string</code></td>
 <td><code>string</code></td>
+<td>The plugin short names allowed as keys.</td>
 </tr>
 <tr>
 <td><code>PluginConfig</code></td>
 <td><code>Record</code>&lt;<code>string</code>, <code>unknown</code>&gt;</td>
+<td>The settings object a plugin accepts.</td>
 </tr>
 </tbody>
 </table>

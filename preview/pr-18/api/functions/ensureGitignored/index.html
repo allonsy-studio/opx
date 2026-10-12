@@ -70,9 +70,9 @@
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/reference/">Reference</a>
-			<ul>
-				<li><a href="/opx/preview/pr-18/reference/api/">API reference</a></li>
-			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-18/api/">API reference</a>
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/guides/">Guides</a>
@@ -90,28 +90,33 @@
 		
 		<h1 id="function%3A-ensuregitignored()" tabindex="-1"><a class="header-anchor" href="#function%3A-ensuregitignored()">Function: ensureGitignored()</a></h1>
 <pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">ensureGitignored</span><span class="token punctuation">(</span>cwd<span class="token punctuation">,</span> entry<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/hooks.ts#L41">hooks.ts:41</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/hooks.ts#L51">hooks.ts:51</a></p>
+<p>Add an entry to <code>.gitignore</code> unless it is already listed.</p>
 <h2 id="parameters" tabindex="-1"><a class="header-anchor" href="#parameters">Parameters</a></h2>
 <table>
 <thead>
 <tr>
 <th>Parameter</th>
 <th>Type</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>cwd</code></td>
 <td><code>string</code></td>
+<td>The repository root.</td>
 </tr>
 <tr>
 <td><code>entry</code></td>
 <td><code>string</code></td>
+<td>The pattern to ignore.</td>
 </tr>
 </tbody>
 </table>
 <h2 id="returns" tabindex="-1"><a class="header-anchor" href="#returns">Returns</a></h2>
 <p><code>boolean</code></p>
+<p>true if <code>.gitignore</code> was changed.</p>
 
 	</main>
 </div>

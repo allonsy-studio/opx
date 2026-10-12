@@ -70,9 +70,9 @@
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/reference/">Reference</a>
-			<ul>
-				<li><a href="/opx/preview/pr-18/reference/api/">API reference</a></li>
-			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-18/api/">API reference</a>
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/guides/">Guides</a>
@@ -94,13 +94,15 @@
   reason<span class="token operator">:</span> <span class="token string">"later"</span> <span class="token operator">|</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
   skipUntilDate<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L41">detector.ts:41</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L71">detector.ts:71</a></p>
+<p>A &quot;later&quot; answer to a plugin suggestion, remembered for one branch.</p>
 <h2 id="properties" tabindex="-1"><a class="header-anchor" href="#properties">Properties</a></h2>
 <table>
 <thead>
 <tr>
 <th>Property</th>
 <th>Type</th>
+<th>Description</th>
 <th>Defined in</th>
 </tr>
 </thead>
@@ -108,17 +110,20 @@
 <tr>
 <td><a id="branch"></a> <code>branch</code></td>
 <td><code>string</code></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L42">detector.ts:42</a></td>
+<td>The branch the deferral applies to.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L73">detector.ts:73</a></td>
 </tr>
 <tr>
 <td><a id="reason"></a> <code>reason</code></td>
 <td><code>&quot;later&quot;</code> | <code>string</code></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L44">detector.ts:44</a></td>
+<td>Why the suggestion was deferred.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L77">detector.ts:77</a></td>
 </tr>
 <tr>
 <td><a id="skipuntildate"></a> <code>skipUntilDate</code></td>
 <td><code>string</code></td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/fa94ce8588bcdc7094e9f1c80d0f19648e6cfca9/opx/engine/src/detector.ts#L43">detector.ts:43</a></td>
+<td>The last day, as <code>YYYY-MM-DD</code>, that the suggestion stays hidden.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/d209cfb79e668dcb83b645e7b9e9870dbe8081c3/opx/engine/src/detector.ts#L75">detector.ts:75</a></td>
 </tr>
 </tbody>
 </table>
