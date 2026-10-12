@@ -166,7 +166,7 @@ pre code { background: none; padding: 0; font-size: 0.875rem; }
 .docs-search .pagefind-ui__results-area .pagefind-ui__message { font-size: 0.8125rem; }
 .docs-search .pagefind-ui__result-link::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
 .docs-search .pagefind-ui__result-link:focus-visible { outline: none; }
-.studio-banner { display: block; background: #33384d; }
+.studio-banner { display: block; background: #33394e; }
 .studio-banner img { display: block; width: 100%; max-width: 2000px; height: auto; margin: 0 auto; }
 .site-footer {
 	display: grid;
