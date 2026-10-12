@@ -7,7 +7,7 @@ layout: layouts/base.njk
 		{% include "components/sidebar.njk" %}
 	</aside>
 	<main id="main" class="docs-content" data-pagefind-body>
-		{% if title %}<h1 data-pagefind-meta="title">{{ title }}</h1>{% endif %}
+		{% if title and not hideTitle %}<h1 data-pagefind-meta="title">{{ title }}</h1>{% endif %}
 		{{ content | safe }}
 	</main>
 </div>

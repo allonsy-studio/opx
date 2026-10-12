@@ -29,6 +29,8 @@ export default {
 		"!**/node_modules/**",
 		"!**/vendor/**",
 	],
+	// Type declarations only: no runtime code to cover.
+	coveragePathIgnorePatterns: ["/node_modules/", "/engine/src/detector\\.ts$"],
 	coverageDirectory: "./coverage",
 	coverageProvider: "v8",
 	coverageReporters: isCI ? ["cobertura", "json"] : ["text", "text-summary"],

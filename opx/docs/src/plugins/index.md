@@ -4,7 +4,7 @@ title: Plugins
 description: The official opx plugins.
 eleventyNavigation:
     key: Plugins
-    order: 4
+    order: 5
 ---
 
 | Plugin | Short name | Task | Covers |

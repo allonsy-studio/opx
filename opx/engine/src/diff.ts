@@ -1,17 +1,27 @@
 import type { Detector, DetectorContext, OpxState } from "./detector.js";
 import { enabledNames } from "./state.js";
 
+/** How one detector relates to the project, config, and state. */
 export type DiffEntry = {
+	/** The detector this entry describes. */
 	detector: Detector;
+	/** Whether the detector applies to the project. */
 	matched: boolean;
+	/** Whether the detector is switched on in config. */
 	enabled: boolean;
+	/** Whether a "later" answer is still hiding the suggestion. */
 	deferred: boolean;
+	/** Whether a "later" answer was recorded but has run out. */
 	deferralExpired: boolean;
+	/** Whether to suggest the detector: it matches, is off, and is not deferred. */
 	needsPrompt: boolean;
 };
 
+/** The outcome of {@link diff}. */
 export type DiffResult = {
+	/** One entry per detector, in the order given. */
 	entries: DiffEntry[];
+	/** The entries that should be suggested. */
 	needsPrompt: DiffEntry[];
 };
 
@@ -76,6 +86,15 @@ export function defaultSkipUntilDate(today: string = new Date().toISOString().sl
 	return today;
 }
 
+/**
+ * Record a "later" answer for a plugin on a branch.
+ *
+ * @param state - The current state.
+ * @param shortName - The plugin short name.
+ * @param branch - The branch the answer applies to.
+ * @param skipUntilDate - The last day, as `YYYY-MM-DD`, to hide the suggestion.
+ * @returns A new state; the input is not changed.
+ */
 export function applyDeferral(state: OpxState, shortName: string, branch: string, skipUntilDate: string): OpxState {
 	return {
 		...state,

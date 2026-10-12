@@ -12,28 +12,39 @@ description: A tiny CLI and a family of installable plugins for linting, buildin
 			<a class="button secondary" href="/cli/">CLI reference</a>
 			<a class="button secondary" href="/api/">API reference</a>
 		</div>
-		<p class="facts">Free &amp; open source · MPL-2.0 · Node 24+ · Currently in beta</p>
+		<ul class="facts">
+			<li><span class="fa-brands fa-osi" aria-hidden="true"></span>Free &amp; open source · MPL-2.0</li>
+			<li><span class="fa-brands fa-node-js" aria-hidden="true"></span>Node 24+</li>
+			<li><span class="fa-solid fa-flask" aria-hidden="true"></span>Currently in beta</li>
+		</ul>
+<div class="hero-terminal">
+			<span class="terminal-bar" aria-hidden="true"><i></i><i></i><i></i></span>
 {% highlight "sh" %}
 yarn add --dev @allons-y/opx-cli
 yarn opx init
 yarn opx lint
 {% endhighlight %}
+		</div>
 	</section>
 
 	<section class="features" aria-label="Highlights">
 		<div class="feature">
+			<span class="icon" aria-hidden="true"><span class="fa-solid fa-feather-pointed fa-xl"></span></span>
 			<h2>A tiny core</h2>
 			<p>The CLI knows nothing about ESLint or changesets. It discovers plugins in your dependencies and delegates to them.</p>
 		</div>
 		<div class="feature">
+			<span class="icon" aria-hidden="true"><span class="fa-solid fa-toggle-on fa-xl"></span></span>
 			<h2>Opt in per tool</h2>
 			<p>Enable only the detectors you want with <code>opx enable</code>. Nothing is installed or configured behind your back.</p>
 		</div>
 		<div class="feature">
+			<span class="icon" aria-hidden="true"><span class="fa-solid fa-puzzle-piece fa-xl"></span></span>
 			<h2>Composable configs</h2>
 			<p>Every lint package exports a plain flat-config array. Spread it into your own <code>eslint.config.js</code> and layer your rules on top.</p>
 		</div>
 		<div class="feature">
+			<span class="icon" aria-hidden="true"><span class="fa-solid fa-rocket fa-xl"></span></span>
 			<h2>Release without ceremony</h2>
 			<p>A lightweight changesets flow: record a change, version, and publish with one command family.</p>
 		</div>

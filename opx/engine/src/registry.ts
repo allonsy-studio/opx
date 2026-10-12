@@ -5,6 +5,12 @@ const COMMUNITY_PREFIX = "opx-plugin-";
 
 const NAME_RE = new RegExp("^(opx-plugin-|@[^/]+/opx-plugin-|@allons-y/opx-)");
 
+/**
+ * Whether a package name follows the opx plugin naming convention:
+ * `@allons-y/opx-*`, `opx-plugin-*`, or `@scope/opx-plugin-*`.
+ *
+ * @param name - The package name to check.
+ */
 export function isValidPluginName(name: string): boolean {
 	return NAME_RE.test(name);
 }
@@ -43,15 +49,23 @@ export function normalizeDetectorId(
 	return null;
 }
 
+/** A plugin package that loaded successfully. */
 export type LoadedPlugin = {
+	/** The installed package id. */
 	id: string;
+	/** The short name it was declared with in config. */
 	shortName: string;
+	/** The detectors its default export provides. */
 	detectors: Detector[];
 };
 
+/** Options for {@link loadPlugins}. */
 export type LoadOptions = {
+	/** The host project's `package.json`, used to find installed plugins. */
 	hostPkg: PackageJson;
+	/** The repository root. */
 	cwd: string;
+	/** Where to report plugins that are skipped. */
 	logger: Logger;
 };
 
