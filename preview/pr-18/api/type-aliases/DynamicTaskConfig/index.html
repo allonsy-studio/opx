@@ -44,6 +44,9 @@
 			<a href="/opx/preview/pr-18/getting-started/">Getting started</a>
 		</li>
 		<li>
+			<a href="/opx/preview/pr-18/config/">Config</a>
+		</li>
+		<li>
 			<a href="/opx/preview/pr-18/concepts/">How opx works</a>
 		</li>
 		<li>
@@ -69,9 +72,6 @@
 			</ul>
 		</li>
 		<li>
-			<a href="/opx/preview/pr-18/config/">Config</a>
-		</li>
-		<li>
 			<a href="/opx/preview/pr-18/api/">API reference</a>
 		</li>
 		<li>
@@ -90,7 +90,7 @@
 		
 		<h1 id="type-alias%3A-dynamictaskconfig%3Cpluginname%2C-pluginconfig%3E" tabindex="-1"><a class="header-anchor" href="#type-alias%3A-dynamictaskconfig%3Cpluginname%2C-pluginconfig%3E">Type Alias: DynamicTaskConfig&lt;PluginName, PluginConfig&gt;</a></h1>
 <pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">DynamicTaskConfig<span class="token operator">&lt;</span>PluginName<span class="token punctuation">,</span> PluginConfig<span class="token operator">></span></span> <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token punctuation">[</span>key <span class="token keyword">in</span> DynamicTask<span class="token punctuation">]</span><span class="token operator">?</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token punctuation">[</span>key <span class="token keyword">in</span> PluginName<span class="token punctuation">]</span><span class="token operator">:</span> PluginConfig <span class="token operator">|</span> <span class="token builtin">boolean</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/301a51a554aceabd773a7a0edf0aebb197aa39c6/opx/engine/src/detector.ts#L43">detector.ts:43</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/2b23a03142fcda639095d3eb47eab1065d7424e2/opx/engine/src/detector.ts#L43">detector.ts:43</a></p>
 <p>The config keys for dynamic tasks: each maps a plugin short name to <code>true</code>,
 <code>false</code>, or that plugin's settings.</p>
 <h2 id="type-parameters" tabindex="-1"><a class="header-anchor" href="#type-parameters">Type Parameters</a></h2>
