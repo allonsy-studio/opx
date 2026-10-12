@@ -3,18 +3,23 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>opx</title>
-		<meta name="description" content="The optionally opinionated front-end toolkit">
+		<title>API · opx</title>
+		<meta name="color-scheme" content="light dark">
+		<meta name="description" content="Everything exported by @allons-y/opx, generated from its TypeScript sources.">
 		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
 		<link rel="stylesheet" href="/opx/assets/css/main.css">
+		<script src="https://kit.fontawesome.com/42e99b4632.js" crossorigin="anonymous"></script>
 	</head>
 	<body>
 		<a class="skip-link" href="#main">Skip to content</a>
+		<a class="studio-banner" href="https://allons-y.studio">
+			<img src="/opx/assets/img/oss-banner.webp" alt="Brought to you by Allons-y Studio" width="2000" height="80">
+		</a>
 		<header class="site-header">
 			<a class="site-title" href="/opx/">opx</a>
 			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
-			<a class="site-link" href="https://github.com/allonsy-studio/opx">GitHub</a>
-			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli">npm</a>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a>
 		</header>
 		<div class="docs-shell">
 	<aside class="docs-sidebar">
@@ -39,7 +44,10 @@
 			<a href="/opx/getting-started/">Getting started</a>
 		</li>
 		<li>
-			<a href="/opx/concepts/">How opx works</a>
+			<a href="/opx/config/">Configuring opx</a>
+		</li>
+		<li>
+			<a href="/opx/concepts/">How it works</a>
 		</li>
 		<li>
 			<a href="/opx/cli/">CLI</a>
@@ -64,18 +72,15 @@
 			</ul>
 		</li>
 		<li>
-			<a href="/opx/reference/">Reference</a>
-			<ul>
-				<li><a href="/opx/reference/api/">API reference</a></li>
-			</ul>
-		</li>
-		<li>
 			<a href="/opx/guides/">Guides</a>
 			<ul>
-				<li><a href="/opx/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
 			</ul>
+		</li>
+		<li>
+			<a href="/opx/api/" aria-current="page">API</a>
 		</li>
 	</ul>
 </nav>
@@ -95,51 +100,83 @@
 <tbody>
 <tr>
 <td><a href="/opx/api/type-aliases/Detector/">Detector</a></td>
-<td>-</td>
+<td>The contract every opx plugin implements: decide when it applies, then run.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/DetectorContext/">DetectorContext</a></td>
-<td>-</td>
+<td>What a detector is given: the project, its settings, and how to report.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/DetectorDescription/">DetectorDescription</a></td>
-<td>-</td>
+<td>A human-readable description of what a detector does.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/DetectorId/">DetectorId</a></td>
-<td>-</td>
+<td>A detector's package id, such as <code>@allons-y/opx-lint-js</code>.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/DiffEntry/">DiffEntry</a></td>
+<td>How one detector relates to the project, config, and state.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/DiffResult/">DiffResult</a></td>
+<td>The outcome of <a href="/opx/api/functions/diff/">diff</a>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/DynamicTask/">DynamicTask</a></td>
-<td>-</td>
+<td>A task whose plugins are chosen per project, so config lists them by short name.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/DynamicTaskConfig/">DynamicTaskConfig</a></td>
+<td>The config keys for dynamic tasks: each maps a plugin short name to <code>true</code>, <code>false</code>, or that plugin's settings.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/HookInstallResult/">HookInstallResult</a></td>
+<td>The outcome of <a href="/opx/api/functions/installPostCommitHook/">installPostCommitHook</a>.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/LoadedPlugin/">LoadedPlugin</a></td>
+<td>A plugin package that loaded successfully.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/LoadOptions/">LoadOptions</a></td>
+<td>Options for <a href="/opx/api/functions/loadPlugins/">loadPlugins</a>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/Logger/">Logger</a></td>
-<td>-</td>
+<td>Leveled logging that detectors write through instead of using <code>console</code> directly.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/OpxConfig/">OpxConfig</a></td>
-<td>-</td>
+<td>The contents of <code>.opx/config.json</code>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/OpxState/">OpxState</a></td>
-<td>-</td>
+<td>The contents of <code>.opx/state.json</code>, a local cache that opx can rebuild.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/OpxStateDeferral/">OpxStateDeferral</a></td>
-<td>-</td>
+<td>A &quot;later&quot; answer to a plugin suggestion, remembered for one branch.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/PackageJson/">PackageJson</a></td>
-<td>-</td>
+<td>The parts of a <code>package.json</code> that opx reads. Other fields pass through untyped.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/PackageManager/">PackageManager</a></td>
-<td>-</td>
+<td>The package managers opx can detect and install with.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/ResolvedTool/">ResolvedTool</a></td>
+<td>Where a tool was found.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/StaticTask/">StaticTask</a></td>
-<td>-</td>
+<td>A task with no plugin choice, so config turns it on or off with a boolean.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/StaticTaskConfig/">StaticTaskConfig</a></td>
+<td>The config keys for static tasks, each a boolean.</td>
 </tr>
 </tbody>
 </table>
@@ -154,19 +191,19 @@
 <tbody>
 <tr>
 <td><a href="/opx/api/functions/applyDeferral/">applyDeferral</a></td>
-<td>-</td>
+<td>Record a &quot;later&quot; answer for a plugin on a branch.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/configPath/">configPath</a></td>
-<td>-</td>
+<td>Locate <code>.opx/config.json</code>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/createConsoleLogger/">createConsoleLogger</a></td>
-<td>-</td>
+<td>Create a <a href="/opx/api/type-aliases/Logger/">Logger</a> that writes to the console.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/defaultConfig/">defaultConfig</a></td>
-<td>-</td>
+<td>Create the starter config: no plugins enabled, and release and test off.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/defaultSkipUntilDate/">defaultSkipUntilDate</a></td>
@@ -174,7 +211,7 @@
 </tr>
 <tr>
 <td><a href="/opx/api/functions/defaultState/">defaultState</a></td>
-<td>-</td>
+<td>Create an empty state with no deferrals.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/detectPackageManager/">detectPackageManager</a></td>
@@ -190,7 +227,7 @@
 </tr>
 <tr>
 <td><a href="/opx/api/functions/ensureGitignored/">ensureGitignored</a></td>
-<td>-</td>
+<td>Add an entry to <code>.gitignore</code> unless it is already listed.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/ensureOpxIgnored/">ensureOpxIgnored</a></td>
@@ -202,7 +239,7 @@
 </tr>
 <tr>
 <td><a href="/opx/api/functions/installCommand/">installCommand</a></td>
-<td>-</td>
+<td>Build the command that installs packages with a package manager.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/installPostCommitHook/">installPostCommitHook</a></td>
@@ -214,7 +251,7 @@
 </tr>
 <tr>
 <td><a href="/opx/api/functions/isValidPluginName/">isValidPluginName</a></td>
-<td>-</td>
+<td>Whether a package name follows the opx plugin naming convention: <code>@allons-y/opx-*</code>, <code>opx-plugin-*</code>, or <code>@scope/opx-plugin-*</code>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/loadPlugins/">loadPlugins</a></td>
@@ -226,11 +263,11 @@
 </tr>
 <tr>
 <td><a href="/opx/api/functions/readConfig/">readConfig</a></td>
-<td>-</td>
+<td>Read <code>.opx/config.json</code>, filling gaps with defaults.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/readState/">readState</a></td>
-<td>-</td>
+<td>Read <code>.opx/state.json</code>. The file is a disposable cache, so a missing or unreadable file gives an empty state rather than an error.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/resolvePluginPackageName/">resolvePluginPackageName</a></td>
@@ -242,15 +279,15 @@
 </tr>
 <tr>
 <td><a href="/opx/api/functions/statePath/">statePath</a></td>
-<td>-</td>
+<td>Locate <code>.opx/state.json</code>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/writeConfig/">writeConfig</a></td>
-<td>-</td>
+<td>Write <code>.opx/config.json</code>, creating the folder if needed. Empty task maps are left out.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/writeState/">writeState</a></td>
-<td>-</td>
+<td>Write <code>.opx/state.json</code>, creating the folder if needed.</td>
 </tr>
 </tbody>
 </table>
@@ -259,7 +296,33 @@
 </div>
 
 		<footer class="site-footer">
-			<p>Brought to you by <a href="https://allons-y.studio">Allons-y Studio</a></p>
+			<div class="site-footer-brand">
+				<p class="site-footer-title">opx</p>
+				<p>The optionally opinionated front-end toolkit.</p>
+				<p class="site-footer-meta"><a href="https://github.com/allonsy-studio/opx/blob/main/LICENSE">Licensed under MPL-2.0</a></p>
+			</div>
+			<div>
+				<p class="site-footer-title">Project</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a></li>
+					<li><a href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a></li>
+				</ul>
+			</div>
+			<div>
+				<p class="site-footer-title">Help</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx/issues">Report an issue</a></li>
+					<li><a href="https://github.com/allonsy-studio/opx/blob/main/.github/CONTRIBUTING.md">Contributing guide</a></li>
+				</ul>
+			</div>
+			<div class="site-footer-studio">
+				<a href="https://allons-y.studio">
+					<picture>
+						<source media="(prefers-color-scheme: dark)" srcset="/opx/assets/img/oss-footer-dark.png">
+						<img src="/opx/assets/img/oss-footer-light.png" alt="Brought to you by Allons-y Studio" width="220" height="103">
+					</picture>
+				</a>
+			</div>
 		</footer>
 	</body>
 </html>
