@@ -44,10 +44,10 @@
 			<a href="/opx/preview/pr-18/getting-started/">Getting started</a>
 		</li>
 		<li>
-			<a href="/opx/preview/pr-18/config/">Config</a>
+			<a href="/opx/preview/pr-18/config/">Configuring opx</a>
 		</li>
 		<li>
-			<a href="/opx/preview/pr-18/concepts/">How opx works</a>
+			<a href="/opx/preview/pr-18/concepts/">How it works</a>
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/cli/">CLI</a>
@@ -77,7 +77,7 @@
 		<li>
 			<a href="/opx/preview/pr-18/guides/">Guides</a>
 			<ul>
-				<li><a href="/opx/preview/pr-18/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/preview/pr-18/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/preview/pr-18/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/preview/pr-18/guides/writing-a-detector/">Writing a detector</a></li>
 			</ul>
@@ -90,7 +90,7 @@
 		
 		<h1 id="type-alias%3A-dynamictaskconfig%3Cpluginname%2C-pluginconfig%3E" tabindex="-1"><a class="header-anchor" href="#type-alias%3A-dynamictaskconfig%3Cpluginname%2C-pluginconfig%3E">Type Alias: DynamicTaskConfig&lt;PluginName, PluginConfig&gt;</a></h1>
 <pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">DynamicTaskConfig<span class="token operator">&lt;</span>PluginName<span class="token punctuation">,</span> PluginConfig<span class="token operator">></span></span> <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token punctuation">[</span>key <span class="token keyword">in</span> DynamicTask<span class="token punctuation">]</span><span class="token operator">?</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token punctuation">[</span>key <span class="token keyword">in</span> PluginName<span class="token punctuation">]</span><span class="token operator">:</span> PluginConfig <span class="token operator">|</span> <span class="token builtin">boolean</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/2b23a03142fcda639095d3eb47eab1065d7424e2/opx/engine/src/detector.ts#L43">detector.ts:43</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/cbfdb33cc1687862f84c4830ea2005038af3fbf9/opx/engine/src/detector.ts#L43">detector.ts:43</a></p>
 <p>The config keys for dynamic tasks: each maps a plugin short name to <code>true</code>,
 <code>false</code>, or that plugin's settings.</p>
 <h2 id="type-parameters" tabindex="-1"><a class="header-anchor" href="#type-parameters">Type Parameters</a></h2>

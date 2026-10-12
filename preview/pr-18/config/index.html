@@ -44,10 +44,10 @@
 			<a href="/opx/preview/pr-18/getting-started/">Getting started</a>
 		</li>
 		<li>
-			<a href="/opx/preview/pr-18/config/" aria-current="page">Config</a>
+			<a href="/opx/preview/pr-18/config/" aria-current="page">Configuring opx</a>
 		</li>
 		<li>
-			<a href="/opx/preview/pr-18/concepts/">How opx works</a>
+			<a href="/opx/preview/pr-18/concepts/">How it works</a>
 		</li>
 		<li>
 			<a href="/opx/preview/pr-18/cli/">CLI</a>
@@ -77,7 +77,7 @@
 		<li>
 			<a href="/opx/preview/pr-18/guides/">Guides</a>
 			<ul>
-				<li><a href="/opx/preview/pr-18/guides/compose-eslint/">Compose your ESLint config</a></li>
+				<li><a href="/opx/preview/pr-18/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/preview/pr-18/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/preview/pr-18/guides/writing-a-detector/">Writing a detector</a></li>
 			</ul>
@@ -88,7 +88,7 @@
 	</aside>
 	<main id="main" class="docs-content" data-pagefind-body="">
 		<h1 data-pagefind-meta="title">Configuration</h1>
-		<p>opx reads <code>.opx/config.json</code> from the repository root. <code>opx init</code> and <a href="../cli/enable/"><code>opx enable</code></a> write it; you can edit it by hand.</p>
+		<p>opx reads <code>.opx/config.json</code> from the repository root. <a href="../cli/init/"><code>opx init</code></a> and <a href="../cli/enable/"><code>opx enable</code></a> write it; you <em>can</em> edit it by hand but you don't have to.</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
   <span class="token property">"$schema"</span><span class="token operator">:</span> <span class="token string">"https://unpkg.com/@allons-y/opx/schema/config.json"</span><span class="token punctuation">,</span>
   <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
