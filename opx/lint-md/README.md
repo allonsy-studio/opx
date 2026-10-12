@@ -53,7 +53,7 @@ To swap in your own ESLint flat config, set `lint.md` in `.opx/config.json`:
 
 Paths are resolved relative to the host repo root.
 
-The default config ignores GitHub markdown templates (`.github/PULL_REQUEST_TEMPLATE.md`, `ISSUE_TEMPLATE/**`), whose task-list and placeholder syntax otherwise trips Markdown rules.
+The default config ignores GitHub markdown templates (`.github/PULL_REQUEST_TEMPLATE.md`, `ISSUE_TEMPLATE/**`), whose task-list and placeholder syntax otherwise trips Markdown rules. It also ignores `CHANGELOG.md`, which changesets generates with bracketed commit hashes.
 
 ## Compose with other configs
 
