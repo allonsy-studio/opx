@@ -28,6 +28,15 @@ export function detectPackageManager(cwd: string, hostPkg?: PackageJson): Packag
 	return "npm";
 }
 
+/**
+ * Build the command that installs packages with a package manager.
+ *
+ * @param pm - The package manager to use.
+ * @param packages - The packages to install.
+ * @param opts - Install options.
+ * @param opts.dev - Install as dev dependencies. Defaults to `true`.
+ * @returns The command, or an empty string when there are no packages.
+ */
 export function installCommand(pm: PackageManager, packages: string[], opts: { dev?: boolean } = {}): string {
 	const dev = opts.dev ?? true;
 	if (packages.length === 0) return "";

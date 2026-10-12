@@ -9,6 +9,7 @@ const STATE_FILE = join(STATE_DIR, "state.json");
 
 const SCHEMA_URL = "https://unpkg.com/@allons-y/opx/schema/config.json";
 
+/** Create the starter config: no plugins enabled, and release and test off. */
 export function defaultConfig(): OpxConfig {
 	return {
 		$schema: SCHEMA_URL,
@@ -20,6 +21,7 @@ export function defaultConfig(): OpxConfig {
 	};
 }
 
+/** Create an empty state with no deferrals. */
 export function defaultState(): OpxState {
 	return {
 		version: 1,
@@ -27,10 +29,20 @@ export function defaultState(): OpxState {
 	};
 }
 
+/**
+ * Locate `.opx/config.json`.
+ *
+ * @param cwd - The repository root.
+ */
 export function configPath(cwd: string): string {
 	return join(cwd, CONFIG_FILE);
 }
 
+/**
+ * Locate `.opx/state.json`.
+ *
+ * @param cwd - The repository root.
+ */
 export function statePath(cwd: string): string {
 	return join(cwd, STATE_FILE);
 }
@@ -63,6 +75,13 @@ export function enabledNames(tasks: Record<string, unknown> | undefined): string
 	return Object.entries(tasks ?? {}).filter(([, setting]) => setting !== false).map(([name]) => name);
 }
 
+/**
+ * Read `.opx/config.json`, filling gaps with defaults.
+ *
+ * @param cwd - The repository root.
+ * @returns The defaults when the file does not exist.
+ * @throws An error naming the file when it exists but is empty or malformed.
+ */
 export function readConfig(cwd: string): OpxConfig {
 	const path = configPath(cwd);
 	if (!existsSync(path)) {
@@ -80,6 +99,13 @@ export function readConfig(cwd: string): OpxConfig {
 	};
 }
 
+/**
+ * Write `.opx/config.json`, creating the folder if needed. Empty task maps are
+ * left out.
+ *
+ * @param cwd - The repository root.
+ * @param config - The config to save.
+ */
 export function writeConfig(cwd: string, config: OpxConfig): void {
 	const path = configPath(cwd);
 	const normalized: OpxConfig = {
@@ -94,6 +120,12 @@ export function writeConfig(cwd: string, config: OpxConfig): void {
 	writeFileSync(path, `${JSON.stringify(normalized, null, 2)}\n`, "utf8");
 }
 
+/**
+ * Read `.opx/state.json`. The file is a disposable cache, so a missing or
+ * unreadable file gives an empty state rather than an error.
+ *
+ * @param cwd - The repository root.
+ */
 export function readState(cwd: string): OpxState {
 	const path = statePath(cwd);
 	if (!existsSync(path)) {
@@ -113,6 +145,12 @@ export function readState(cwd: string): OpxState {
 	};
 }
 
+/**
+ * Write `.opx/state.json`, creating the folder if needed.
+ *
+ * @param cwd - The repository root.
+ * @param state - The state to save.
+ */
 export function writeState(cwd: string, state: OpxState): void {
 	const path = statePath(cwd);
 	mkdirSync(dirname(path), { recursive: true });

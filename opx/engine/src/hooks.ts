@@ -6,8 +6,11 @@ const POST_COMMIT = `#!/usr/bin/env sh
 exit 0
 `;
 
+/** The outcome of {@link installPostCommitHook}. */
 export type HookInstallResult = {
+	/** Whether a new hook file was written, rather than found or extended. */
 	created: boolean;
+	/** The hook file's path. */
 	path: string;
 };
 
@@ -38,6 +41,13 @@ export function installPostCommitHook(cwd: string): HookInstallResult {
 	return { created: true, path };
 }
 
+/**
+ * Add an entry to `.gitignore` unless it is already listed.
+ *
+ * @param cwd - The repository root.
+ * @param entry - The pattern to ignore.
+ * @returns true if `.gitignore` was changed.
+ */
 export function ensureGitignored(cwd: string, entry: string): boolean {
 	const path = join(cwd, ".gitignore");
 	const current = existsSync(path) ? readFileSync(path, "utf8") : "";

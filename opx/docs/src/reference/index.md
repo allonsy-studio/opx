@@ -77,3 +77,7 @@ The settings each plugin understands are documented on its page: [js](../plugins
   }
 }
 ```
+
+## See also
+
+- [API reference](../api/): the `@allons-y/opx` engine, generated from its TypeScript sources.

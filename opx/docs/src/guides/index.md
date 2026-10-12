@@ -3,7 +3,7 @@ layout: layouts/docs.njk
 title: Guides
 eleventyNavigation:
     key: Guides
-    order: 6
+    order: 7
 ---
 
 - [Compose your ESLint config](./compose-eslint/): combine opx's lint configs with your own rules so your editor matches `opx lint`.

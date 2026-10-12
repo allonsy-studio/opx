@@ -1,8 +1,11 @@
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 
+/** Where a tool was found. */
 export type ResolvedTool = {
+	/** Whether the host project or the detector's own copy supplied it. */
 	source: "host" | "bundled";
+	/** Absolute path to the tool's `package.json`. */
 	packagePath: string;
 };
 
