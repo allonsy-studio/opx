@@ -4,7 +4,7 @@ title: CLI
 description: Every opx command, its options, and its exit codes.
 eleventyNavigation:
     key: CLI
-    order: 3
+    order: 4
 ---
 
 | Command | Purpose |

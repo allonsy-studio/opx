@@ -24,5 +24,24 @@
 	"excludeInternal": true,
 	"excludePrivate": true,
 	"entryFileName": "index",
-	"flattenOutputFiles": false
+	"flattenOutputFiles": false,
+	"indexFrontmatter": {
+		"title": "API",
+		"description": "Everything exported by @allons-y/opx, generated from its TypeScript sources.",
+		"hideTitle": true,
+		"eleventyNavigation": {
+			"key": "API",
+			"order": 7
+		}
+	},
+	"validation": {
+		"notDocumented": true
+	},
+	"requiredToBeDocumented": [
+		"Function",
+		"TypeAlias",
+		"Property",
+		"Method"
+	],
+	"treatValidationWarningsAsErrors": true
 }

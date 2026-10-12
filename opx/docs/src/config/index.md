@@ -1,13 +1,13 @@
 ---
 layout: layouts/docs.njk
-title: Configuration reference
+title: Configuration
 description: Every key in .opx/config.json.
 eleventyNavigation:
-    key: Reference
-    order: 5
+    key: Configuring opx
+    order: 2
 ---
 
-opx reads `.opx/config.json` from the repository root. `opx init` and [`opx enable`](../cli/enable/) write it; you can edit it by hand.
+opx reads `.opx/config.json` from the repository root. [`opx init`](../cli/init/) and [`opx enable`](../cli/enable/) write it; you _can_ edit it by hand but you don't have to.
 
 ```json
 {
@@ -77,3 +77,7 @@ The settings each plugin understands are documented on its page: [js](../plugins
   }
 }
 ```
+
+## See also
+
+- [API reference](../api/): the `@allons-y/opx` engine, generated from its TypeScript sources.

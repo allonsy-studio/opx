@@ -3,8 +3,8 @@ layout: layouts/docs.njk
 title: How opx works
 description: Scanning, detectors, tasks, and how plugins are loaded.
 eleventyNavigation:
-    key: How opx works
-    order: 2
+    key: How it works
+    order: 3
 ---
 
 ## The flow

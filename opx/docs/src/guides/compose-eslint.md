@@ -4,7 +4,7 @@ title: Compose your ESLint config
 description: Combine opx's lint configs with your own rules so your editor matches opx lint.
 eleventyNavigation:
     parent: Guides
-    key: Compose your ESLint config
+    key: Custom ESLint settings
     order: 1
 ---
 
