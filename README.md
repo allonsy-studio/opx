@@ -214,7 +214,7 @@ Contributions are welcome and appreciated! Please open an [issue](https://github
 
 <h2>License</h2>
 
-This project is licensed under the MPL-2.0 License - see the [LICENSE](LICENSE) file for details. This means you can use this freely, modify as needed; changes to MPL-licensed files should be shared back under the same license.
+This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details. This means you can use this freely, modify as needed, and redistribute under the license terms, which include an express patent grant.
 
 <!-- weaver:license:END -->
 
