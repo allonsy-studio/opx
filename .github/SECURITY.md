@@ -11,7 +11,7 @@ Please **don't open a public issue** for a security problem.
 Report it privately by either:
 
 - using GitHub's [private vulnerability reporting](https://github.com/allonsy-studio/opx/security/advisories/new) for this repository, or
-- emailing <consulting@allons-y.studio> with the subject "opx security".
+- emailing <security@allons-y.studio> with the subject "opx security".
 
 Please include:
 
