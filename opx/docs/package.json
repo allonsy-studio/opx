@@ -3,7 +3,7 @@
 	"name": "@allons-y/opx-docs",
 	"version": "0.0.0",
 	"description": "Documentation site for the opx toolkit.",
-	"license": "MPL-2.0",
+	"license": "Apache-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
 	"homepage": "https://github.com/allonsy-studio/opx#readme",
 	"repository": {

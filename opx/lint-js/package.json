@@ -7,7 +7,7 @@
 	"name": "@allons-y/opx-lint-js",
 	"version": "0.1.0-beta.0",
 	"description": "opx detector + runner for JavaScript/TypeScript. Bundles ESLint, @stylistic/eslint-plugin, and typescript-eslint.",
-	"license": "MPL-2.0",
+	"license": "Apache-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
 	"homepage": "https://github.com/allonsy-studio/opx#readme",
 	"repository": {

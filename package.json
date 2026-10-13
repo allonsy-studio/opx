@@ -3,7 +3,7 @@
 	"name": "opx-monorepo",
 	"version": "0.0.0",
 	"description": "opx, the _optionally_ opinionated front-end toolkit. Private monorepo root for the @allons-y/opx-* package family.",
-	"license": "MPL-2.0",
+	"license": "Apache-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
 	"homepage": "https://github.com/allonsy-studio/opx#readme",
 	"repository": {
