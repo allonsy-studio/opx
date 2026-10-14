@@ -23,8 +23,10 @@ export function readHostPackage(cwd: string): PackageJson {
  * Build the detector context for a repository.
  *
  * `fileTypes` and `branch` each cost a git call, so they are read on first use.
- * Copy a context with `Object.create(ctx)` rather than spreading it, which would
- * read them eagerly.
+ * Copy the context with `Object.create(ctx)`, not a spread, to keep them lazy.
+ *
+ * @param options - The repository root and run flags.
+ * @returns The context passed to detectors and commands.
  */
 export function buildContext(options: BuildContextOptions): DetectorContext {
 	const { cwd, debug = false, dryRun = false, fix = false } = options;
