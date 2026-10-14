@@ -21,7 +21,8 @@
 	"type": "module",
 	"exports": {
 		".": {
-			"import": "./bin/index.js"
+			"import": "./bin/index.js",
+			"types": "./bin/index.d.ts"
 		},
 		"./eslint.config.js": "./eslint.config.js"
 	},
@@ -43,6 +44,7 @@
 		"test": "yarn g:test",
 		"typecheck": "yarn g:typecheck"
 	},
+	"types": "./bin/index.d.ts",
 	"dependencies": {
 		"@allons-y/opx": "^0.1.0-beta.0",
 		"@eslint/compat": "^2.1.1",
