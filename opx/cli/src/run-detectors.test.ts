@@ -72,6 +72,13 @@ describe("runDetectorsGrouped", () => {
 		expect(out).toContain("no issues");
 	});
 
+	it("hands each detector a full copy of the context that survives a spread", async () => {
+		let keys: string[] = [];
+		const copier = detector({ shortName: "copier", run: async (runCtx) => { keys = Object.keys({ ...runCtx, fix: true }); return 0; } });
+		await runDetectorsGrouped(ctx(), [copier], []);
+		expect(keys).toEqual(expect.arrayContaining(["cwd", "fileTypes", "hostPkg", "config", "branch", "logger", "write", "fix"]));
+	});
+
 	it("keeps the context lazy: unread getters are not evaluated, read ones still work", async () => {
 		let reads = 0;
 		const lazy = ctx();
