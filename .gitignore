@@ -32,8 +32,8 @@ node_modules/
 opx/*/bin/
 opx/*/dist/
 
-# shared source injected into packages by scripts/sync-shared.mjs
-opx/*/src/shared/
+# shared source compiled in place by scripts/shared.mjs
+opx/shared/*.js
 
 # docs site build outputs
 opx/docs/_site/

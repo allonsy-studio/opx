@@ -3,7 +3,7 @@ const isCI = !!process.env.CI;
 /** @type {import('jest').Config} */
 export default {
 	clearMocks: true,
-	moduleFileExtensions: ["js", "ts"],
+	moduleFileExtensions: ["ts", "js"],
 	testEnvironment: "node",
 	testMatch: ["**/*.test.ts"],
 	// The sources are NodeNext ESM (import.meta, dynamic import). Run the tests
