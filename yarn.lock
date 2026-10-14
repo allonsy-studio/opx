@@ -213,12 +213,7 @@ __metadata:
     eslint: "npm:^10.11.0"
     eslint-plugin-jest: "npm:^29.16.6"
     globals: "npm:^17.13.0"
-    typescript-eslint: "npm:^8.71.0"
-  peerDependencies:
-    typescript: ^5.0.0 || ^6.0.0
-  peerDependenciesMeta:
-    typescript:
-      optional: true
+    typescript: "npm:^6.0.3"
   languageName: unknown
   linkType: soft
 
@@ -6914,6 +6909,7 @@ __metadata:
     "@types/jest": "npm:^30"
     cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.2"
+    eslint: "npm:^10.11.0"
     husky: "npm:^9.1.7"
     jest: "npm:^30.5.2"
     lint-staged: "npm:^17.6.0"
@@ -6921,6 +6917,7 @@ __metadata:
     shared: "workspace:opx/shared"
     ts-jest: "npm:^29.4.14"
     typescript: "npm:^6.0.3"
+    typescript-eslint: "npm:^8.71.0"
   languageName: unknown
   linkType: soft
 

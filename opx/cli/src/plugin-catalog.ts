@@ -29,7 +29,7 @@ export const PLUGIN_CATALOG = [
 	{
 		shortName: "js",
 		packages: ["@allons-y/opx-lint-js"],
-		extensions: [".js", ".mjs", ".cjs", ".jsx", ".ts", ".tsx"],
+		extensions: [".js", ".mjs", ".cjs", ".jsx"],
 	},
 	{
 		shortName: "md",

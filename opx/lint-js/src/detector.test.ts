@@ -8,7 +8,7 @@ function ctx(fileTypes: Set<string>): DetectorContext {
 
 describe("opxLintJsDetector", () => {
 	it("detects when an owned extension is present", () => {
-		expect(opxLintJsDetector.detect(ctx(new Set([".ts"])))).toBe(true);
+		expect(opxLintJsDetector.detect(ctx(new Set([".js"])))).toBe(true);
 	});
 
 	it("does not detect when no owned extension is present", () => {
@@ -28,7 +28,7 @@ describe("opxLintJsDetector", () => {
 		const { join } = await import("node:path");
 		const dir = mkdtempSync(join(tmpdir(), "opx-lint-"));
 		mkdirSync(join(dir, ".opx", "cache", "eslint"), { recursive: true });
-		writeFileSync(join(dir, "clean.ts"), "export const ok = 1;\n");
+		writeFileSync(join(dir, "clean.js"), "export const ok = 1;\n");
 		const c = {
 			cwd: dir,
 			config: { version: 1, lint: {} },
@@ -36,6 +36,6 @@ describe("opxLintJsDetector", () => {
 			write: () => {},
 			fileTypes: new Set(),
 		} as unknown as DetectorContext;
-		expect(await opxLintJsDetector.run!(c, ["clean.ts"])).toBe(0);
+		expect(await opxLintJsDetector.run!(c, ["clean.js"])).toBe(0);
 	});
 });

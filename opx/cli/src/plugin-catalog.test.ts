@@ -25,7 +25,7 @@ describe("PLUGIN_CATALOG", () => {
 	it("maps js to its lint and build packages and known extensions", () => {
 		const js = PLUGIN_CATALOG.find((e) => e.shortName === "js");
 		expect(js?.packages).toContain("@allons-y/opx-lint-js");
-		expect(js?.extensions).toEqual(expect.arrayContaining([".js", ".ts", ".tsx"]));
+		expect(js?.extensions).toEqual(expect.arrayContaining([".js", ".mjs", ".cjs", ".jsx"]));
 	});
 
 	it("leaves release without file extensions", () => {

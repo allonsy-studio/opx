@@ -54,7 +54,7 @@ describe("derived constants", () => {
 describe("suggest", () => {
 	it("returns short names whose extensions appear in the file set", () => {
 		expect(suggest(new Set([".md"]))).toContain("md");
-		expect(suggest(new Set([".ts"]))).toEqual(["js"]);
+		expect(suggest(new Set([".mjs"]))).toEqual(["js"]);
 	});
 
 	it("returns empty when nothing matches", () => {

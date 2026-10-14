@@ -6,7 +6,7 @@
 	},
 	"name": "@allons-y/opx-lint-js",
 	"version": "0.1.0-beta.0",
-	"description": "opx detector + runner for JavaScript/TypeScript. Bundles ESLint, @stylistic/eslint-plugin, and typescript-eslint.",
+	"description": "opx detector + runner for JavaScript. Bundles ESLint and @stylistic/eslint-plugin.",
 	"license": "Apache-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
 	"homepage": "https://github.com/allonsy-studio/opx#readme",
@@ -50,26 +50,17 @@
 		"@eslint/js": "^10.0.1",
 		"@stylistic/eslint-plugin": "^5.10.0",
 		"eslint": "^10.11.0",
-		"globals": "^17.13.0",
-		"typescript-eslint": "^8.71.0"
+		"globals": "^17.13.0"
 	},
 	"devDependencies": {
-		"eslint-plugin-jest": "^29.16.6"
-	},
-	"peerDependencies": {
-		"typescript": "^5.0.0 || ^6.0.0"
-	},
-	"peerDependenciesMeta": {
-		"typescript": {
-			"optional": true
-		}
+		"eslint-plugin-jest": "^29.16.6",
+		"typescript": "^6.0.3"
 	},
 	"keywords": [
 		"opx",
 		"eslint",
 		"linter",
-		"javascript",
-		"typescript"
+		"javascript"
 	],
 	"engines": {
 		"node": ">=24"
