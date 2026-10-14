@@ -18,7 +18,7 @@ opx is a Yarn workspaces monorepo. Each package lives in `opx/<name>`:
 | --- | --- |
 | `opx/engine` | `@allons-y/opx`: the `Detector` contract, config, state, and plugin loader |
 | `opx/cli` | `@allons-y/opx-cli`: the `opx` binary |
-| `opx/lint-js`, `opx/lint-json`, `opx/lint-md` | Lint plugins |
+| `opx/lint-js`, `opx/lint-json`, `opx/lint-md`, `opx/lint-ts` | Lint plugins |
 | `opx/release` | The changesets release plugin |
 | `opx/docs` | The documentation site (private, not published) |
 | `opx/shared` | Source shared between packages (private, not published). `scripts/shared.js` copies it into the lint plugins when they are packed |

@@ -56,6 +56,7 @@ Full documentation lives in [`opx/docs`](opx/docs) and is built with `yarn docs:
 | [`@allons-y/opx-lint-js`](opx/lint-js) | Lint detector for JavaScript (ESLint + `@stylistic`). |
 | [`@allons-y/opx-lint-json`](opx/lint-json) | Lint detector for JSON / JSONC / JSON5. |
 | [`@allons-y/opx-lint-md`](opx/lint-md) | Lint detector for Markdown. |
+| [`@allons-y/opx-lint-ts`](opx/lint-ts) | Lint detector for TypeScript (ESLint + `@stylistic` + `typescript-eslint`). |
 | [`@allons-y/opx-release`](opx/release) | Release detector — a lightweight [changesets](https://github.com/changesets/changesets) setup and flow. |
 
 ## Quick start

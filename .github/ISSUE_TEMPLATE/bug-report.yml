@@ -19,6 +19,7 @@ body:
         - "@allons-y/opx-lint-js"
         - "@allons-y/opx-lint-json"
         - "@allons-y/opx-lint-md"
+        - "@allons-y/opx-lint-ts"
         - "@allons-y/opx-release"
         - Not sure
     validations:
