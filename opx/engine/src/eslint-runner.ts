@@ -23,6 +23,7 @@ export type EslintInstance = {
 
 /** The slice of the ESLint class that the runner calls. */
 export type EslintClass = {
+	/** Create an instance; the options are untyped so any ESLint version fits. */
 	new (options: never): EslintInstance;
 	/** Write the fixes in the results to disk. */
 	outputFixes(results: EslintResult[]): Promise<void>;
@@ -34,13 +35,26 @@ export type EslintRunSpec = {
 	key: string;
 	/** The file extensions the plugin owns, with the leading dot. */
 	extensions: ReadonlySet<string>;
-	/** The paths to lint when none are given. */
+	/**
+	 * Get the paths to lint when none are given.
+	 *
+	 * @param ctx - The detector context.
+	 * @returns The paths or globs to lint.
+	 */
 	defaultPaths(ctx: DetectorContext): string[];
 	/** The directory holding the plugin's bundled `eslint.config.js`. */
 	configDir: string;
-	/** Load `ESLint` from the plugin's own dependencies. */
+	/**
+	 * Load `ESLint` from the plugin's own dependencies.
+	 *
+	 * @returns The `ESLint` class.
+	 */
 	loadEslint(): Promise<EslintClass>;
-	/** Load `includeIgnoreFile` from the plugin's own dependencies; only called when a `.gitignore` exists. */
+	/**
+	 * Load `includeIgnoreFile` from the plugin's own dependencies. Only called when a `.gitignore` exists.
+	 *
+	 * @returns A function that turns an ignore file's path into a flat config entry.
+	 */
 	loadIgnoreFile(): Promise<(path: string) => unknown>;
 };
 
@@ -66,7 +80,7 @@ export async function runEslint(ctx: DetectorContext, args: string[], spec: Esli
 
 	const ESLint = await spec.loadEslint();
 
-	// Surface .gitignore as an ignore layer so "if it's gitignored, opx ignores it".
+	/** The `.gitignore` as an ignore layer, so "if it's gitignored, opx ignores it". */
 	const gitignore = join(ctx.cwd, ".gitignore");
 	const baseConfig = existsSync(gitignore) ? [(await spec.loadIgnoreFile())(gitignore)] : undefined;
 
@@ -75,10 +89,10 @@ export async function runEslint(ctx: DetectorContext, args: string[], spec: Esli
 		overrideConfigFile: configFile,
 		baseConfig,
 		cache: true,
-		// A cache file per language, so detectors running in parallel don't clobber each other.
+		/** One cache file per language, so detectors running in parallel don't clobber each other. */
 		cacheLocation: join(ctx.cwd, ".opx", "cache", "eslint", spec.key),
 		fix: ctx.fix,
-		// A language whose patterns match no files should be a no-op, not a hard error.
+		/** A language whose patterns match no files is a no-op, not a hard error. */
 		errorOnUnmatchedPattern: false,
 	});
 

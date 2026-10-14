@@ -6,15 +6,21 @@ import { runEslint } from "@allons-y/opx";
 
 import { JSON_EXTENSIONS } from "./extensions.js";
 
+/** The package root, where the bundled `eslint.config.js` lives. */
 const CONFIG_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /**
- * Pick the paths to lint by default. Plain `.json` is always included;
- * `jsonc` and `json5` are added when chosen during `opx init`, which stores
- * them as `lint.json.dialects` in `.opx/config.json`.
+ * Pick the paths to lint by default.
+ *
+ * Plain `.json` is always included; `jsonc` and `json5` are added when chosen
+ * during `opx init`, which stores them as `lint.json.dialects` in `.opx/config.json`.
+ *
+ * @param ctx - The detector context.
+ * @returns The globs to lint.
  */
 function defaultPaths(ctx: DetectorContext): string[] {
-	const dialects = new Set<string>((ctx.config.lint?.json as Record<string, unknown> | undefined)?.dialects as string[] | undefined ?? []);
+	const settings = ctx.config.lint?.json as { dialects?: string[] } | boolean | undefined;
+	const dialects = new Set(typeof settings === "object" ? settings.dialects : []);
 	const paths = ["**/*.json"];
 	if (dialects.has("jsonc")) paths.push("**/*.jsonc");
 	if (dialects.has("json5")) paths.push("**/*.json5");

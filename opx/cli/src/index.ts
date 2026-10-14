@@ -7,21 +7,10 @@ import { readFile } from "node:fs/promises";
 
 import { Command } from "commander";
 
+import { selectLoaders } from "./command-loader.js";
 import { CLI_NAME } from "./plugin-kit.js";
 
 export { CLI_NAME } from "./plugin-kit.js";
-
-/** The commands, each loaded only when it is the one being run. */
-const COMMANDS: Record<string, () => Promise<{ default: (program: Command) => void }>> = {
-	build: () => import("./commands/build.js"),
-	disable: () => import("./commands/disable.js"),
-	enable: () => import("./commands/enable.js"),
-	hook: () => import("./commands/hook.js"),
-	init: () => import("./commands/init.js"),
-	lint: () => import("./commands/lint.js"),
-	release: () => import("./commands/release.js"),
-	scan: () => import("./commands/scan.js"),
-};
 
 const program = new Command();
 
@@ -36,11 +25,7 @@ program
 	.helpOption("-h, --help", "show help for command")
 	.option("--debug", "enable verbose debug logging", false);
 
-// Load just the invoked command. Help, no command, or an unknown one loads them
-// all so the listing and "did you mean" suggestions stay complete.
-const invoked = process.argv.slice(2).find((arg) => !arg.startsWith("-"));
-const loaders = invoked !== undefined && invoked in COMMANDS ? [COMMANDS[invoked]!] : Object.values(COMMANDS);
-for (const { default: register } of await Promise.all(loaders.map((load) => load()))) {
+for (const { default: register } of await Promise.all(selectLoaders(process.argv.slice(2)).map((load) => load()))) {
 	register(program);
 }
 

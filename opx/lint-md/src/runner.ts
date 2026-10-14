@@ -6,6 +6,7 @@ import { runEslint } from "@allons-y/opx";
 
 import { MD_EXTENSIONS } from "./extensions.js";
 
+/** The package root, where the bundled `eslint.config.js` lives. */
 const CONFIG_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 /**

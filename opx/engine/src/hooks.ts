@@ -1,7 +1,7 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Prefer the installed binary: starting it through `npx` adds about a second.
+/** The hook command. Prefers the installed binary, since starting through `npx` adds about a second. */
 const POST_COMMIT_LINE = '( opx=$([ -x node_modules/.bin/opx ] && echo node_modules/.bin/opx || echo "npx --no-install opx"); $opx hook post-commit >/dev/null 2>&1 & ) || true';
 
 const POST_COMMIT = `#!/usr/bin/env sh

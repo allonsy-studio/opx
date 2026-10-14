@@ -18,7 +18,7 @@ export async function runDetectorsGrouped(
 	const results = await Promise.all(
 		detectors.map(async (detector) => {
 			let buffer = "";
-			// Not a spread: that would read the context's lazy getters eagerly.
+			/** Derived with `Object.create`, not a spread, which would read the context's lazy getters eagerly. */
 			const runCtx: DetectorContext = Object.create(ctx, {
 				write: {
 					value: (chunk: string) => {
