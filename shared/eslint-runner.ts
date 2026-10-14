@@ -1,17 +1,17 @@
 import { existsSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
 
-import type { DetectorContext } from "./detector.js";
-import { filterPathsByExtension } from "./paths.js";
+import type { DetectorContext } from "@allons-y/opx";
+import { filterPathsByExtension } from "@allons-y/opx";
 
 /** The slice of an ESLint result that the runner reads. */
-export type EslintResult = {
+type EslintResult = {
 	/** How many errors the file has. */
 	errorCount: number;
 };
 
 /** The slice of an ESLint instance that the runner calls. */
-export type EslintInstance = {
+type EslintInstance = {
 	/** Lint files or globs and return a result per file. */
 	lintFiles(patterns: string[]): Promise<EslintResult[]>;
 	/** Load an output formatter by name, such as `stylish`. */
@@ -22,7 +22,7 @@ export type EslintInstance = {
 };
 
 /** The slice of the ESLint class that the runner calls. */
-export type EslintClass = {
+type EslintClass = {
 	/** Create an instance; the options are untyped so any ESLint version fits. */
 	new (options: never): EslintInstance;
 	/** Write the fixes in the results to disk. */

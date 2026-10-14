@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-import type { DetectorContext } from "./detector.js";
+import type { DetectorContext } from "@allons-y/opx";
 import { runEslint, type EslintRunSpec } from "./eslint-runner.js";
 
 type Fake = {
