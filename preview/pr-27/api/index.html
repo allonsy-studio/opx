@@ -131,22 +131,6 @@
 <td>The config keys for dynamic tasks: each maps a plugin short name to <code>true</code>, <code>false</code>, or that plugin's settings.</td>
 </tr>
 <tr>
-<td><a href="/opx/preview/pr-27/api/type-aliases/EslintClass/">EslintClass</a></td>
-<td>The slice of the ESLint class that the runner calls.</td>
-</tr>
-<tr>
-<td><a href="/opx/preview/pr-27/api/type-aliases/EslintInstance/">EslintInstance</a></td>
-<td>The slice of an ESLint instance that the runner calls.</td>
-</tr>
-<tr>
-<td><a href="/opx/preview/pr-27/api/type-aliases/EslintResult/">EslintResult</a></td>
-<td>The slice of an ESLint result that the runner reads.</td>
-</tr>
-<tr>
-<td><a href="/opx/preview/pr-27/api/type-aliases/EslintRunSpec/">EslintRunSpec</a></td>
-<td>What a lint plugin supplies to <a href="/opx/preview/pr-27/api/functions/runEslint/">runEslint</a>.</td>
-</tr>
-<tr>
 <td><a href="/opx/preview/pr-27/api/type-aliases/HookInstallResult/">HookInstallResult</a></td>
 <td>The outcome of <a href="/opx/preview/pr-27/api/functions/installPostCommitHook/">installPostCommitHook</a>.</td>
 </tr>
@@ -181,6 +165,10 @@
 <tr>
 <td><a href="/opx/preview/pr-27/api/type-aliases/PackageManager/">PackageManager</a></td>
 <td>The package managers opx can detect and install with.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-27/api/type-aliases/ResolvedTool/">ResolvedTool</a></td>
+<td>Where a tool was found.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-27/api/type-aliases/StaticTask/">StaticTask</a></td>
@@ -286,8 +274,8 @@
 <td>Resolve a short slug or fully-qualified package name to a candidate ordered list of package ids to try. The first one that exists in the host's deps wins.</td>
 </tr>
 <tr>
-<td><a href="/opx/preview/pr-27/api/functions/runEslint/">runEslint</a></td>
-<td>Lint with ESLint as one language's detector.</td>
+<td><a href="/opx/preview/pr-27/api/functions/resolveTool/">resolveTool</a></td>
+<td>Try to resolve a tool (e.g. &quot;eslint&quot;) from the host project first; fall back to the bundled copy that ships with the calling detector package.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-27/api/functions/statePath/">statePath</a></td>
