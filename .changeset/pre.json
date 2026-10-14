@@ -8,7 +8,8 @@
     "@allons-y/opx-lint-json": "0.0.0",
     "@allons-y/opx-lint-md": "0.0.0",
     "@allons-y/opx-release": "0.0.0",
-    "@allons-y/opx-docs": "0.0.0"
+    "@allons-y/opx-docs": "0.0.0",
+    "@allons-y/opx-shared": "0.0.0"
   },
   "changesets": [
     "initial-opx-release"
