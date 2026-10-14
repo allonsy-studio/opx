@@ -37,3 +37,5 @@ export { filterPathsByExtension } from "./paths.js";
 export type { HookInstallResult } from "./hooks.js";
 export { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
 export { createConsoleLogger } from "./logger.js";
+export type { EslintRunSpec } from "./eslint-runner.js";
+export { runEslint } from "./eslint-runner.js";
