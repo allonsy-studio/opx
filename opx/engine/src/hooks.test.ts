@@ -17,6 +17,14 @@ describe("installPostCommitHook", () => {
 		rmSync(dir, { recursive: true });
 	});
 
+	it("prefers the installed binary and falls back to npx", () => {
+		const dir = tmp();
+		const contents = readFileSync(installPostCommitHook(dir).path, "utf8");
+		expect(contents).toContain("node_modules/.bin/opx");
+		expect(contents).toContain("npx --no-install opx");
+		rmSync(dir, { recursive: true });
+	});
+
 	it("is idempotent when the marker is already present", () => {
 		const dir = tmp();
 		const first = installPostCommitHook(dir);

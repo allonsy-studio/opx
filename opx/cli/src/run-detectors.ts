@@ -18,12 +18,15 @@ export async function runDetectorsGrouped(
 	const results = await Promise.all(
 		detectors.map(async (detector) => {
 			let buffer = "";
-			const runCtx: DetectorContext = {
-				...ctx,
-				write: (chunk) => {
-					buffer += chunk;
+			// Not a spread: that would read the context's lazy getters eagerly.
+			const runCtx: DetectorContext = Object.create(ctx, {
+				write: {
+					value: (chunk: string) => {
+						buffer += chunk;
+					},
+					enumerable: true,
 				},
-			};
+			});
 			const code = typeof detector.run === "function" ? await detector.run(runCtx, args) : 0;
 			return { detector, code, output: buffer.trim() };
 		}),
