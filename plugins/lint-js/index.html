@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>lint-js · opx</title>
 		<meta name="color-scheme" content="light dark">
-		<meta name="description" content="JavaScript and TypeScript linting and formatting.">
+		<meta name="description" content="JavaScript linting and formatting.">
 		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
 		<link rel="stylesheet" href="/opx/assets/css/main.css">
 		<script src="https://kit.fontawesome.com/42e99b4632.js" crossorigin="anonymous"></script>
@@ -88,11 +88,10 @@
 	</aside>
 	<main id="main" class="docs-content" data-pagefind-body="">
 		<h1 data-pagefind-meta="title">lint-js</h1>
-		<p><code>@allons-y/opx-lint-js</code> lints <strong>JavaScript and TypeScript</strong> with ESLint, <a href="https://eslint.style"><code>@stylistic/eslint-plugin</code></a>, and <a href="https://typescript-eslint.io"><code>typescript-eslint</code></a>, pre-configured. The same config owns both lint rules and formatting, so there's no separate Prettier step.</p>
+		<p><code>@allons-y/opx-lint-js</code> lints <strong>JavaScript</strong> with ESLint and <a href="https://eslint.style"><code>@stylistic/eslint-plugin</code></a>, pre-configured. TypeScript is not covered. The same config owns both lint rules and formatting, so there's no separate Prettier step.</p>
 <h2 id="install" tabindex="-1"><a class="header-anchor" href="#install">Install</a></h2>
 <pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-lint-js
 <span class="token function">yarn</span> opx <span class="token builtin class-name">enable</span> js</code></pre>
-<p><code>typescript</code> 5 or newer must be installed in your project, because <code>typescript-eslint</code> loads it.</p>
 <h2 id="covers" tabindex="-1"><a class="header-anchor" href="#covers">Covers</a></h2>
 <table>
 <thead>
@@ -105,10 +104,6 @@
 <tr>
 <td><code>.js</code>, <code>.mjs</code>, <code>.cjs</code>, <code>.jsx</code></td>
 <td><code>@eslint/js</code>, <code>@stylistic/eslint-plugin</code></td>
-</tr>
-<tr>
-<td><code>.ts</code>, <code>.tsx</code>, <code>.mts</code>, <code>.cts</code></td>
-<td><code>typescript-eslint</code>, <code>@stylistic/eslint-plugin</code></td>
 </tr>
 </tbody>
 </table>
@@ -124,7 +119,7 @@
 
 <span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">[</span>
 	<span class="token operator">...</span>js<span class="token punctuation">,</span>
-	<span class="token punctuation">{</span> <span class="token literal-property property">files</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"**/*.ts"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token literal-property property">rules</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token string-property property">"no-console"</span><span class="token operator">:</span> <span class="token string">"warn"</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+	<span class="token punctuation">{</span> <span class="token literal-property property">files</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"**/*.js"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token literal-property property">rules</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token string-property property">"no-console"</span><span class="token operator">:</span> <span class="token string">"warn"</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
 <span class="token punctuation">]</span><span class="token punctuation">;</span></code></pre>
 
 	</main>
