@@ -5,17 +5,26 @@ import type { DetectorContext } from "./detector.js";
 import { filterPathsByExtension } from "./paths.js";
 
 /** The slice of an ESLint result that the runner reads. */
-type EslintResult = { errorCount: number };
+export type EslintResult = {
+	/** How many errors the file has. */
+	errorCount: number;
+};
 
 /** The slice of an ESLint instance that the runner calls. */
-type EslintInstance = {
+export type EslintInstance = {
+	/** Lint files or globs and return a result per file. */
 	lintFiles(patterns: string[]): Promise<EslintResult[]>;
-	loadFormatter(name: string): Promise<{ format(results: EslintResult[]): string | Promise<string> }>;
+	/** Load an output formatter by name, such as `stylish`. */
+	loadFormatter(name: string): Promise<{
+		/** Render results as text. */
+		format(results: EslintResult[]): string | Promise<string>;
+	}>;
 };
 
 /** The slice of the ESLint class that the runner calls. */
-type EslintClass = {
+export type EslintClass = {
 	new (options: never): EslintInstance;
+	/** Write the fixes in the results to disk. */
 	outputFixes(results: EslintResult[]): Promise<void>;
 };
 
