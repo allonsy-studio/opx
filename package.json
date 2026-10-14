@@ -51,19 +51,18 @@
 		"@allons-y/opx-lint-js": "workspace:*",
 		"@allons-y/opx-lint-json": "workspace:*",
 		"@allons-y/opx-lint-md": "workspace:*",
+		"@allons-y/opx-lint-ts": "workspace:*",
 		"@allons-y/opx-release": "workspace:*",
 		"@types/jest": "^30",
 		"cross-env": "^10.1.0",
 		"esbuild": "^0.28.2",
-		"eslint": "^10.11.0",
 		"husky": "^9.1.7",
 		"jest": "^30.5.2",
 		"lint-staged": "^17.6.0",
 		"npm-run-all2": "^9.0.3",
 		"shared": "workspace:opx/shared",
 		"ts-jest": "^29.4.14",
-		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.71.0"
+		"typescript": "^6.0.3"
 	},
 	"keywords": [
 		"opx",

@@ -239,6 +239,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@allons-y/opx-lint-ts@workspace:*, @allons-y/opx-lint-ts@workspace:opx/lint-ts":
+  version: 0.0.0-use.local
+  resolution: "@allons-y/opx-lint-ts@workspace:opx/lint-ts"
+  dependencies:
+    "@allons-y/opx": "npm:^0.1.0-beta.0"
+    "@eslint/compat": "npm:^2.1.1"
+    "@stylistic/eslint-plugin": "npm:^5.10.0"
+    eslint: "npm:^10.11.0"
+    typescript: "npm:^6.0.3"
+    typescript-eslint: "npm:^8.71.0"
+  peerDependencies:
+    typescript: ^5.0.0 || ^6.0.0
+  languageName: unknown
+  linkType: soft
+
 "@allons-y/opx-release@workspace:*, @allons-y/opx-release@workspace:opx/release":
   version: 0.0.0-use.local
   resolution: "@allons-y/opx-release@workspace:opx/release"
@@ -6905,11 +6920,11 @@ __metadata:
     "@allons-y/opx-lint-js": "workspace:*"
     "@allons-y/opx-lint-json": "workspace:*"
     "@allons-y/opx-lint-md": "workspace:*"
+    "@allons-y/opx-lint-ts": "workspace:*"
     "@allons-y/opx-release": "workspace:*"
     "@types/jest": "npm:^30"
     cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.2"
-    eslint: "npm:^10.11.0"
     husky: "npm:^9.1.7"
     jest: "npm:^30.5.2"
     lint-staged: "npm:^17.6.0"
@@ -6917,7 +6932,6 @@ __metadata:
     shared: "workspace:opx/shared"
     ts-jest: "npm:^29.4.14"
     typescript: "npm:^6.0.3"
-    typescript-eslint: "npm:^8.71.0"
   languageName: unknown
   linkType: soft
 

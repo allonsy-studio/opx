@@ -21,7 +21,7 @@ run with the others.
 
 | File | Used by |
 |---|---|
-| `src/eslint-runner.ts` | `lint-js`, `lint-json`, `lint-md` |
+| `src/eslint-runner.ts` | `lint-js`, `lint-json`, `lint-md`, `lint-ts` |
 
 To opt a package out, for example when a better tool comes along to lint its
 files, remove it from `TARGETS` in `scripts/shared.js`, drop its `prepack`

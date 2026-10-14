@@ -95,7 +95,7 @@ try {
 	const version = opx("--version");
 	check("opx --version prints a version", version.status === 0 && /^\d+\.\d+\.\d+/.test(version.stdout.trim()), version.stderr);
 
-	for (const name of ["lint-js", "lint-json", "lint-md"]) {
+	for (const name of ["lint-js", "lint-json", "lint-md", "lint-ts"]) {
 		const types = join(app, "node_modules", "@allons-y", `opx-${name}`, "bin");
 		check(`opx-${name} ships declarations, including the shared ones`, existsSync(join(types, "index.d.ts")) && existsSync(join(types, "shared", "eslint-runner.d.ts")));
 	}

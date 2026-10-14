@@ -5,7 +5,7 @@ description: A changesets-based release flow.
 eleventyNavigation:
     parent: Plugins
     key: release
-    order: 4
+    order: 5
 ---
 
 `@allons-y/opx-release` wraps [changesets](https://github.com/changesets/changesets) behind `opx release`. It writes a sensible default changesets config on first use and gives you a prompt-free path for CI.
