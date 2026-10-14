@@ -7,7 +7,7 @@
  * Run `yarn build` first (the `yarn smoke` script does).
  */
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -94,6 +94,11 @@ try {
 	// 3. Drive the CLI.
 	const version = opx("--version");
 	check("opx --version prints a version", version.status === 0 && /^\d+\.\d+\.\d+/.test(version.stdout.trim()), version.stderr);
+
+	for (const name of ["lint-js", "lint-json", "lint-md"]) {
+		const types = join(app, "node_modules", "@allons-y", `opx-${name}`, "bin");
+		check(`opx-${name} ships declarations, including the shared ones`, existsSync(join(types, "index.d.ts")) && existsSync(join(types, "shared", "eslint-runner.d.ts")));
+	}
 
 	for (const name of ["js", "json", "md", "release"]) {
 		const enabled = opx("enable", name);

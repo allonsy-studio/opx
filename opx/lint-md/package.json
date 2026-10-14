@@ -37,6 +37,7 @@
 	],
 	"scripts": {
 		"build": "yarn g:build && yarn g:dts",
+		"prepack": "yarn g:inject",
 		"clean": "yarn g:clean",
 		"coverage": "yarn g:coverage",
 		"lint": "eslint . --config ../lint-js/eslint.config.js",

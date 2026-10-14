@@ -1,0 +1,31 @@
+{
+	"$schema": "https://www.schemastore.org/package.json",
+	"name": "@allons-y/opx-shared",
+	"version": "0.0.0",
+	"description": "Source shared between the opx packages. Copied into each package that uses it when that package is packed; never published.",
+	"license": "Apache-2.0",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
+	"homepage": "https://github.com/allonsy-studio/opx#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/allonsy-studio/opx.git",
+		"directory": "opx/shared"
+	},
+	"bugs": {
+		"url": "https://github.com/allonsy-studio/opx/issues"
+	},
+	"private": true,
+	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
+	"scripts": {
+		"test": "yarn g:test",
+		"coverage": "yarn g:coverage",
+		"typecheck": "yarn g:typecheck",
+		"clean": "yarn g:clean && yarn g:uninject"
+	},
+	"engines": {
+		"node": ">=24"
+	}
+}
