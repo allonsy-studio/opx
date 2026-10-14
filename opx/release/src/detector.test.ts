@@ -49,7 +49,6 @@ describe("opxReleaseDetector", () => {
 				"@changesets/write",
 				"@clack/prompts",
 				"@manypkg/get-packages",
-				"dotenv",
 			]);
 		});
 	});

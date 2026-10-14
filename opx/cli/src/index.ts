@@ -7,15 +7,7 @@ import { readFile } from "node:fs/promises";
 
 import { Command } from "commander";
 
-import registerBuild from "./commands/build.js";
-import registerDisable from "./commands/disable.js";
-import registerEnable from "./commands/enable.js";
-import registerHook from "./commands/hook.js";
-import registerInit from "./commands/init.js";
-import registerLint from "./commands/lint.js";
-import registerRelease from "./commands/release.js";
-import registerScan from "./commands/scan.js";
-
+import { selectLoaders } from "./command-loader.js";
 import { CLI_NAME } from "./plugin-kit.js";
 
 export { CLI_NAME } from "./plugin-kit.js";
@@ -33,15 +25,9 @@ program
 	.helpOption("-h, --help", "show help for command")
 	.option("--debug", "enable verbose debug logging", false);
 
-// Iterate over the commands directory and register each command
-registerBuild(program);
-registerDisable(program);
-registerEnable(program);
-registerHook(program);
-registerInit(program);
-registerLint(program);
-registerRelease(program);
-registerScan(program);
+for (const { default: register } of await Promise.all(selectLoaders(process.argv.slice(2)).map((load) => load()))) {
+	register(program);
+}
 
 try {
 	await program.parseAsync(process.argv);

@@ -94,6 +94,13 @@ describe("lint-json runner", () => {
 		expect(await run(ctx, [])).toBe(0);
 	});
 
+	it("falls back to plain .json when the setting is null", async () => {
+		const dir = makeDir();
+		writeFileSync(join(dir, "clean.json"), '{\n\t"a": 1\n}\n');
+		const ctx = makeCtx(dir, { json: null });
+		expect(await run(ctx, [])).toBe(0);
+	});
+
 	it("ignores lockfiles by default", async () => {
 		const dir = makeDir();
 		writeFileSync(join(dir, "package-lock.json"), '{"": 1, "a": 1,}');

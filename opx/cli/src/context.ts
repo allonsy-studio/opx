@@ -19,21 +19,35 @@ export function readHostPackage(cwd: string): PackageJson {
 	return JSON.parse(readFileSync(path, "utf8")) as PackageJson;
 }
 
+/**
+ * Build the detector context for a repository.
+ *
+ * `fileTypes` and `branch` each cost a git call, so they are read on first use.
+ * Copy the context with `Object.defineProperties` and its descriptors, not a spread, to keep them lazy.
+ *
+ * @param options - The repository root and run flags.
+ * @returns The context passed to detectors and commands.
+ */
 export function buildContext(options: BuildContextOptions): DetectorContext {
 	const { cwd, debug = false, dryRun = false, fix = false } = options;
 	const hostPkg = readHostPackage(cwd);
 	const config: OpxConfig = readConfig(cwd);
 	const state: OpxState = readState(cwd);
-	const scan = scanCommittedTree(cwd);
+	let fileTypes: Set<string> | undefined;
+	let branch: string | undefined;
 
 	return {
 		cwd,
-		fileTypes: scan.fileTypes,
+		get fileTypes() {
+			return fileTypes ??= scanCommittedTree(cwd).fileTypes;
+		},
 		hostPkg,
 		pkgManager: detectPackageManager(cwd, hostPkg),
 		config,
 		state,
-		branch: getCurrentBranch(cwd),
+		get branch() {
+			return branch ??= getCurrentBranch(cwd);
+		},
 		logger: createConsoleLogger({ debug }),
 		dryRun,
 		fix,

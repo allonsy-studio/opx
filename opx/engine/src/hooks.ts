@@ -1,8 +1,11 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+/** The hook command. Runs the local binary directly, since starting through `npx` adds about a second. */
+const POST_COMMIT_LINE = '( PATH="node_modules/.bin:$PATH" opx hook post-commit >/dev/null 2>&1 & ) || true';
+
 const POST_COMMIT = `#!/usr/bin/env sh
-( npx --no-install opx hook post-commit >/dev/null 2>&1 & ) || true
+${POST_COMMIT_LINE}
 exit 0
 `;
 
@@ -29,9 +32,11 @@ export function installPostCommitHook(cwd: string): HookInstallResult {
 		if (existing.includes("opx hook post-commit")) {
 			return { created: false, path };
 		}
-		// Append our line above any existing exit statements.
-		const augmented = `${existing.trimEnd()}\n( npx --no-install opx hook post-commit >/dev/null 2>&1 & ) || true\n`;
-		writeFileSync(path, augmented, "utf8");
+		// Insert above a trailing top-level exit, which would otherwise stop our line from running.
+		const lines = existing.trimEnd().split("\n");
+		const at = /^exit(\s|$)/.test(lines.at(-1) ?? "") ? lines.length - 1 : lines.length;
+		lines.splice(at, 0, POST_COMMIT_LINE);
+		writeFileSync(path, `${lines.join("\n")}\n`, "utf8");
 		chmodSync(path, 0o755);
 		return { created: false, path };
 	}

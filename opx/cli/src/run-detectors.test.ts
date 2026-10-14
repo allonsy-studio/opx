@@ -71,4 +71,27 @@ describe("runDetectorsGrouped", () => {
 		const out = spy.mock.calls.map((c: unknown[]) => String(c[0])).join("");
 		expect(out).toContain("no issues");
 	});
+
+	it("hands each detector a full copy of the context that survives a spread", async () => {
+		let keys: string[] = [];
+		const copier = detector({ shortName: "copier", run: async (runCtx) => { keys = Object.keys({ ...runCtx, fix: true }); return 0; } });
+		await runDetectorsGrouped(ctx(), [copier], []);
+		expect(keys).toEqual(expect.arrayContaining(["cwd", "fileTypes", "hostPkg", "config", "branch", "logger", "write", "fix"]));
+	});
+
+	it("keeps the context lazy: unread getters are not evaluated, read ones still work", async () => {
+		let reads = 0;
+		const lazy = ctx();
+		Object.defineProperty(lazy, "fileTypes", { get: () => { reads++; return new Set([".ts"]); }, enumerable: true });
+
+		const quiet = detector({ shortName: "quiet", run: async () => 0 });
+		await runDetectorsGrouped(lazy, [quiet], []);
+		expect(reads).toBe(0);
+
+		let seen: string[] = [];
+		const reader = detector({ shortName: "reader", run: async (runCtx) => { seen = [...runCtx.fileTypes]; return 0; } });
+		await runDetectorsGrouped(lazy, [reader], []);
+		expect(seen).toEqual([".ts"]);
+		expect(reads).toBe(1);
+	});
 });

@@ -68,4 +68,18 @@ describe("buildContext", () => {
 		expect(() => ctx.write("")).not.toThrow();
 		rmSync(dir, { recursive: true });
 	});
+
+	it("reads fileTypes and branch from git only when asked, then reuses them", () => {
+		const dir = gitRepo();
+		writeFileSync(join(dir, "a.ts"), "x", "utf8");
+		execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });
+		execFileSync("git", ["commit", "-m", "init"], { cwd: dir, stdio: "ignore" });
+
+		const ctx = buildContext({ cwd: dir });
+		expect(typeof Object.getOwnPropertyDescriptor(ctx, "fileTypes")?.get).toBe("function");
+		expect(typeof Object.getOwnPropertyDescriptor(ctx, "branch")?.get).toBe("function");
+		expect(ctx.fileTypes).toBe(ctx.fileTypes);
+		expect(ctx.branch).toBe("main");
+		rmSync(dir, { recursive: true });
+	});
 });

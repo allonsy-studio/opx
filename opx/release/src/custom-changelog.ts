@@ -1,8 +1,9 @@
 import { getInfo, getInfoFromPullRequest } from "@changesets/get-github-info";
-import { config } from "dotenv";
 import type { ChangelogFunctions } from "@changesets/types";
 
-config();
+import { loadLocalEnv } from "./env.js";
+
+loadLocalEnv();
 
 /** Custom changelog generator for @changesets/changelog-github. */
 export default {

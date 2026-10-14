@@ -3,7 +3,7 @@ const isCI = !!process.env.CI;
 /** @type {import('jest').Config} */
 export default {
 	clearMocks: true,
-	moduleFileExtensions: ["js", "ts"],
+	moduleFileExtensions: ["ts", "js"],
 	testEnvironment: "node",
 	testMatch: ["**/*.test.ts"],
 	// The sources are NodeNext ESM (import.meta, dynamic import). Run the tests
@@ -16,6 +16,8 @@ export default {
 		// Resolve the workspace engine to its source so cross-package tests load
 		// it through ts-jest rather than the built output.
 		"^@allons-y/opx$": "<rootDir>/../engine/src/index.ts",
+		// Resolve the `shared` alias to its TypeScript source, not the compiled file beside it.
+		"^shared/(.*)\\.js$": "<rootDir>/../shared/src/$1.ts",
 		// Strip the `.js` extension NodeNext requires on relative specifiers.
 		"^(\\.{1,2}/.*)\\.js$": "$1",
 	},

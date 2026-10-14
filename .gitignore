@@ -32,6 +32,9 @@ node_modules/
 opx/*/bin/
 opx/*/dist/
 
+# shared source compiled in place by scripts/shared.js
+opx/shared/src/*.js
+
 # docs site build outputs
 opx/docs/_site/
 opx/docs/src/api/
