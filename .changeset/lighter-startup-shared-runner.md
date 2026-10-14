@@ -5,6 +5,7 @@
 "@allons-y/opx-lint-json": patch
 "@allons-y/opx-lint-md": patch
 "@allons-y/opx-release": patch
+"@allons-y/opx-shared": patch
 ---
 
 Faster startup and one shared lint runner source.
