@@ -1,5 +1,5 @@
 ---
-"@allons-y/opx-lint-js": minor
+"@allons-y/opx-lint-js": major
 "@allons-y/opx-cli": patch
 ---
 
