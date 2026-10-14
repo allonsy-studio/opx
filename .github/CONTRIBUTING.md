@@ -21,6 +21,7 @@ opx is a Yarn workspaces monorepo. Each package lives in `opx/<name>`:
 | `opx/lint-js`, `opx/lint-json`, `opx/lint-md` | Lint plugins |
 | `opx/release` | The changesets release plugin |
 | `opx/docs` | The documentation site (private, not published) |
+| `opx/shared` | Source shared between packages (private, not published). `scripts/shared.js` copies it into the lint plugins when they are packed |
 
 ## Common commands
 
@@ -32,7 +33,7 @@ opx is a Yarn workspaces monorepo. Each package lives in `opx/<name>`:
 | `yarn coverage` | Run tests with coverage. Locally, prints a table. |
 | `yarn lint` | Lint the repo with opx itself. |
 | `yarn format` | Lint and auto-fix. |
-| `yarn smoke` | Pack the packages, install them into a scratch project, and run the CLI. |
+| `yarn smoke` | Pack the packages, install them into a scratch project, and run the CLI (`scripts/smoke.js`). |
 | `yarn docs:dev` | Build the docs and serve them with live reload. |
 | `yarn docs:build` | Build the docs site. |
 
