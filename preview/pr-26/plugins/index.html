@@ -68,6 +68,7 @@
 				<li><a href="/opx/preview/pr-26/plugins/lint-js/">lint-js</a></li>
 				<li><a href="/opx/preview/pr-26/plugins/lint-json/">lint-json</a></li>
 				<li><a href="/opx/preview/pr-26/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/preview/pr-26/plugins/lint-ts/">lint-ts</a></li>
 				<li><a href="/opx/preview/pr-26/plugins/release/">release</a></li>
 			</ul>
 		</li>
@@ -117,6 +118,12 @@
 <td>Markdown and MDX</td>
 </tr>
 <tr>
+<td><a href="lint-ts/"><code>@allons-y/opx-lint-ts</code></a></td>
+<td><code>ts</code></td>
+<td>lint</td>
+<td>TypeScript</td>
+</tr>
+<tr>
 <td><a href="release/"><code>@allons-y/opx-release</code></a></td>
 <td><code>release</code></td>
 <td>release</td>
@@ -126,7 +133,7 @@
 </table>
 <p>All official plugins require Node.js 24 or newer and <a href="../cli/"><code>@allons-y/opx-cli</code></a>. Want one that isn't here? See <a href="../guides/writing-a-detector/">Writing a detector</a>.</p>
 <h2 id="common-behavior" tabindex="-1"><a class="header-anchor" href="#common-behavior">Common behavior</a></h2>
-<p>The three lint plugins share these behaviors.</p>
+<p>The lint plugins share these behaviors.</p>
 <ul>
 <li>They run ESLint through its Node API, with a per-plugin cache in <code>.opx/cache/eslint/</code>.</li>
 <li>Files ignored by your <code>.gitignore</code> are ignored.</li>
