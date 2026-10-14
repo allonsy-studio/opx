@@ -36,7 +36,7 @@
 	],
 	"scripts": {
 		"build": "yarn g:build",
-		"prepack": "node ../../scripts/shared.mjs inject .",
+		"prepack": "node ../../scripts/shared.js inject .",
 		"clean": "yarn g:clean",
 		"coverage": "yarn g:coverage",
 		"test": "yarn g:test",

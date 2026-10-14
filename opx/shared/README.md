@@ -7,7 +7,7 @@ Packages import these files directly while developing, for example
 `../../shared/eslint-runner.js` from `opx/lint-js/src/runner.ts`. Nothing is
 generated into the packages.
 
-`scripts/shared.mjs` handles the rest:
+`scripts/shared.js` handles the rest:
 
 - `build`, run by each package's build, compiles the shared file beside its
   source (git-ignored), so built packages resolve it inside the repo.
@@ -22,5 +22,5 @@ The tests here run with `yarn test:shared`.
 | `eslint-runner.ts` | `lint-js`, `lint-json`, `lint-md` |
 
 To opt a package out, for example when a better tool comes along to lint its
-files, remove it from `TARGETS` in `scripts/shared.mjs`, drop its `prepack`
+files, remove it from `TARGETS` in `scripts/shared.js`, drop its `prepack`
 script, and write its own runner.

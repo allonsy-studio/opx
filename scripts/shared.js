@@ -9,8 +9,8 @@
  *
  * To opt a package out, remove it from {@link TARGETS} and write its own code.
  *
- * Usage: `node scripts/shared.mjs <build|inject> <package-dir>`, or
- * `node scripts/shared.mjs clean` to remove the compiled files.
+ * Usage: `node scripts/shared.js <build|inject> <package-dir>`, or
+ * `node scripts/shared.js clean` to remove the compiled files.
  */
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
@@ -57,7 +57,7 @@ if (mode === "clean") {
 }
 
 if (!["build", "inject"].includes(mode) || !dir) {
-	console.error("usage: node scripts/shared.mjs <build|inject> <package-dir> | clean");
+	console.error("usage: node scripts/shared.js <build|inject> <package-dir> | clean");
 	process.exit(1);
 }
 

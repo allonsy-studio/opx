@@ -32,7 +32,7 @@ node_modules/
 opx/*/bin/
 opx/*/dist/
 
-# shared source compiled in place by scripts/shared.mjs
+# shared source compiled in place by scripts/shared.js
 opx/shared/*.js
 
 # docs site build outputs
