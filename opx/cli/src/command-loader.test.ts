@@ -21,8 +21,9 @@ describe("selectLoaders", () => {
 		expect(selectLoaders(["toString"])).toEqual(Object.values(COMMANDS));
 	});
 
-	it("loads a real command module with a register function", async () => {
-		const [load] = selectLoaders(["hook"]);
-		expect(typeof (await load!()).default).toBe("function");
+	it("loads every command module with a register function as its default export", async () => {
+		for (const load of Object.values(COMMANDS)) {
+			expect(typeof (await load()).default).toBe("function");
+		}
 	});
 });
