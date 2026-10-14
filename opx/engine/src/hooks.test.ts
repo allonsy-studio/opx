@@ -48,6 +48,28 @@ describe("installPostCommitHook", () => {
 		rmSync(dir, { recursive: true });
 	});
 
+	it("inserts above a trailing top-level exit so the line still runs", () => {
+		const dir = tmp();
+		mkdirSync(join(dir, ".husky"), { recursive: true });
+		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\nexit 0\n", "utf8");
+		installPostCommitHook(dir);
+		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8").trimEnd().split("\n");
+		expect(lines.at(-1)).toBe("exit 0");
+		expect(lines.findIndex((line) => line.includes("opx hook post-commit"))).toBe(lines.length - 2);
+		rmSync(dir, { recursive: true });
+	});
+
+	it("leaves an indented exit alone and appends at the end", () => {
+		const dir = tmp();
+		mkdirSync(join(dir, ".husky"), { recursive: true });
+		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\nif false; then\n  exit 1\nfi\n", "utf8");
+		installPostCommitHook(dir);
+		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8").trimEnd().split("\n");
+		expect(lines.at(-1)).toContain("opx hook post-commit");
+		expect(lines.at(-2)).toBe("fi");
+		rmSync(dir, { recursive: true });
+	});
+
 	it("appends to an existing hook that lacks the marker", () => {
 		const dir = tmp();
 		mkdirSync(join(dir, ".husky"), { recursive: true });

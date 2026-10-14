@@ -1,14 +1,7 @@
 import { getInfo, getInfoFromPullRequest } from "@changesets/get-github-info";
 import type { ChangelogFunctions } from "@changesets/types";
 
-/** Load a local `.env` for `GITHUB_TOKEN`. It never overrides variables already set. */
-function loadLocalEnv(): void {
-	try {
-		process.loadEnvFile();
-	} catch {
-		// No .env, or an unreadable one: fall back to the existing environment.
-	}
-}
+import { loadLocalEnv } from "./env.js";
 
 loadLocalEnv();
 

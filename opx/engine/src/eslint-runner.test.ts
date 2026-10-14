@@ -77,6 +77,13 @@ describe("runEslint", () => {
 		expect(ctx.out()).toBe("problems\n");
 	});
 
+	it("returns 0 but still writes the report when a file has only warnings", async () => {
+		const fake = makeSpec(0, "1 warning");
+		const ctx = makeCtx(dir);
+		expect(await runEslint(ctx, [], fake.spec)).toBe(0);
+		expect(ctx.out()).toBe("1 warning\n");
+	});
+
 	it("forwards only owned paths and skips ESLint when none are owned", async () => {
 		const fake = makeSpec(0);
 		expect(await runEslint(makeCtx(dir), ["a.x", "b.y"], fake.spec)).toBe(0);

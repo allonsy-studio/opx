@@ -32,9 +32,11 @@ export function installPostCommitHook(cwd: string): HookInstallResult {
 		if (existing.includes("opx hook post-commit")) {
 			return { created: false, path };
 		}
-		// Append our line above any existing exit statements.
-		const augmented = `${existing.trimEnd()}\n${POST_COMMIT_LINE}\n`;
-		writeFileSync(path, augmented, "utf8");
+		// Insert above a trailing top-level exit, which would otherwise stop our line from running.
+		const lines = existing.trimEnd().split("\n");
+		const at = /^exit(\s|$)/.test(lines.at(-1) ?? "") ? lines.length - 1 : lines.length;
+		lines.splice(at, 0, POST_COMMIT_LINE);
+		writeFileSync(path, `${lines.join("\n")}\n`, "utf8");
 		chmodSync(path, 0o755);
 		return { created: false, path };
 	}
