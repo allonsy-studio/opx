@@ -68,6 +68,7 @@
 				<li><a href="/opx/plugins/lint-js/">lint-js</a></li>
 				<li><a href="/opx/plugins/lint-json/">lint-json</a></li>
 				<li><a href="/opx/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/plugins/lint-ts/">lint-ts</a></li>
 				<li><a href="/opx/plugins/release/">release</a></li>
 			</ul>
 		</li>
@@ -99,7 +100,7 @@
   detect<span class="token operator">:</span> <span class="token builtin">boolean</span> <span class="token operator">|</span> <span class="token builtin">Promise</span><span class="token operator">&lt;</span><span class="token builtin">boolean</span><span class="token operator">></span><span class="token punctuation">;</span>
   run<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">Promise</span><span class="token operator">&lt;</span><span class="token builtin">number</span><span class="token operator">></span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L130">detector.ts:130</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L130">detector.ts:130</a></p>
 <p>The contract every opx plugin implements: decide when it applies, then run.</p>
 <h2 id="properties" tabindex="-1"><a class="header-anchor" href="#properties">Properties</a></h2>
 <table>
@@ -116,38 +117,38 @@
 <td><a id="concern"></a> <code>concern</code></td>
 <td><code>&quot;lint&quot;</code> | <code>&quot;test&quot;</code> | <code>&quot;build&quot;</code> | <code>&quot;release&quot;</code></td>
 <td>The task this detector belongs to.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L138">detector.ts:138</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L138">detector.ts:138</a></td>
 </tr>
 <tr>
 <td><a id="displayname"></a> <code>displayName</code></td>
 <td><code>string</code></td>
 <td>The name shown to people.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L136">detector.ts:136</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L136">detector.ts:136</a></td>
 </tr>
 <tr>
 <td><a id="filetypes"></a> <code>fileTypes?</code></td>
 <td><code>string</code>[]</td>
 <td>File extensions this detector owns, with the leading dot.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L140">detector.ts:140</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L140">detector.ts:140</a></td>
 </tr>
 <tr>
 <td><a id="id"></a> <code>id</code></td>
 <td><a href="/opx/api/type-aliases/DetectorId/"><code>DetectorId</code></a></td>
 <td>The package id, such as <code>@allons-y/opx-lint-js</code>.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L132">detector.ts:132</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L132">detector.ts:132</a></td>
 </tr>
 <tr>
 <td><a id="shortname"></a> <code>shortName</code></td>
 <td><code>string</code></td>
 <td>The short name used in config and commands, such as <code>js</code>.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L134">detector.ts:134</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L134">detector.ts:134</a></td>
 </tr>
 </tbody>
 </table>
 <h2 id="methods" tabindex="-1"><a class="header-anchor" href="#methods">Methods</a></h2>
 <h3 id="describe()" tabindex="-1"><a class="header-anchor" href="#describe()">describe()</a></h3>
 <pre class="language-ts"><code class="language-ts"><span class="token function">describe</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token operator">:</span> DetectorDescription<span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L144">detector.ts:144</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L144">detector.ts:144</a></p>
 <p>Describe the detector for display.</p>
 <h4 id="parameters" tabindex="-1"><a class="header-anchor" href="#parameters">Parameters</a></h4>
 <table>
@@ -169,7 +170,7 @@
 <hr>
 <h3 id="detect()" tabindex="-1"><a class="header-anchor" href="#detect()">detect()</a></h3>
 <pre class="language-ts"><code class="language-ts"><span class="token function">detect</span><span class="token punctuation">(</span>ctx<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token builtin">boolean</span> <span class="token operator">|</span> <span class="token builtin">Promise</span><span class="token operator">&lt;</span><span class="token builtin">boolean</span><span class="token operator">></span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L142">detector.ts:142</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L142">detector.ts:142</a></p>
 <p>Whether the detector applies to this project.</p>
 <h4 id="parameters-1" tabindex="-1"><a class="header-anchor" href="#parameters-1">Parameters</a></h4>
 <table>
@@ -191,7 +192,7 @@
 <hr>
 <h3 id="run()%3F" tabindex="-1"><a class="header-anchor" href="#run()%3F">run()?</a></h3>
 <pre class="language-ts"><code class="language-ts">optional <span class="token function">run</span><span class="token punctuation">(</span>ctx<span class="token punctuation">,</span> args<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token builtin">Promise</span><span class="token operator">&lt;</span><span class="token builtin">number</span><span class="token operator">></span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/896dfe817f8473b68bd936b8dea02a2420932f57/opx/engine/src/detector.ts#L152">detector.ts:152</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/cb7abea49270127452740c3c99ab0918fa97d9c6/opx/engine/src/detector.ts#L152">detector.ts:152</a></p>
 <p>Run the tool.</p>
 <h4 id="parameters-2" tabindex="-1"><a class="header-anchor" href="#parameters-2">Parameters</a></h4>
 <table>
