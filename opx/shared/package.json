@@ -23,7 +23,7 @@
 		"test": "yarn g:test",
 		"coverage": "yarn g:coverage",
 		"typecheck": "yarn g:typecheck",
-		"clean": "yarn g:clean && node ../../scripts/shared.js clean"
+		"clean": "yarn g:clean && yarn g:uninject"
 	},
 	"engines": {
 		"node": ">=24"
