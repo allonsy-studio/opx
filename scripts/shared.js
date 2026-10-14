@@ -1,9 +1,9 @@
 /**
  * Share source between packages without a runtime dependency.
  *
- * While developing, packages import `opx/shared/<name>.ts` directly. `build`
- * compiles each shared file beside its source so built packages resolve it in
- * the repo. `inject`, run by a package's `prepack`, copies the compiled file
+ * While developing, packages import `shared/<name>.js`, the root package's
+ * alias for the `opx/shared` workspace. `build` compiles each shared file
+ * beside its source so built packages resolve it in the repo. `inject`, run by a package's `prepack`, copies the compiled file
  * into the package's `bin/shared/`, points the built imports at it, and emits
  * the type declarations, so the published package is self-contained.
  *
@@ -13,9 +13,8 @@
  * `node scripts/shared.js clean` to remove the compiled files.
  */
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { tmpdir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
 
 import { transformSync } from "esbuild";
@@ -40,23 +39,15 @@ function write(path, content) {
 }
 
 /**
- * Emit a package's type declarations into its `bin`, with the shared ones in `bin/shared`.
+ * Emit the shared workspace's type declarations into a package's `bin/shared`.
  *
- * `tsc` mirrors each file's path relative to the package's `rootDir` (`opx/`),
- * so the declarations go to a scratch directory first and are then moved.
- * @param {string} pkg - The package directory name under `opx/`.
+ * The package's own declarations come from its normal build; `tsc` skips the
+ * shared source there because it resolves through `node_modules`.
  * @param {string} bin - The package's `bin` directory.
  */
-function emitDeclarations(pkg, bin) {
-	const scratch = mkdtempSync(join(tmpdir(), "opx-dts-"));
-	try {
-		const tsc = createRequire(import.meta.url).resolve("typescript/bin/tsc");
-		execFileSync(process.execPath, [tsc, "-p", "tsconfig.json", "--emitDeclarationOnly", "--outDir", scratch], { cwd: join(root, "opx", pkg), stdio: "inherit" });
-		cpSync(join(scratch, pkg, "src"), bin, { recursive: true });
-		cpSync(join(scratch, "shared", "src"), join(bin, "shared"), { recursive: true });
-	} finally {
-		rmSync(scratch, { recursive: true, force: true });
-	}
+function emitDeclarations(bin) {
+	const tsc = createRequire(import.meta.url).resolve("typescript/bin/tsc");
+	execFileSync(process.execPath, [tsc, "-p", join(sharedDir, "..", "tsconfig.json"), "--emitDeclarationOnly", "--outDir", join(bin, "shared")], { stdio: "inherit" });
 }
 
 /**
@@ -89,7 +80,7 @@ const bin = join(root, "opx", pkg, "bin");
 
 if (mode === "inject" && Object.values(TARGETS).some((packages) => packages.includes(pkg))) {
 	if (!existsSync(bin)) throw new Error(`${pkg} has no bin/ to inject into; build it first.`);
-	emitDeclarations(pkg, bin);
+	emitDeclarations(bin);
 }
 
 for (const [name, packages] of Object.entries(TARGETS)) {
@@ -106,12 +97,10 @@ for (const [name, packages] of Object.entries(TARGETS)) {
 	const copy = join(bin, "shared", `${name}.js`);
 	write(copy, code);
 
+	const alias = `shared/${name}.js`;
 	for (const file of sourceFiles(bin)) {
+		const local = relative(dirname(file), copy).replaceAll("\\", "/");
 		const text = readFileSync(file, "utf8");
-		write(file, text.replace(/(["'])(\.{1,2}\/[^"']+)\1/g, (match, quote, specifier) => {
-			if (resolve(dirname(file), specifier) !== shared) return match;
-			const local = relative(dirname(file), copy).replaceAll("\\", "/");
-			return `${quote}${local.startsWith(".") ? local : `./${local}`}${quote}`;
-		}));
+		write(file, text.replaceAll(`"${alias}"`, `"${local.startsWith(".") ? local : `./${local}`}"`));
 	}
 }

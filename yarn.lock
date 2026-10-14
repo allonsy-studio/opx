@@ -263,7 +263,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allons-y/opx-shared@workspace:opx/shared":
+"@allons-y/opx-shared@workspace:opx/shared, shared@workspace:opx/shared":
   version: 0.0.0-use.local
   resolution: "@allons-y/opx-shared@workspace:opx/shared"
   languageName: unknown
@@ -6918,6 +6918,7 @@ __metadata:
     jest: "npm:^30.5.2"
     lint-staged: "npm:^17.6.0"
     npm-run-all2: "npm:^9.0.3"
+    shared: "workspace:opx/shared"
     ts-jest: "npm:^29.4.14"
     typescript: "npm:^6.0.3"
   languageName: unknown

@@ -36,7 +36,7 @@
 		"eslint.config.js"
 	],
 	"scripts": {
-		"build": "yarn g:build",
+		"build": "yarn g:build && yarn g:dts",
 		"prepack": "node ../../scripts/shared.js inject .",
 		"clean": "yarn g:clean",
 		"coverage": "yarn g:coverage",

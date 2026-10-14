@@ -16,6 +16,9 @@
 	},
 	"private": true,
 	"type": "module",
+	"exports": {
+		"./*": "./src/*"
+	},
 	"scripts": {
 		"test": "yarn g:test",
 		"coverage": "yarn g:coverage",
