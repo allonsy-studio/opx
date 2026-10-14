@@ -7,7 +7,7 @@ export const opxLintJsDetector: Detector = {
 	concern: "lint",
 	id: "@allons-y/opx-lint-js",
 	shortName: "js",
-	displayName: "JavaScript / TypeScript (ESLint + @stylistic)",
+	displayName: "JavaScript (ESLint + @stylistic)",
 	fileTypes: [...JS_EXTENSIONS],
 
 	detect(ctx: DetectorContext): boolean {
@@ -19,12 +19,11 @@ export const opxLintJsDetector: Detector = {
 
 	describe() {
 		return {
-			summary: "ESLint with @stylistic and typescript-eslint, configured by opx",
+			summary: "ESLint with @stylistic, configured by opx",
 			bundledDeps: [
 				"eslint",
 				"@eslint/js",
 				"@stylistic/eslint-plugin",
-				"typescript-eslint",
 				"globals",
 			],
 		};

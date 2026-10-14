@@ -1,6 +1,6 @@
 # @allons-y/opx-lint-js
 
-opx detector + runner for **JavaScript and TypeScript**. Bundles ESLint with [`@stylistic/eslint-plugin`](https://eslint.style) and [`typescript-eslint`](https://typescript-eslint.io), pre-configured.
+opx detector + runner for **JavaScript**. Bundles ESLint with [`@stylistic/eslint-plugin`](https://eslint.style), pre-configured. TypeScript is not covered.
 
 ## Install
 
@@ -25,7 +25,6 @@ Requires [`@allons-y/opx-cli`](https://www.npmjs.com/package/@allons-y/opx-cli).
 | File types | Plugins |
 |---|---|
 | `.js`, `.mjs`, `.cjs`, `.jsx` | `@eslint/js`, `@stylistic/eslint-plugin` |
-| `.ts`, `.tsx`, `.mts`, `.cts` | `typescript-eslint`, `@stylistic/eslint-plugin` |
 
 The bundled flat config owns both **semantic lint** and **formatting** — there is no separate Prettier step.
 
@@ -64,16 +63,15 @@ import js from "@allons-y/opx-lint-js/eslint.config.js";
 
 export default [
   ...js,
-  { files: ["**/*.ts"], rules: { "no-console": "warn" } },
+  { files: ["**/*.js"], rules: { "no-console": "warn" } },
 ];
 ```
 
-Every block is `files`-scoped, so the JS/TS formatting rules never leak onto other languages — it composes cleanly with `@allons-y/opx-lint-json`, `@allons-y/opx-lint-md`, and third-party plugins. `opx init` scaffolds this file for you. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.
+Every block is `files`-scoped, so the JS formatting rules never leak onto other languages — it composes cleanly with `@allons-y/opx-lint-json`, `@allons-y/opx-lint-md`, and third-party plugins. `opx init` scaffolds this file for you. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.
 
 ## Requirements
 
 - Node.js ≥ 24
-- `typescript` ≥ 5 in the host repo (peer; `typescript-eslint` loads it at config-load time)
 
 ---
 

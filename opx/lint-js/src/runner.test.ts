@@ -35,25 +35,25 @@ function makeCtx(dir: string, fix = false, overrideJs?: string): Ctx {
 describe("runEslint", () => {
 	it("returns 0 for a clean file", async () => {
 		const dir = makeDir();
-		writeFileSync(join(dir, "clean.ts"), "export const ok = 1;\n");
+		writeFileSync(join(dir, "clean.js"), "export const ok = 1;\n");
 		const ctx = makeCtx(dir);
-		expect(await runEslint(ctx, ["clean.ts"])).toBe(0);
+		expect(await runEslint(ctx, ["clean.js"])).toBe(0);
 	});
 
 	it("returns 1 and writes output for a file with violations", async () => {
 		const dir = makeDir();
-		writeFileSync(join(dir, "bad.ts"), "const x = 'a'\n");
+		writeFileSync(join(dir, "bad.js"), "const x = 'a'\n");
 		const ctx = makeCtx(dir);
-		expect(await runEslint(ctx, ["bad.ts"])).toBe(1);
+		expect(await runEslint(ctx, ["bad.js"])).toBe(1);
 		expect(ctx._output()).toMatch(/error/i);
 	});
 
 	it("auto-fixes a fixable file when ctx.fix is true", async () => {
 		const dir = makeDir();
-		const file = join(dir, "fixme.ts");
+		const file = join(dir, "fixme.js");
 		writeFileSync(file, "export const ok = 'a';\n");
 		const ctx = makeCtx(dir, true);
-		expect(await runEslint(ctx, ["fixme.ts"])).toBe(0);
+		expect(await runEslint(ctx, ["fixme.js"])).toBe(0);
 		expect(readFileSync(file, "utf8")).toBe('export const ok = "a";\n');
 	});
 
@@ -66,22 +66,22 @@ describe("runEslint", () => {
 
 	it("honors a config override pointing at an absolute config path", async () => {
 		const dir = makeDir();
-		writeFileSync(join(dir, "clean.ts"), "export const ok = 1;\n");
+		writeFileSync(join(dir, "clean.js"), "export const ok = 1;\n");
 		const ctx = makeCtx(dir, false, BUNDLED_CONFIG);
-		expect(await runEslint(ctx, ["clean.ts"])).toBe(0);
+		expect(await runEslint(ctx, ["clean.js"])).toBe(0);
 	});
 
 	it("loads the gitignore base config when a .gitignore exists", async () => {
 		const dir = makeDir();
-		writeFileSync(join(dir, ".gitignore"), "ignored.ts\n");
-		writeFileSync(join(dir, "clean.ts"), "export const ok = 1;\n");
+		writeFileSync(join(dir, ".gitignore"), "ignored.js\n");
+		writeFileSync(join(dir, "clean.js"), "export const ok = 1;\n");
 		const ctx = makeCtx(dir);
-		expect(await runEslint(ctx, ["clean.ts"])).toBe(0);
+		expect(await runEslint(ctx, ["clean.js"])).toBe(0);
 	});
 
 	it("defaults to linting the cwd when given no args", async () => {
 		const dir = makeDir();
-		writeFileSync(join(dir, "clean.ts"), "export const ok = 1;\n");
+		writeFileSync(join(dir, "clean.js"), "export const ok = 1;\n");
 		const ctx = makeCtx(dir);
 		expect(await runEslint(ctx, [])).toBe(0);
 	});

@@ -9,7 +9,7 @@ eleventyNavigation:
 
 | Plugin | Short name | Task | Covers |
 | --- | --- | --- | --- |
-| [`@allons-y/opx-lint-js`](./lint-js/) | `js` | lint | JavaScript and TypeScript |
+| [`@allons-y/opx-lint-js`](./lint-js/) | `js` | lint | JavaScript |
 | [`@allons-y/opx-lint-json`](./lint-json/) | `json` | lint | JSON, JSONC, JSON5 |
 | [`@allons-y/opx-lint-md`](./lint-md/) | `md` | lint | Markdown and MDX |
 | [`@allons-y/opx-release`](./release/) | `release` | release | Changesets release flow |
