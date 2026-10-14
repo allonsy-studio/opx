@@ -7,7 +7,7 @@
 "@allons-y/opx-release": patch
 ---
 
-Faster startup, one shared lint runner source, and a lighter install.
+Faster startup and one shared lint runner source.
 
 - `@allons-y/opx` runs the post-commit hook through `node_modules/.bin` on `PATH` instead of `npx`, which took about a second to start. The installer also inserts that line above a trailing `exit` in an existing hook, where it used to append after it and never run.
 - `@allons-y/opx-cli` loads only the command being run and reads `fileTypes` and `branch` from git on first use, so `lint`, `release`, and `hook` skip those git calls.
