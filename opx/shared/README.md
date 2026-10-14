@@ -1,11 +1,13 @@
 # Shared source
 
-Source that several packages need but that doesn't belong in the engine, which
-stays free of any specific tool.
+A private workspace (`@allons-y/opx-shared`) for source that several packages
+need but that doesn't belong in the engine, which stays free of any specific
+tool. It is never published.
 
 Packages import these files directly while developing, for example
-`../../shared/eslint-runner.js` from `opx/lint-js/src/runner.ts`. Nothing is
-generated into the packages.
+`../../shared/src/eslint-runner.js` from `opx/lint-js/src/runner.ts`. Nothing is
+generated into the packages. The workspace has its own tests and typecheck, which
+run with the others.
 
 `scripts/shared.js` handles the rest:
 
@@ -15,11 +17,9 @@ generated into the packages.
   the package's `bin/shared/` and points the built imports at it. The published
   package carries its own copy and has no runtime dependency on a shared package.
 
-The tests here run with `yarn test:shared`.
-
 | File | Used by |
 |---|---|
-| `eslint-runner.ts` | `lint-js`, `lint-json`, `lint-md` |
+| `src/eslint-runner.ts` | `lint-js`, `lint-json`, `lint-md` |
 
 To opt a package out, for example when a better tool comes along to lint its
 files, remove it from `TARGETS` in `scripts/shared.js`, drop its `prepack`

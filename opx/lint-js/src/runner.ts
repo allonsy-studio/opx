@@ -2,7 +2,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { DetectorContext } from "@allons-y/opx";
-import { runEslint as run } from "../../shared/eslint-runner.js";
+import { runEslint as run } from "../../shared/src/eslint-runner.js";
 
 import { JS_EXTENSIONS } from "./extensions.js";
 

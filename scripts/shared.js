@@ -18,7 +18,7 @@ import { basename, dirname, join, relative, resolve } from "node:path";
 import { transformSync } from "esbuild";
 
 const root = resolve(import.meta.dirname, "..");
-const sharedDir = join(root, "opx", "shared");
+const sharedDir = join(root, "opx", "shared", "src");
 
 /** Shared source name, mapped to the packages under `opx/` that use it. */
 const TARGETS = {
