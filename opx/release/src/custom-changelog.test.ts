@@ -9,11 +9,6 @@ const links = {
 const getInfo = jest.fn(async () => ({ links: { ...links } }));
 const getInfoFromPullRequest = jest.fn(async () => ({ links: { ...links } }));
 
-jest.unstable_mockModule("dotenv", () => ({
-	__esModule: true,
-	config: () => ({}),
-}));
-
 jest.unstable_mockModule("@changesets/get-github-info", () => ({
 	__esModule: true,
 	getInfo,

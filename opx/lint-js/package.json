@@ -72,9 +72,5 @@
 	],
 	"engines": {
 		"node": ">=24"
-	},
-	"opx": {
-		"entry": "src/index.ts",
-		"outfile": "bin/index.js"
 	}
 }

@@ -1,8 +1,12 @@
 import { getInfo, getInfoFromPullRequest } from "@changesets/get-github-info";
-import { config } from "dotenv";
 import type { ChangelogFunctions } from "@changesets/types";
 
-config();
+// Load a local .env for GITHUB_TOKEN; it never overrides variables already set.
+try {
+	process.loadEnvFile();
+} catch {
+	// No .env, or an unreadable one: fall back to the existing environment.
+}
 
 /** Custom changelog generator for @changesets/changelog-github. */
 export default {

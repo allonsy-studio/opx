@@ -21,7 +21,6 @@ export const opxReleaseDetector: Detector = {
 				"@changesets/write",
 				"@clack/prompts",
 				"@manypkg/get-packages",
-				"dotenv",
 			],
 		};
 	},

@@ -31,8 +31,6 @@ export {
 export type { DiffEntry, DiffResult } from "./diff.js";
 export { applyDeferral, defaultSkipUntilDate, diff, isDeferred } from "./diff.js";
 export { detectPackageManager, installCommand } from "./pkg-manager.js";
-export type { ResolvedTool } from "./resolver.js";
-export { resolveTool } from "./resolver.js";
 export { filterPathsByExtension } from "./paths.js";
 export type { HookInstallResult } from "./hooks.js";
 export { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
