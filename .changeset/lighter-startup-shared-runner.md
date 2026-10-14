@@ -9,7 +9,7 @@
 
 Faster startup, one shared lint runner, and a lighter install.
 
-- `@allons-y/opx` adds `runEslint`, the runner the lint plugins now share, and removes the unused `resolveTool` and `ResolvedTool` exports. The post-commit hook runs `node_modules/.bin/opx` when it exists and falls back to `npx`, which took about a second to start.
+- `@allons-y/opx` adds `runEslint`, the runner the lint plugins now share, and removes the unused `resolveTool` and `ResolvedTool` exports. The post-commit hook runs the local `opx` through `node_modules/.bin` on `PATH` instead of `npx`, which took about a second to start.
 - `@allons-y/opx-cli` loads only the command being run and reads `fileTypes` and `branch` from git on first use, so `lint`, `release`, and `hook` skip those git calls.
 - The lint plugins delegate to the shared runner with no change in behavior.
 - `@allons-y/opx-release` reads `.env` with `process.loadEnvFile()` and drops the `dotenv` dependency.

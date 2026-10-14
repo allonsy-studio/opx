@@ -19,11 +19,10 @@ const CONFIG_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
  * @returns The globs to lint.
  */
 function defaultPaths(ctx: DetectorContext): string[] {
-	const settings = ctx.config.lint?.json as { dialects?: string[] } | boolean | undefined;
-	const dialects = new Set(typeof settings === "object" ? settings.dialects : []);
+	const { dialects = [] } = (ctx.config.lint?.json ?? {}) as { dialects?: string[] };
 	const paths = ["**/*.json"];
-	if (dialects.has("jsonc")) paths.push("**/*.jsonc");
-	if (dialects.has("json5")) paths.push("**/*.json5");
+	if (dialects.includes("jsonc")) paths.push("**/*.jsonc");
+	if (dialects.includes("json5")) paths.push("**/*.json5");
 	return paths;
 }
 

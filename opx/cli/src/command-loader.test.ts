@@ -1,3 +1,5 @@
+import { Command } from "commander";
+
 import { COMMANDS, selectLoaders } from "./command-loader.js";
 
 describe("selectLoaders", () => {
@@ -21,9 +23,11 @@ describe("selectLoaders", () => {
 		expect(selectLoaders(["toString"])).toEqual(Object.values(COMMANDS));
 	});
 
-	it("loads every command module with a register function as its default export", async () => {
-		for (const load of Object.values(COMMANDS)) {
-			expect(typeof (await load()).default).toBe("function");
+	it("registers under the same name each command is keyed by", async () => {
+		for (const [name, load] of Object.entries(COMMANDS)) {
+			const program = new Command();
+			(await load()).default(program);
+			expect(program.commands.map((command) => command.name())).toEqual([name]);
 		}
 	});
 });

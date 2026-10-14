@@ -17,11 +17,11 @@ describe("installPostCommitHook", () => {
 		rmSync(dir, { recursive: true });
 	});
 
-	it("prefers the installed binary and falls back to npx", () => {
+	it("runs the local binary without going through npx", () => {
 		const dir = tmp();
 		const contents = readFileSync(installPostCommitHook(dir).path, "utf8");
-		expect(contents).toContain("node_modules/.bin/opx");
-		expect(contents).toContain("npx --no-install opx");
+		expect(contents).toContain('PATH="node_modules/.bin:$PATH" opx hook post-commit');
+		expect(contents).not.toContain("npx");
 		rmSync(dir, { recursive: true });
 	});
 
