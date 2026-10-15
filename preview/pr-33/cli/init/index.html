@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>opx init · opx</title>
+		<meta name="color-scheme" content="light dark">
+		<meta name="description" content="Interactively set up opx for this repo.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/preview/pr-33/assets/css/main.css">
+		<script src="https://kit.fontawesome.com/42e99b4632.js" crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<a class="studio-banner" href="https://allons-y.studio">
+			<img src="/opx/preview/pr-33/assets/img/oss-banner.svg" alt="Brought to you by Allons-y Studio" width="1600" height="64">
+		</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/preview/pr-33/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/preview/pr-33/pagefind/pagefind-ui.css">
+<script src="/opx/preview/pr-33/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/preview/pr-33/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/preview/pr-33/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/config/">Configuring opx</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/concepts/">How it works</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/preview/pr-33/cli/init/" aria-current="page">opx init</a></li>
+				<li><a href="/opx/preview/pr-33/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/preview/pr-33/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/preview/pr-33/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/preview/pr-33/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/preview/pr-33/cli/build/">opx build</a></li>
+				<li><a href="/opx/preview/pr-33/cli/release/">opx release</a></li>
+				<li><a href="/opx/preview/pr-33/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/preview/pr-33/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/preview/pr-33/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/preview/pr-33/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/preview/pr-33/plugins/lint-ts/">lint-ts</a></li>
+				<li><a href="/opx/preview/pr-33/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/preview/pr-33/guides/compose-eslint/">Custom ESLint settings</a></li>
+				<li><a href="/opx/preview/pr-33/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/preview/pr-33/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/api/">API</a>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">opx init</h1>
+		<p>Scan the committed tree and interactively wire up opx.</p>
+<h2 id="synopsis" tabindex="-1"><a class="header-anchor" href="#synopsis">Synopsis</a></h2>
+<pre class="language-sh"><code class="language-sh">opx init <span class="token punctuation">[</span>--auto<span class="token punctuation">]</span> <span class="token punctuation">[</span>--quiet<span class="token punctuation">]</span> <span class="token punctuation">[</span>--no-cleanup<span class="token punctuation">]</span></code></pre>
+<h2 id="options" tabindex="-1"><a class="header-anchor" href="#options">Options</a></h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--auto</code></td>
+<td><code>false</code></td>
+<td>Only proceed in an interactive terminal. Intended for <code>postinstall</code> scripts.</td>
+</tr>
+<tr>
+<td><code>--quiet</code></td>
+<td><code>false</code></td>
+<td>Suppress informational output when <code>--auto</code> exits early</td>
+</tr>
+<tr>
+<td><code>--no-cleanup</code></td>
+<td>cleanup on</td>
+<td>Skip the offer to <a href="#cleanup">remove what opx replaces</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="what-it-does" tabindex="-1"><a class="header-anchor" href="#what-it-does">What it does</a></h2>
+<ol>
+<li>Creates <code>.opx/config.json</code> if there isn't one.</li>
+<li>For each suggested plugin not yet enabled, asks <strong>Yes</strong>, <strong>No</strong>, or <strong>Later</strong>. &quot;Later&quot; records a deferral in <code>.opx/state.json</code> for the current branch.</li>
+<li>Saves your choices and offers to install any missing packages with the detected package manager (npm, yarn, or pnpm).</li>
+<li>Scaffolds a root <code>eslint.config.js</code> composed from your enabled lint plugins. It never overwrites an existing file.</li>
+<li>Offers to add <code>&quot;lint&quot;: &quot;opx lint&quot;</code> to your <code>package.json</code> scripts.</li>
+<li>Installs the <code>post-commit</code> husky hook and updates <code>.gitignore</code> to ignore <code>.opx/*</code> except <code>.opx/config.json</code>, which stays tracked.</li>
+<li>Offers to <a href="#cleanup">clean up</a> dependencies and config files that your enabled plugins now replace.</li>
+</ol>
+<h2 id="cleanup" tabindex="-1"><a class="header-anchor" href="#cleanup">Cleanup</a></h2>
+<p>Once a lint plugin is enabled <strong>and installed</strong>, some of what the project carried for linting is redundant. <code>opx init</code> lists it in one multi-select, with a reason for each item and everything pre-selected. Deselect anything you want to keep. Nothing is removed without that confirmation, and <code>init --auto</code> (postinstall) never offers it.</p>
+<p>What it can offer:</p>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Offered when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dependencies the plugin bundles (<code>eslint</code>, <code>@eslint/js</code>, <code>@eslint/compat</code>, <code>@stylistic/eslint-plugin</code>, <code>globals</code>, <code>@eslint/json</code>, <code>@eslint/markdown</code>)</td>
+<td>You list them yourself and nothing in the project uses them.</td>
+</tr>
+<tr>
+<td>Legacy ESLint config (<code>.eslintrc*</code>, <code>.eslintignore</code>, <code>eslintConfig</code> and <code>eslintIgnore</code> in <code>package.json</code>)</td>
+<td>Its content says nothing the bundled config does not.</td>
+</tr>
+</tbody>
+</table>
+<p>What it keeps, and tells you about:</p>
+<ul>
+<li><strong>A dependency the project still uses.</strong> An <code>import</code>, <code>require</code>, or quoted reference in any tracked or untracked-but-not-ignored source or config file counts, and so does <code>eslint</code> as a command in a <code>package.json</code> script, a <code>.husky</code> hook, a lint-staged config, or a workflow. Your own <code>eslint.config.js</code> is never edited, and what it imports stays.</li>
+<li><strong>A peer dependency.</strong> If another installed package requires it as a (non-optional) peer, it stays.</li>
+<li><strong><code>eslint</code> under pnpm or Yarn Plug'n'Play.</strong> Those do not expose the plugin's copy to your editor or a plain <code>eslint .</code>.</li>
+<li><strong>Legacy config with rules or settings of its own.</strong> Only <code>eslint:recommended</code>, Node and ES environments, and module syntax count as nothing. Rules, plugins, other globals, other <code>extends</code>, unparseable files, and <code>.eslintignore</code> patterns beyond <code>node_modules</code>, <code>dist</code>, <code>bin</code>, <code>.yarn</code>, and <code>.opx</code> are yours, so the file stays and you are told to move them into <code>eslint.config.js</code>.</li>
+<li><strong>Legacy config an older ESLint still reads.</strong> If you declare <code>eslint</code> below version 9, it stays.</li>
+<li><strong>Files with uncommitted changes, or untracked files.</strong> Only files unchanged since <code>HEAD</code> are deleted, so git can always restore them.</li>
+<li><strong>Everything, if git cannot list the project's files.</strong> Without that list there is no way to check for use.</li>
+</ul>
+<p>Dependencies are removed with your package manager (<code>npm uninstall</code>, <code>yarn remove</code>, <code>pnpm remove</code>) so the lockfile stays in step. Other <code>package.json</code> keys and its indentation are left as they are.</p>
+<h2 id="non-interactive-use" tabindex="-1"><a class="header-anchor" href="#non-interactive-use">Non-interactive use</a></h2>
+<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them. It also prints the cleanup candidates and what it would keep, and changes nothing.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<div class="site-footer-brand">
+				<p class="site-footer-title">opx</p>
+				<p>The optionally opinionated front-end toolkit.</p>
+				<p class="site-footer-meta"><a href="https://github.com/allonsy-studio/opx/blob/main/LICENSE">Licensed under Apache-2.0</a></p>
+			</div>
+			<div>
+				<p class="site-footer-title">Project</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a></li>
+					<li><a href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a></li>
+				</ul>
+			</div>
+			<div>
+				<p class="site-footer-title">Help</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx/issues">Report an issue</a></li>
+					<li><a href="https://github.com/allonsy-studio/opx/blob/main/.github/CONTRIBUTING.md">Contributing guide</a></li>
+				</ul>
+			</div>
+			<div class="site-footer-studio">
+				<a href="https://allons-y.studio">
+					<picture>
+						<source media="(prefers-color-scheme: dark)" srcset="/opx/preview/pr-33/assets/img/oss-footer-dark.svg">
+						<img src="/opx/preview/pr-33/assets/img/oss-footer-light.svg" alt="Brought to you by Allons-y Studio" width="440" height="75">
+					</picture>
+				</a>
+			</div>
+		</footer>
+	</body>
+</html>

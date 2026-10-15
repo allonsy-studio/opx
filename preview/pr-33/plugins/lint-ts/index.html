@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>lint-ts · opx</title>
+		<meta name="color-scheme" content="light dark">
+		<meta name="description" content="TypeScript linting and formatting.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/preview/pr-33/assets/css/main.css">
+		<script src="https://kit.fontawesome.com/42e99b4632.js" crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<a class="studio-banner" href="https://allons-y.studio">
+			<img src="/opx/preview/pr-33/assets/img/oss-banner.svg" alt="Brought to you by Allons-y Studio" width="1600" height="64">
+		</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/preview/pr-33/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/preview/pr-33/pagefind/pagefind-ui.css">
+<script src="/opx/preview/pr-33/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/preview/pr-33/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/preview/pr-33/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/config/">Configuring opx</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/concepts/">How it works</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/preview/pr-33/cli/init/">opx init</a></li>
+				<li><a href="/opx/preview/pr-33/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/preview/pr-33/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/preview/pr-33/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/preview/pr-33/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/preview/pr-33/cli/build/">opx build</a></li>
+				<li><a href="/opx/preview/pr-33/cli/release/">opx release</a></li>
+				<li><a href="/opx/preview/pr-33/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/preview/pr-33/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/preview/pr-33/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/preview/pr-33/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/preview/pr-33/plugins/lint-ts/" aria-current="page">lint-ts</a></li>
+				<li><a href="/opx/preview/pr-33/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/preview/pr-33/guides/compose-eslint/">Custom ESLint settings</a></li>
+				<li><a href="/opx/preview/pr-33/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/preview/pr-33/guides/writing-a-detector/">Writing a detector</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-33/api/">API</a>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">lint-ts</h1>
+		<p><code>@allons-y/opx-lint-ts</code> lints <strong>TypeScript</strong> with ESLint, <a href="https://typescript-eslint.io"><code>typescript-eslint</code></a>, and <a href="https://eslint.style"><code>@stylistic/eslint-plugin</code></a>, pre-configured. The same config owns both lint rules and formatting, so there's no separate Prettier step. JavaScript is covered by <a href="../lint-js/">lint-js</a>.</p>
+<h2 id="install" tabindex="-1"><a class="header-anchor" href="#install">Install</a></h2>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-lint-ts typescript</code></pre>
+<p><code>typescript</code> 5 or newer is a required peer dependency, because <code>typescript-eslint</code> loads it. Then turn the plugin on in <code>.opx/config.json</code>:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token property">"lint"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"ts"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2 id="covers" tabindex="-1"><a class="header-anchor" href="#covers">Covers</a></h2>
+<table>
+<thead>
+<tr>
+<th>Files</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.ts</code>, <code>.tsx</code>, <code>.mts</code>, <code>.cts</code></td>
+<td><code>typescript-eslint</code>, <code>@stylistic/eslint-plugin</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="configure" tabindex="-1"><a class="header-anchor" href="#configure">Configure</a></h2>
+<p>Use your own flat config instead of the bundled one:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token property">"lint"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"ts"</span><span class="token operator">:</span> <span class="token string">"./eslint.config.js"</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<h2 id="export" tabindex="-1"><a class="header-anchor" href="#export">Export</a></h2>
+<p>The flat config is exported as a plain array at <code>@allons-y/opx-lint-ts/eslint.config.js</code>:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> ts <span class="token keyword">from</span> <span class="token string">"@allons-y/opx-lint-ts/eslint.config.js"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">[</span>
+	<span class="token operator">...</span>ts<span class="token punctuation">,</span>
+	<span class="token punctuation">{</span> <span class="token literal-property property">files</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"**/*.ts"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> <span class="token literal-property property">rules</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token string-property property">"no-console"</span><span class="token operator">:</span> <span class="token string">"warn"</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span></code></pre>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<div class="site-footer-brand">
+				<p class="site-footer-title">opx</p>
+				<p>The optionally opinionated front-end toolkit.</p>
+				<p class="site-footer-meta"><a href="https://github.com/allonsy-studio/opx/blob/main/LICENSE">Licensed under Apache-2.0</a></p>
+			</div>
+			<div>
+				<p class="site-footer-title">Project</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a></li>
+					<li><a href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a></li>
+				</ul>
+			</div>
+			<div>
+				<p class="site-footer-title">Help</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx/issues">Report an issue</a></li>
+					<li><a href="https://github.com/allonsy-studio/opx/blob/main/.github/CONTRIBUTING.md">Contributing guide</a></li>
+				</ul>
+			</div>
+			<div class="site-footer-studio">
+				<a href="https://allons-y.studio">
+					<picture>
+						<source media="(prefers-color-scheme: dark)" srcset="/opx/preview/pr-33/assets/img/oss-footer-dark.svg">
+						<img src="/opx/preview/pr-33/assets/img/oss-footer-light.svg" alt="Brought to you by Allons-y Studio" width="440" height="75">
+					</picture>
+				</a>
+			</div>
+		</footer>
+	</body>
+</html>
