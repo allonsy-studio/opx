@@ -206,7 +206,7 @@ yarn typecheck   # type-check every package
 
 <h2>Contributing</h2>
 
-Contributions are welcome and appreciated! Please open an [issue](https://github.com/allonsy-studio/opx/issues/new) (before submitting a pull request) if you find a bug, have a feature request, or have a question. Be sure to follow the [contribution guidelines](.github/CONTRIBUTING.md) and [code of conduct](.github/CODE_OF_CONDUCT.md) but most importantly, be excellent to each other. 💖
+Contributions are welcome & appreciated! Please open an [issue](https://github.com/allonsy-studio/opx/issues/new) (before submitting a pull request) if you find a bug, have a feature request, or have a question. Be sure to follow the [contribution guidelines](.github/CONTRIBUTING.md) and [code of conduct](.github/CODE_OF_CONDUCT.md) but most importantly, be excellent to each other. 💖
 
 <!-- weaver:contribution:END -->
 
@@ -215,7 +215,7 @@ Contributions are welcome and appreciated! Please open an [issue](https://github
 
 <h2>License</h2>
 
-This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details. This means you can use this freely, modify as needed, and redistribute under the license terms, which include an express patent grant.
+This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details. This means you can use this freely, modify as needed; changes to MPL-licensed files should be shared back under the same license.
 
 <!-- weaver:license:END -->
 
