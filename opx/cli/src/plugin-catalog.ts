@@ -19,6 +19,12 @@ export type PluginCatalogEntry = {
 	 * alone (e.g. `release`, `test`).
 	 */
 	readonly extensions: readonly string[];
+	/**
+	 * Packages this plugin bundles, so a project that also lists them itself can
+	 * drop them. `opx init` offers this only once the plugin is installed, and
+	 * keeps any that the project still uses.
+	 */
+	readonly bundles: readonly string[];
 };
 
 /**
@@ -30,21 +36,25 @@ export const PLUGIN_CATALOG = [
 		shortName: "js",
 		packages: ["@allons-y/opx-lint-js"],
 		extensions: [".js", ".mjs", ".cjs", ".jsx"],
+		bundles: ["eslint", "@eslint/js", "@eslint/compat", "@stylistic/eslint-plugin", "globals"],
 	},
 	{
 		shortName: "md",
 		packages: ["@allons-y/opx-lint-md"],
 		extensions: [".md", ".mdx"],
+		bundles: ["eslint", "@eslint/compat", "@eslint/markdown"],
 	},
 	{
 		shortName: "json",
 		packages: ["@allons-y/opx-lint-json"],
 		extensions: [".json", ".jsonc", ".json5"],
+		bundles: ["eslint", "@eslint/compat", "@eslint/json"],
 	},
 	{
 		shortName: "release",
 		packages: ["@allons-y/opx-release"],
 		extensions: [],
+		bundles: [],
 	},
 ] as const satisfies readonly PluginCatalogEntry[];
 

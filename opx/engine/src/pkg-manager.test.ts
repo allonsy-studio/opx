@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { detectPackageManager, installCommand } from "./pkg-manager.js";
+import { detectPackageManager, installCommand, uninstallCommand } from "./pkg-manager.js";
 
 function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-pm-"));
@@ -51,5 +51,17 @@ describe("installCommand", () => {
 		expect(installCommand("yarn", ["a"], { dev: false })).toBe("yarn add a");
 		expect(installCommand("npm", ["a"], { dev: false })).toBe("npm install a");
 		expect(installCommand("yarn", [])).toBe("");
+	});
+});
+
+describe("uninstallCommand", () => {
+	it("builds remove commands per package manager", () => {
+		expect(uninstallCommand("yarn", ["a", "b"])).toBe("yarn remove a b");
+		expect(uninstallCommand("pnpm", ["a"])).toBe("pnpm remove a");
+		expect(uninstallCommand("npm", ["a"])).toBe("npm uninstall a");
+	});
+
+	it("returns an empty string for no packages", () => {
+		expect(uninstallCommand("yarn", [])).toBe("");
 	});
 });

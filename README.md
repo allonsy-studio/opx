@@ -84,7 +84,7 @@ post-commit hook.
 | Command | What it does |
 |---|---|
 | `opx scan` | Report which detectors would activate for the committed tree. |
-| `opx init` | Interactive setup: pick detectors, install packages, wire scripts and hooks. |
+| `opx init` | Interactive setup: pick detectors, install packages, wire scripts and hooks, then offer to remove dependencies and config the enabled plugins replace. |
 | `opx enable <name>` | Enable a detector by short name (`js`, `json`, `md`, …) or package id. |
 | `opx disable <name>` | Disable a detector. |
 | `opx lint [paths…]` | Run every enabled lint detector. |
