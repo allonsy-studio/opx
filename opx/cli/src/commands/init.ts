@@ -20,6 +20,7 @@ import {
 	type OpxConfig,
 } from "@allons-y/opx";
 
+import { applyCleanup, planCleanup, type CleanupPlan } from "../cleanup.js";
 import { buildContext, readHostPackage } from "../context.js";
 import { virtualDetectors } from "../built-in.js";
 import { scaffoldEslintConfig } from "../eslint-scaffold.js";
@@ -29,6 +30,8 @@ import { detectMode } from "../tty.js";
 export type InitOptions = {
 	auto: boolean;
 	quiet: boolean;
+	/** Offer to remove dependencies and config the enabled plugins replace. */
+	cleanup: boolean;
 };
 
 export default function register(program: Command): void {
@@ -37,6 +40,7 @@ export default function register(program: Command): void {
 		.description(`Scan the repo and interactively wire up ${CLI_NAME} tooling`)
 		.option("--auto", "auto-mode (used by postinstall); only proceeds in TTY", false)
 		.option("--quiet", "suppress informational output when --auto exits early", false)
+		.option("--no-cleanup", "skip the offer to remove dependencies and config that opx replaces")
 		.action(async (opts: InitOptions) => {
 			const cwd = process.cwd();
 			const mode = detectMode(false);
@@ -49,9 +53,9 @@ export default function register(program: Command): void {
 			}
 
 			if (mode === "interactive") {
-				await runInteractive(cwd);
+				await runInteractive(cwd, runInstall, { cleanup: opts.cleanup && !opts.auto });
 			} else {
-				runReport(cwd);
+				runReport(cwd, { cleanup: opts.cleanup });
 			}
 		});
 }
@@ -74,8 +78,9 @@ const runInstall: InstallRunner = async (cmd, cwd) => {
  *
  * @param cwd - The repository root.
  * @param install - Runs the package manager; defaults to spawning it.
+ * @param options - Set `cleanup` to `false` to skip the cleanup offer.
  */
-export async function runInteractive(cwd: string, install: InstallRunner = runInstall): Promise<void> {
+export async function runInteractive(cwd: string, install: InstallRunner = runInstall, options: { cleanup?: boolean } = {}): Promise<void> {
 	p.intro(`${CLI_NAME} toolkit setup`);
 
 	if (!existsSync(configPath(cwd))) {
@@ -228,15 +233,64 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		p.log.success(`Updated .gitignore to ignore local .${CLI_NAME}/ files (config.json stays tracked)`);
 	}
 
+	if (options.cleanup !== false) {
+		await offerCleanup(cwd, nextConfig, install);
+	}
+
 	p.outro("Setup complete.");
+}
+
+/** Print what cleanup would keep, so it is clear nothing project-specific is at risk. */
+function logKept(plan: CleanupPlan): void {
+	if (plan.kept.length === 0) return;
+	p.log.info(`Keeping (still yours):\n${plan.kept.map((k) => `  - ${k.target}: ${k.reason}`).join("\n")}`);
+}
+
+/**
+ * Offer to remove dependencies and config that the enabled plugins replace.
+ *
+ * Everything offered starts selected; anything the project still uses or has
+ * its own settings in is left out and listed as kept.
+ *
+ * @param cwd - The repository root.
+ * @param config - The saved config, which decides which plugins count.
+ * @param run - Runs the package manager's remove command.
+ */
+async function offerCleanup(cwd: string, config: OpxConfig, run: InstallRunner): Promise<void> {
+	const plan = planCleanup(cwd, config, readHostPackage(cwd));
+	if (plan.removals.length === 0) {
+		logKept(plan);
+		return;
+	}
+
+	const chosen = await p.multiselect({
+		message: "Remove what opx now replaces? (space to toggle)",
+		options: plan.removals.map((r) => ({ value: r.target, label: r.target, hint: r.reason })),
+		initialValues: plan.removals.map((r) => r.target),
+		required: false,
+	});
+	if (p.isCancel(chosen) || !Array.isArray(chosen) || chosen.length === 0) {
+		p.log.info("Skipped cleanup.");
+		logKept(plan);
+		return;
+	}
+
+	await applyCleanup(
+		cwd,
+		plan.removals.filter((r) => chosen.includes(r.target)),
+		run,
+	);
+	p.log.success(`Removed ${chosen.length} item(s). Recover files with git if you change your mind.`);
+	logKept(plan);
 }
 
 /**
  * Non-interactive `init`: print what would be suggested instead of prompting.
  *
  * @param cwd - The repository root.
+ * @param options - Set `cleanup` to `false` to leave out the cleanup candidates.
  */
-export function runReport(cwd: string): void {
+export function runReport(cwd: string, options: { cleanup?: boolean } = {}): void {
 	if (!existsSync(configPath(cwd))) {
 		writeConfig(cwd, defaultConfig());
 		console.log(`${CLI_NAME}: wrote starter .${CLI_NAME}/config.json.`);
@@ -253,10 +307,21 @@ export function runReport(cwd: string): void {
 	});
 	if (remaining.length === 0) {
 		console.log(`${CLI_NAME}: nothing new to suggest.`);
-		return;
+	} else {
+		console.log(`${CLI_NAME}: detected file types that match these built-in detectors:`);
+		for (const s of remaining) {
+			console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
+		}
 	}
-	console.log(`${CLI_NAME}: detected file types that match these built-in detectors:`);
-	for (const s of remaining) {
-		console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
+
+	if (options.cleanup === false) return;
+	const plan = planCleanup(cwd, ctx.config, hostPkg);
+	if (plan.removals.length > 0) {
+		console.log(`${CLI_NAME}: these are replaced by your enabled plugins (run \`${CLI_NAME} init\` in a terminal to remove them):`);
+		for (const r of plan.removals) console.log(`  - ${r.target}: ${r.reason}`);
+	}
+	if (plan.removals.length > 0 && plan.kept.length > 0) {
+		console.log(`${CLI_NAME}: keeping these, which the project still uses or owns:`);
+		for (const k of plan.kept) console.log(`  - ${k.target}: ${k.reason}`);
 	}
 }

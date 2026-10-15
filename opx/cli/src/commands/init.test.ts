@@ -7,6 +7,7 @@ import { join } from "node:path";
 const CANCEL = Symbol("cancel");
 const select = jest.fn<(o: { message: string }) => Promise<unknown>>();
 const confirm = jest.fn<(o: { message: string }) => Promise<unknown>>();
+const multiselect = jest.fn<(o: { message: string; initialValues: string[] }) => Promise<unknown>>();
 const cancel = jest.fn();
 
 jest.unstable_mockModule("@clack/prompts", () => ({
@@ -15,6 +16,7 @@ jest.unstable_mockModule("@clack/prompts", () => ({
 	cancel,
 	select,
 	confirm,
+	multiselect,
 	isCancel: (v: unknown) => v === CANCEL,
 	log: { info: jest.fn(), success: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
@@ -170,6 +172,69 @@ describe("init", () => {
 		});
 	});
 
+	describe("cleanup", () => {
+		const legacy = {
+			"a.js": "x",
+			".eslintrc.json": JSON.stringify({ root: true }),
+			".eslintrc.yml": "rules:\n  semi: error\n",
+			"eslint.config.js": 'import globals from "globals";\n',
+			"package.json": JSON.stringify({
+				name: "host",
+				devDependencies: { "@allons-y/opx-lint-js": "^1.0.0", eslint: "^9.0.0", globals: "^15.0.0", "@eslint/js": "^9.0.0" },
+			}),
+		};
+
+		it("removes what opx replaces, keeps what the project uses, and never touches its own config", async () => {
+			const dir = make(legacy);
+			answers({ js: "yes" });
+			multiselect.mockImplementation(async ({ initialValues }) => initialValues);
+			await runInteractive(dir, install);
+
+			const offered = multiselect.mock.calls[0]?.[0].initialValues ?? [];
+			expect(offered.sort()).toEqual([".eslintrc.json", "@eslint/js", "eslint"]);
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(false);
+			expect(read(dir, ".eslintrc.yml")).toContain("semi: error");
+			expect(read(dir, "eslint.config.js")).toContain("globals");
+			expect(install).toHaveBeenCalledWith("npm uninstall eslint @eslint/js", dir);
+		});
+
+		it("removes only what was left selected", async () => {
+			const dir = make(legacy);
+			answers({ js: "yes" });
+			multiselect.mockResolvedValue([".eslintrc.json"]);
+			await runInteractive(dir, install);
+
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(false);
+			expect(install).not.toHaveBeenCalledWith(expect.stringContaining("uninstall"), dir);
+		});
+
+		it("removes nothing when the prompt is cancelled or emptied", async () => {
+			answers({ js: "yes" });
+			for (const reply of [CANCEL, []]) {
+				const dir = make(legacy);
+				multiselect.mockResolvedValue(reply);
+				await runInteractive(dir, install);
+				expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+			}
+			expect(install).not.toHaveBeenCalledWith(expect.stringContaining("uninstall"), expect.anything());
+		});
+
+		it("skips the offer with cleanup: false", async () => {
+			const dir = make(legacy);
+			answers({ js: "yes" });
+			await runInteractive(dir, install, { cleanup: false });
+			expect(multiselect).not.toHaveBeenCalled();
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+		});
+
+		it("offers nothing when the plugin was declined", async () => {
+			const dir = make(legacy);
+			answers({}, "no");
+			await runInteractive(dir, install);
+			expect(multiselect).not.toHaveBeenCalled();
+		});
+	});
+
 	describe("runReport", () => {
 		it("writes a starter config and lists unconfigured detectors", () => {
 			const dir = make({ "a.js": "x", "package.json": PKG });
@@ -178,6 +243,28 @@ describe("init", () => {
 			expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
 			expect(printed()).toContain("wrote starter .opx/config.json");
 			expect(printed()).toContain("opx enable js");
+		});
+
+		it("lists cleanup candidates without removing them, unless cleanup is off", () => {
+			const dir = make({
+				"a.js": "x",
+				".eslintrc.json": JSON.stringify({ root: true }),
+				"package.json": JSON.stringify({ name: "host", devDependencies: { "@allons-y/opx-lint-js": "^1.0.0", eslint: "^9.0.0" } }),
+			});
+			runReport(dir);
+			writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ version: 1, lint: { js: true } }));
+			log.mockClear();
+
+			runReport(dir);
+			expect(printed()).toContain("replaced by your enabled plugins");
+			expect(printed()).toContain("- eslint: bundled by @allons-y/opx-lint-js");
+			expect(printed()).toContain("- .eslintrc.json");
+			expect(printed()).not.toContain("keeping these");
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+
+			log.mockClear();
+			runReport(dir, { cleanup: false });
+			expect(printed()).not.toContain("replaced by");
 		});
 
 		it("says nothing is new when every detector is configured", () => {

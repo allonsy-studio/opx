@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Command } from "commander";
@@ -71,6 +71,21 @@ describe("command registration", () => {
 		await run(registerInit, "init");
 		expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
 		expect(printed()).toContain("wrote starter");
+	});
+
+	it("init lists cleanup candidates, and --no-cleanup leaves them out", async () => {
+		mkdirSync(join(dir, ".opx"));
+		writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ version: 1, lint: { js: true } }));
+		writeFileSync(join(dir, "package.json"), JSON.stringify({ devDependencies: { "@allons-y/opx-lint-js": "^1.0.0", eslint: "^9.0.0" } }));
+		execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });
+		execFileSync("git", ["commit", "-m", "deps"], { cwd: dir, stdio: "ignore" });
+
+		await run(registerInit, "init");
+		expect(printed()).toContain("- eslint: bundled by @allons-y/opx-lint-js");
+
+		log.mockClear();
+		await run(registerInit, "init", "--no-cleanup");
+		expect(printed()).not.toContain("bundled by");
 	});
 
 	it("init --auto only hints outside a TTY, and stays quiet with --quiet", async () => {

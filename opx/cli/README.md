@@ -23,7 +23,7 @@ opx <command> [options]
 | Command | What it does |
 |---|---|
 | `opx scan` | Scan the committed tree and report which detectors would activate. |
-| `opx init` | Interactive setup: pick detectors, install packages, wire a `lint` script and post-commit hook. |
+| `opx init` | Interactive setup: pick detectors, install packages, wire a `lint` script and post-commit hook, and offer to remove dependencies and config the enabled plugins replace (`--no-cleanup` to skip). |
 | `opx enable <name>` | Enable a detector by short name (`js`, `md`, `json`, ...) or fully-qualified package id. Use `--task lint\|build` to target a concern. |
 | `opx disable <name>` | Disable a detector (also accepts `--task`). |
 | `opx lint [paths...]` | Run every enabled lint detector. `--fix` auto-fixes where supported. |
