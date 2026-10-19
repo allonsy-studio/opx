@@ -115,7 +115,7 @@
 <tr>
 <td><code>--no-cleanup</code></td>
 <td>cleanup on</td>
-<td>Skip the offer to <a href="#cleanup">remove what opx replaces</a></td>
+<td>Skip the <a href="#cleanup">cleanup suggestions</a> from your plugins</td>
 </tr>
 </tbody>
 </table>
@@ -127,42 +127,48 @@
 <li>Scaffolds a root <code>eslint.config.js</code> composed from your enabled lint plugins. It never overwrites an existing file.</li>
 <li>Offers to add <code>&quot;lint&quot;: &quot;opx lint&quot;</code> to your <code>package.json</code> scripts.</li>
 <li>Installs the <code>post-commit</code> husky hook and updates <code>.gitignore</code> to ignore <code>.opx/*</code> except <code>.opx/config.json</code>, which stays tracked.</li>
-<li>Offers to <a href="#cleanup">clean up</a> dependencies and config files that your enabled plugins now replace.</li>
+<li>Shows the <a href="#cleanup">cleanup suggestions</a> your enabled plugins make, and offers to delete empty files they replace.</li>
 </ol>
 <h2 id="cleanup" tabindex="-1"><a class="header-anchor" href="#cleanup">Cleanup</a></h2>
-<p>Once a lint plugin is enabled <strong>and installed</strong>, some of what the project carried for linting is redundant. <code>opx init</code> lists it in one multi-select, with a reason for each item and everything pre-selected. Deselect anything you want to keep. Nothing is removed without that confirmation, and <code>init --auto</code> (postinstall) never offers it.</p>
-<p>What it can offer:</p>
+<p>Each enabled plugin knows what it makes unnecessary, so each one suggests its own cleanup. <code>opx init</code> prints those suggestions and does very little itself. It deletes a file only when <strong>all</strong> of these hold:</p>
+<ol>
+<li>The plugin suggested it, and it is a regular file inside the repository (not a symlink or a folder).</li>
+<li>It is <strong>empty</strong>: nothing but whitespace, comments, or <code>{}</code>.</li>
+<li>git can restore it: it is tracked and unchanged since <code>HEAD</code>.</li>
+</ol>
+<p>It asks once before deleting. Everything else is advice for you to act on. opx never edits <code>package.json</code>, never edits your <code>eslint.config.js</code>, and never runs your package manager to remove anything.</p>
+<p>For example, with <code>lint-js</code>, <code>lint-json</code>, <code>lint-md</code>, or <code>lint-ts</code> enabled:</p>
 <table>
 <thead>
 <tr>
-<th>Item</th>
-<th>Offered when</th>
+<th>What</th>
+<th>What opx does</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Dependencies the plugin bundles (<code>eslint</code>, <code>@eslint/js</code>, <code>@eslint/compat</code>, <code>@stylistic/eslint-plugin</code>, <code>globals</code>, <code>@eslint/json</code>, <code>@eslint/markdown</code>)</td>
-<td>You list them yourself and nothing in the project uses them.</td>
+<td>An empty <code>.eslintrc*</code> or <code>.eslintignore</code> that git can restore</td>
+<td>Offers to delete it.</td>
 </tr>
 <tr>
-<td>Legacy ESLint config (<code>.eslintrc*</code>, <code>.eslintignore</code>, <code>eslintConfig</code> and <code>eslintIgnore</code> in <code>package.json</code>)</td>
-<td>Its content says nothing the bundled config does not.</td>
+<td>A legacy ESLint config with content (<code>.eslintrc*</code>, <code>.eslintignore</code>, <code>eslintConfig</code> or <code>eslintIgnore</code> in <code>package.json</code>)</td>
+<td>Tells you opx does not apply it, and how to move it into <code>eslint.config.js</code> (<code>npx @eslint/migrate-config &lt;file&gt;</code> can convert it). You delete it.</td>
+</tr>
+<tr>
+<td>A package the plugin bundles (<code>eslint</code>, <code>globals</code>, …) that you list in <code>devDependencies</code></td>
+<td>Prints the <code>remove</code> command for your package manager, if nothing in the project appears to use it.</td>
 </tr>
 </tbody>
 </table>
-<p>What it keeps, and tells you about:</p>
+<p>A package is held back, and shown under &quot;Keeping&quot;, when:</p>
 <ul>
-<li><strong>A dependency the project still uses.</strong> An <code>import</code>, <code>require</code>, or quoted reference in any tracked or untracked-but-not-ignored source or config file counts, and so does <code>eslint</code> as a command in a <code>package.json</code> script, a <code>.husky</code> hook, a lint-staged config, or a workflow. Your own <code>eslint.config.js</code> is never edited, and what it imports stays.</li>
-<li><strong>A peer dependency.</strong> If another installed package requires it as a (non-optional) peer, it stays.</li>
-<li><strong><code>eslint</code> under pnpm or Yarn Plug'n'Play.</strong> Those do not expose the plugin's copy to your editor or a plain <code>eslint .</code>.</li>
-<li><strong>Legacy config with rules or settings of its own.</strong> Only <code>eslint:recommended</code>, Node and ES environments, and module syntax count as nothing. Rules, plugins, other globals, other <code>extends</code>, unparseable files, and <code>.eslintignore</code> patterns beyond <code>node_modules</code>, <code>dist</code>, <code>bin</code>, <code>.yarn</code>, and <code>.opx</code> are yours, so the file stays and you are told to move them into <code>eslint.config.js</code>.</li>
-<li><strong>Legacy config an older ESLint still reads.</strong> If you declare <code>eslint</code> below version 9, it stays.</li>
-<li><strong>Files with uncommitted changes, or untracked files.</strong> Only files unchanged since <code>HEAD</code> are deleted, so git can always restore them.</li>
-<li><strong>Everything, if git cannot list the project's files.</strong> Without that list there is no way to check for use.</li>
+<li>the project uses it: an <code>import</code>, <code>require</code>, or quoted reference in a source or config file, or a command in a <code>package.json</code> script, <code>.husky</code> hook, lint-staged config, or workflow;</li>
+<li>it is also listed under <code>dependencies</code>, <code>peerDependencies</code>, or <code>optionalDependencies</code>, which removing it would change; or</li>
+<li>opx cannot list the project's files to check.</li>
 </ul>
-<p>Dependencies are removed with your package manager (<code>npm uninstall</code>, <code>yarn remove</code>, <code>pnpm remove</code>) so the lockfile stays in step. Other <code>package.json</code> keys and its indentation are left as they are.</p>
+<p>A plugin is only consulted when it is enabled and installed. Because the suggestions ship with the plugin, they match the version you have. See <a href="../../guides/writing-a-detector/">Writing a detector</a> to add them to your own plugin.</p>
 <h2 id="non-interactive-use" tabindex="-1"><a class="header-anchor" href="#non-interactive-use">Non-interactive use</a></h2>
-<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them. It also prints the cleanup candidates and what it would keep, and changes nothing.</p>
+<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them. It also prints the cleanup suggestions, and changes nothing. <code>init --auto</code> (postinstall) never shows them.</p>
 
 	</main>
 </div>

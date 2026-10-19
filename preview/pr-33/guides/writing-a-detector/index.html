@@ -148,12 +148,46 @@
 <td>A summary and the tools it bundles</td>
 </tr>
 <tr>
+<td><code>cleanup(ctx)</code></td>
+<td>Optional. What the project can drop now that your plugin is enabled. See <a href="#suggesting-cleanup">Suggesting cleanup</a>.</td>
+</tr>
+<tr>
 <td><code>run(ctx, args)</code></td>
 <td>Does the work and returns an exit code. <code>args</code> are the paths the user passed.</td>
 </tr>
 </tbody>
 </table>
 <p>Write report output through <code>ctx.write()</code> rather than <code>process.stdout</code>, so opx can group output from concurrent detectors. Read <code>ctx.fix</code> to know whether <code>--fix</code> was passed, and <code>ctx.config</code> for the user's settings.</p>
+<h2 id="suggesting-cleanup" tabindex="-1"><a class="header-anchor" href="#suggesting-cleanup">Suggesting cleanup</a></h2>
+<p>A plugin often replaces tools a project already has. Implement <code>cleanup(ctx)</code> to say so:</p>
+<pre class="language-ts"><code class="language-ts"><span class="token function-variable function">cleanup</span><span class="token operator">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">[</span>
+	<span class="token punctuation">{</span> kind<span class="token operator">:</span> <span class="token string">"dependency"</span><span class="token punctuation">,</span> target<span class="token operator">:</span> <span class="token string">"foo-cli"</span><span class="token punctuation">,</span> reason<span class="token operator">:</span> <span class="token string">"bundled by @acme/opx-plugin-foo"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+	<span class="token punctuation">{</span> kind<span class="token operator">:</span> <span class="token string">"file"</span><span class="token punctuation">,</span> target<span class="token operator">:</span> <span class="token string">".foorc.json"</span><span class="token punctuation">,</span> reason<span class="token operator">:</span> <span class="token string">"opx lint reads foo.config.js, so this is not applied"</span><span class="token punctuation">,</span> hint<span class="token operator">:</span> <span class="token string">"Move any rules into foo.config.js, then delete it."</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+	<span class="token punctuation">{</span> kind<span class="token operator">:</span> <span class="token string">"setting"</span><span class="token punctuation">,</span> target<span class="token operator">:</span> <span class="token string">"fooConfig"</span><span class="token punctuation">,</span> reason<span class="token operator">:</span> <span class="token string">"not applied"</span><span class="token punctuation">,</span> hint<span class="token operator">:</span> <span class="token string">"Move it into foo.config.js, then remove the key from package.json."</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">]</span><span class="token punctuation">,</span></code></pre>
+<table>
+<thead>
+<tr>
+<th><code>kind</code></th>
+<th><code>target</code> is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dependency</code></td>
+<td>A package name</td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td>A path from the repository root</td>
+</tr>
+<tr>
+<td><code>setting</code></td>
+<td>A top-level <code>package.json</code> key</td>
+</tr>
+</tbody>
+</table>
+<p>You suggest; opx decides. It checks the thing exists, and it only deletes a <code>file</code> that is empty and unchanged in git. Dependencies and settings are printed for the person to act on, so you never need to guess whether something is safe to remove. Do not suggest anything that holds content you cannot see is redundant. Use <code>hint</code> to say how to move it instead.</p>
 <h2 id="naming-%26-packaging" tabindex="-1"><a class="header-anchor" href="#naming-%26-packaging">Naming &amp; packaging</a></h2>
 <p>opx loads a plugin only if it is in the project's dependencies and its name matches one of:</p>
 <ul>
