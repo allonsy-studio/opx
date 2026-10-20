@@ -11,9 +11,9 @@ const fakeDetector = { id: "@allons-y/opx-lint-js", shortName: "good", displayNa
 
 // Mock real (resolvable) package names so the dynamic import() inside loadPlugins
 // returns controlled module shapes for each branch.
-jest.unstable_mockModule("@allons-y/opx-lint-js", () => ({ __esModule: true, default: fakeDetector }));
-jest.unstable_mockModule("@allons-y/opx-lint-md", () => ({ __esModule: true, default: [{ shortName: "a" }, { shortName: "b" }] }));
-jest.unstable_mockModule("@allons-y/opx-lint-json", () => ({ __esModule: true, notDefault: 1 }));
+jest.unstable_mockModule("@allons-y/opx-lint-js", () => ({ __esModule: true, default: fakeDetector }), { virtual: true });
+jest.unstable_mockModule("@allons-y/opx-lint-md", () => ({ __esModule: true, default: [{ shortName: "a" }, { shortName: "b" }] }), { virtual: true });
+jest.unstable_mockModule("@allons-y/opx-lint-json", () => ({ __esModule: true, notDefault: 1 }), { virtual: true });
 
 const { isValidPluginName, loadPlugins, normalizeDetectorId, resolvePluginPackageName } = await import("./registry.js");
 

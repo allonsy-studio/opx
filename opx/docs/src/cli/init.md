@@ -28,11 +28,26 @@ opx init [--auto] [--quiet] [--cleanup]
 
 1. Creates `.opx/config.json` if there isn't one.
 2. For each suggested plugin not yet enabled, asks **Yes**, **No**, or **Later**. "Later" records a deferral in `.opx/state.json` for the current branch.
-3. Saves your choices and offers to install any missing packages with the detected package manager (npm, yarn, or pnpm).
+3. Saves your choices and offers to install any missing packages with the project's [package manager](#package-manager) (npm, Yarn, pnpm, or Bun).
 4. Scaffolds a root `eslint.config.js` composed from your enabled lint plugins. It never overwrites an existing file.
 5. Offers to add `"lint": "opx lint"` to your `package.json` scripts.
 6. Installs the `post-commit` husky hook and updates `.gitignore` to ignore `.opx/*` except `.opx/config.json`, which stays tracked.
 7. With `--cleanup`, shows the [cleanup suggestions](#cleanup) your enabled plugins make, and offers to delete empty files they replace.
+
+## Package manager
+
+opx works out which package manager the project uses, in this order:
+
+1. The `packageManager` field in `package.json`, such as `pnpm@9.0.0`.
+2. A lockfile: `yarn.lock`, `pnpm-lock.yaml`, `bun.lock` or `bun.lockb`, `package-lock.json` or `npm-shrinkwrap.json`.
+3. The manager that launched opx (`pnpm dlx`, `bunx`, and so on). It ranks last because `npx` reports `npm` in any project.
+4. `npm`.
+
+opx looks in the project folder and then up to the repository root, so a workspace member finds the root's lockfile. It never looks above the repository root.
+
+At a workspace root it also adds the flag some versions require: `-w` for pnpm (pnpm 9 and earlier refuse without it; pnpm 10 accepts it) and `-W` for Yarn Classic.
+
+If the signals disagree (the `packageManager` field names one manager and a lockfile another, or several managers have lockfiles), opx doesn't guess. It saves your choices, then prints the install command for you to run instead of running it, and says what conflicts.
 
 ## Cleanup
 

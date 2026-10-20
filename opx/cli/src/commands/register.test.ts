@@ -1,14 +1,35 @@
 import { jest } from "@jest/globals";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { Command } from "commander";
+import { useScratch } from "shared/testing.js";
 
 import registerDisable from "./disable.js";
 import registerEnable from "./enable.js";
 import registerInit from "./init.js";
 import registerScan from "./scan.js";
+
+/**
+ * Stands in for the built @allons-y/opx-lint-js, so these tests need no build.
+ * The real plugin's suggestions are tested in its own package and by `yarn smoke`.
+ */
+const fakePlugin = {
+	id: "@allons-y/opx-lint-js",
+	shortName: "js",
+	concern: "lint",
+	displayName: "fake",
+	detect: () => true,
+	describe: () => ({ summary: "", bundledDeps: ["eslint"] }),
+	cleanup: () => [
+		{ kind: "file", target: ".eslintrc.json", reason: "not applied" },
+		{ kind: "file", target: ".eslintignore", reason: "not applied", hint: "move the patterns" },
+		{ kind: "dependency", target: "eslint", reason: "bundled by @allons-y/opx-lint-js" },
+	],
+};
+jest.unstable_mockModule("@allons-y/opx-lint-js", () => ({ default: fakePlugin }), { virtual: true });
+
+const scratch = useScratch();
 
 /** Run a registered command the way the CLI binary does. */
 async function run(register: (p: Command) => void, ...argv: string[]): Promise<void> {
@@ -26,14 +47,7 @@ describe("command registration", () => {
 	const printed = (): string => log.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
 
 	beforeEach(() => {
-		dir = mkdtempSync(join(tmpdir(), "opx-reg-"));
-		const opts = { cwd: dir, stdio: "ignore" as const };
-		execFileSync("git", ["init", "-b", "main"], opts);
-		execFileSync("git", ["config", "user.email", "t@t.io"], opts);
-		execFileSync("git", ["config", "user.name", "t"], opts);
-		writeFileSync(join(dir, "a.md"), "# x\n");
-		execFileSync("git", ["add", "."], opts);
-		execFileSync("git", ["commit", "-m", "init"], opts);
+		dir = scratch.repo({ "a.md": "# x\n" });
 		process.chdir(dir);
 		process.env.OPX_NONINTERACTIVE = "1";
 		log = jest.spyOn(console, "log").mockImplementation(() => {});
@@ -45,7 +59,6 @@ describe("command registration", () => {
 		if (saved.ci === undefined) delete process.env.CI; else process.env.CI = saved.ci;
 		if (saved.ni === undefined) delete process.env.OPX_NONINTERACTIVE; else process.env.OPX_NONINTERACTIVE = saved.ni;
 		process.exitCode = saved.code;
-		rmSync(dir, { recursive: true, force: true });
 	});
 
 	it("enable and disable toggle a task and set the exit code", async () => {
@@ -73,21 +86,19 @@ describe("command registration", () => {
 		expect(printed()).toContain("wrote starter");
 	});
 
-	it("init shows what the lint-js plugin suggests dropping only with --cleanup", async () => {
+	it("init shows what an enabled plugin suggests dropping only with --cleanup", async () => {
 		mkdirSync(join(dir, ".opx"));
 		writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ version: 1, lint: { js: true } }));
 		writeFileSync(join(dir, "package.json"), JSON.stringify({ devDependencies: { "@allons-y/opx-lint-js": "^1.0.0", eslint: "^9.0.0" } }));
 		writeFileSync(join(dir, ".eslintrc.json"), "{}\n");
 		writeFileSync(join(dir, ".eslintignore"), "coverage\n");
-		writeFileSync(join(dir, ".eslintrc.yml"), "rules:\n  semi: error\n");
 		execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });
 		execFileSync("git", ["commit", "-m", "deps"], { cwd: dir, stdio: "ignore" });
 
 		await run(registerInit, "init", "--cleanup");
 		expect(printed()).toContain("Empty files that git can restore:\n  - .eslintrc.json");
-		expect(printed()).toContain("- .eslintignore: opx lint uses its own config, not this");
-		expect(printed()).toContain("Run: npx @eslint/migrate-config .eslintrc.yml");
-		expect(printed()).toMatch(/- eslint: bundled by @allons-y\/opx-lint-js at \d+\.\d+\.\d+; nothing else appears to use it/);
+		expect(printed()).toContain("- .eslintignore: not applied\n      move the patterns");
+		expect(printed()).toContain("- eslint: bundled by @allons-y/opx-lint-js; nothing else appears to use it");
 		expect(printed()).toContain("Drop the unused packages with: npm uninstall eslint");
 		expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 

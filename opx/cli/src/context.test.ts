@@ -1,43 +1,30 @@
-import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { jest } from "@jest/globals";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
+
+import { useScratch } from "shared/testing.js";
 
 import { buildContext, readHostPackage } from "./context.js";
 
-function gitRepo(): string {
-	const dir = mkdtempSync(join(tmpdir(), "opx-ctx-"));
-	const opts = { cwd: dir, stdio: "ignore" as const };
-	execFileSync("git", ["init", "-b", "main"], opts);
-	execFileSync("git", ["config", "user.email", "t@t.io"], opts);
-	execFileSync("git", ["config", "user.name", "t"], opts);
-	return dir;
-}
+const scratch = useScratch();
 
 describe("readHostPackage", () => {
 	it("returns {} when no package.json exists", () => {
-		const dir = mkdtempSync(join(tmpdir(), "opx-ctx-"));
-		expect(readHostPackage(dir)).toEqual({});
-		rmSync(dir, { recursive: true });
+		expect(readHostPackage(scratch.dir("opx-ctx-"))).toEqual({});
 	});
 
 	it("parses an existing package.json", () => {
-		const dir = mkdtempSync(join(tmpdir(), "opx-ctx-"));
+		const dir = scratch.dir("opx-ctx-");
 		writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "demo", dependencies: { a: "1" } }), "utf8");
 		const pkg = readHostPackage(dir);
 		expect(pkg.name).toBe("demo");
 		expect(pkg.dependencies?.a).toBe("1");
-		rmSync(dir, { recursive: true });
 	});
 });
 
 describe("buildContext", () => {
 	it("assembles a DetectorContext from a repo", () => {
-		const dir = gitRepo();
-		writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "demo" }), "utf8");
-		writeFileSync(join(dir, "a.ts"), "x", "utf8");
-		execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });
-		execFileSync("git", ["commit", "-m", "init"], { cwd: dir, stdio: "ignore" });
+		const dir = scratch.repo({ "package.json": JSON.stringify({ name: "demo" }), "a.ts": "x" });
 
 		const ctx = buildContext({ cwd: dir });
 		expect(ctx.cwd).toBe(dir);
@@ -51,35 +38,29 @@ describe("buildContext", () => {
 		expect(ctx.fix).toBe(false);
 		expect(ctx.logger).toBeDefined();
 		expect(ctx.pkgManager).toBeDefined();
-		rmSync(dir, { recursive: true });
 	});
 
 	it("honors debug, dryRun, and fix options", () => {
-		const dir = gitRepo();
-		const ctx = buildContext({ cwd: dir, debug: true, dryRun: true, fix: true });
+		const ctx = buildContext({ cwd: scratch.repo(), debug: true, dryRun: true, fix: true });
 		expect(ctx.dryRun).toBe(true);
 		expect(ctx.fix).toBe(true);
-		rmSync(dir, { recursive: true });
 	});
 
 	it("write forwards to process.stdout without throwing", () => {
-		const dir = gitRepo();
-		const ctx = buildContext({ cwd: dir });
+		const ctx = buildContext({ cwd: scratch.repo() });
 		expect(() => ctx.write("")).not.toThrow();
-		rmSync(dir, { recursive: true });
 	});
 
 	it("reads fileTypes and branch from git only when asked, then reuses them", () => {
-		const dir = gitRepo();
-		writeFileSync(join(dir, "a.ts"), "x", "utf8");
-		execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });
-		execFileSync("git", ["commit", "-m", "init"], { cwd: dir, stdio: "ignore" });
-
-		const ctx = buildContext({ cwd: dir });
+		const ctx = buildContext({ cwd: scratch.repo({ "a.ts": "x" }) });
 		expect(typeof Object.getOwnPropertyDescriptor(ctx, "fileTypes")?.get).toBe("function");
 		expect(typeof Object.getOwnPropertyDescriptor(ctx, "branch")?.get).toBe("function");
 		expect(ctx.fileTypes).toBe(ctx.fileTypes);
 		expect(ctx.branch).toBe("main");
-		rmSync(dir, { recursive: true });
+	});
+
+	it("uses the logger it is given", () => {
+		const logger = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() };
+		expect(buildContext({ cwd: scratch.repo(), logger }).logger).toBe(logger);
 	});
 });

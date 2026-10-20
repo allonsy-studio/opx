@@ -11,7 +11,7 @@ const fakeDetector = {
 	describe: () => ({ summary: "", bundledDeps: [] }),
 };
 
-jest.unstable_mockModule("@allons-y/opx-lint-js", () => ({ __esModule: true, default: fakeDetector }));
+jest.unstable_mockModule("@allons-y/opx-lint-js", () => ({ __esModule: true, default: fakeDetector }), { virtual: true });
 
 const { suggest, virtualDetectors, load, PACKAGE_HINTS, SUPPORTED_FILE_EXTS, UNDETECTABLE_PLUGINS } =
 	await import("./built-in.js");

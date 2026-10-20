@@ -85,3 +85,49 @@ jobs:
             - name: Write to job summary
               if: steps.coverage.outputs.found == 'true'
               run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+    # The same build and tests on the other platforms and TypeScript versions the
+    # packages claim to support. `test` above stays the one that enforces coverage
+    # and posts the report, since coverage differs a little between platforms.
+    compat:
+        name: test (${{ matrix.name }})
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    # lint-ts and release allow TypeScript ^5 || ^6; the repo itself uses 6.
+                    - name: TypeScript 5
+                      os: ubuntu-latest
+                      typescript: "5"
+                    - name: macOS
+                      os: macos-latest
+                    - name: Windows
+                      os: windows-latest
+        runs-on: ${{ matrix.os }}
+        steps:
+            - name: Check out code
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  persist-credentials: false
+
+            - name: Setup Node
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+
+            - name: Install dependencies
+              run: yarn install --immutable
+
+            # Changes the lockfile in this job's checkout only; nothing is committed.
+            - name: Use TypeScript ${{ matrix.typescript }}
+              if: matrix.typescript
+              run: yarn add --dev typescript@^${{ matrix.typescript }}
+
+            - name: Run build
+              run: yarn ci
+
+            - name: Run test suite
+              run: yarn test

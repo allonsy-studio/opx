@@ -121,6 +121,12 @@ describe("runAdd", () => {
 		expect(written).toEqual([toChangeset([{ name: "@scope/a", type: "patch" }], "interactive")]);
 	});
 
+	it("returns 1 when interactive but the workspace has nothing to release", async () => {
+		const { deps: d } = deps({ listPackages: async () => [] });
+		expect(await runAdd(ctx(), [], d)).toBe(1);
+		expect(err).toHaveBeenCalledWith("opx: no publishable packages found.");
+	});
+
 	it("returns 1 and refuses to prompt in a non-interactive shell with no flags", async () => {
 		const write = jest.fn(async () => "x");
 		const { deps: d } = deps({ isInteractive: () => false, write });

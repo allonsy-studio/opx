@@ -1,47 +1,25 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { existsSync, symlinkSync, writeFileSync } from "node:fs";
+import { basename, join } from "node:path";
 
 import type { CleanupSuggestion, Detector, DetectorContext, PackageJson } from "@allons-y/opx";
+import { useScratch } from "shared/testing.js";
 
 import { applyCleanup, describePlan, planCleanup } from "./cleanup.js";
 
 const git = (dir: string, ...args: string[]): void => void execFileSync("git", args, { cwd: dir, stdio: "ignore" });
 
-/** A git repo whose first commit holds the given files. */
-function repo(files: Record<string, string> = {}): string {
-	const dir = mkdtempSync(join(tmpdir(), "opx-clean-"));
-	git(dir, "init", "-b", "main");
-	git(dir, "config", "user.email", "t@t.io");
-	git(dir, "config", "user.name", "t");
-	for (const [name, content] of Object.entries(files)) {
-		mkdirSync(join(dir, name, ".."), { recursive: true });
-		writeFileSync(join(dir, name), content);
-	}
-	git(dir, "add", ".");
-	git(dir, "commit", "--allow-empty", "-m", "init");
-	return dir;
-}
-
 const file = (target: string, hint?: string): CleanupSuggestion => ({ kind: "file", target, reason: "not applied", hint });
 const pkg = (target: string): CleanupSuggestion => ({ kind: "dependency", target, reason: "bundled by @acme/opx-x" });
 const setting = (target: string): CleanupSuggestion => ({ kind: "setting", target, reason: "not applied", hint: "move it" });
 const plugin = (...suggestions: CleanupSuggestion[]): Detector => ({ cleanup: () => suggestions }) as unknown as Detector;
+const scratch = useScratch();
 const targets = (list: Array<{ target: string }>): string[] => list.map((i) => i.target).sort();
 
 describe("cleanup", () => {
-	const dirs: string[] = [];
-	const make = (files?: Record<string, string>): string => {
-		const dir = repo(files);
-		dirs.push(dir);
-		return dir;
-	};
+	/** A repo whose first commit holds the files; empty when none are given. */
+	const make = (files: Record<string, string> = {}): string => scratch.repo(files);
 	const ctx = (cwd: string, hostPkg: PackageJson = {}): DetectorContext => ({ cwd, hostPkg, pkgManager: "yarn" }) as unknown as DetectorContext;
-
-	afterEach(() => {
-		for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true });
-	});
 
 	describe("files", () => {
 		it("deletes only a file that is empty and unchanged in git", () => {
@@ -75,12 +53,12 @@ describe("cleanup", () => {
 
 		it("ignores paths outside the repository", () => {
 			const dir = make();
-			const outside = mkdtempSync(join(tmpdir(), "opx-outside-"));
-			dirs.push(outside);
+			const outside = scratch.dir("opx-outside-");
 			writeFileSync(join(outside, "empty"), "");
-			const plan = planCleanup(ctx(dir), [plugin(file(join(outside, "empty")), file(`../${outside.split("/").pop()}/empty`))]);
+			const relative = join("..", basename(outside), "empty");
+			const plan = planCleanup(ctx(dir), [plugin(file(join(outside, "empty")), file(relative))]);
 			expect(plan).toEqual({ delete: [], advice: [], kept: [], command: "" });
-			expect(applyCleanup(dir, [join(outside, "empty"), `../${outside.split("/").pop()}/empty`])).toEqual([]);
+			expect(applyCleanup(dir, [join(outside, "empty"), relative])).toEqual([]);
 			expect(existsSync(join(outside, "empty"))).toBe(true);
 		});
 
@@ -181,8 +159,7 @@ describe("cleanup", () => {
 		});
 
 		it("keeps everything when the project's files cannot be listed", () => {
-			const dir = mkdtempSync(join(tmpdir(), "opx-clean-nogit-"));
-			dirs.push(dir);
+			const dir = scratch.dir("opx-clean-nogit-");
 			const plan = planCleanup(ctx(dir, dev("eslint")), [plugin(pkg("eslint"))]);
 			expect(plan.advice).toEqual([]);
 			expect(plan.kept[0]?.reason).toContain("could not list");

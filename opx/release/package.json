@@ -21,8 +21,8 @@
 	"type": "module",
 	"exports": {
 		".": {
-			"import": "./bin/index.js",
-			"types": "./bin/index.d.ts"
+			"types": "./bin/index.d.ts",
+			"import": "./bin/index.js"
 		},
 		"./config.json": "./config.json",
 		"./package.json": "./package.json"

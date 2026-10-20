@@ -12,6 +12,7 @@ import {
 	defaultState,
 	enabledNames,
 	ensureOpxIgnored,
+	inspectPackageManager,
 	installCommand,
 	installPostCommitHook,
 	readConfig,
@@ -75,7 +76,7 @@ export default function register(program: Command): void {
 /** Runs an install command in the project; injectable so tests don't spawn a package manager. */
 export type InstallRunner = (cmd: string, cwd: string) => Promise<void> | void;
 
-const runInstall: InstallRunner = async (cmd, cwd) => {
+export const runInstall: InstallRunner = async (cmd, cwd) => {
 	const { execFileSync } = await import("node:child_process");
 	const [bin, ...args] = cmd.split(" ");
 	if (bin) execFileSync(bin, args, { cwd, stdio: "inherit" });
@@ -196,15 +197,20 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	}
 
 	if (installCandidates.length > 0) {
-		const cmd = installCommand(ctx.pkgManager, installCandidates);
-		const confirmed = await p.confirm({
-			message: `Install required packages now?\n  ${cmd}`,
-			initialValue: true,
-		});
-		if (!p.isCancel(confirmed) && confirmed) {
-			await install(cmd, cwd);
+		const pm = inspectPackageManager(cwd, ctx.hostPkg);
+		const cmd = installCommand(pm.name, installCandidates, pm);
+		if (!pm.certain) {
+			p.log.warn(`Not sure which package manager to use (${pm.reason}). Run the one you use:\n  ${cmd}`);
 		} else {
-			p.log.info(`Run when ready: ${cmd}`);
+			const confirmed = await p.confirm({
+				message: `Install required packages now?\n  ${cmd}`,
+				initialValue: true,
+			});
+			if (!p.isCancel(confirmed) && confirmed) {
+				await install(cmd, cwd);
+			} else {
+				p.log.info(`Run when ready: ${cmd}`);
+			}
 		}
 	}
 

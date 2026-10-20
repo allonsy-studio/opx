@@ -1,23 +1,18 @@
 import { jest } from "@jest/globals";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
+import { useScratch } from "shared/testing.js";
 
 import { runPostCommit } from "./hook.js";
 
 const TODAY = "2026-06-15";
 
+const scratch = useScratch();
+
 /** A git repo with one initial commit, ready for the test to commit more files. */
-function repo(): string {
-	const dir = mkdtempSync(join(tmpdir(), "opx-hook-"));
-	const opts = { cwd: dir, stdio: "ignore" as const };
-	execFileSync("git", ["init", "-b", "main"], opts);
-	execFileSync("git", ["config", "user.email", "t@t.io"], opts);
-	execFileSync("git", ["config", "user.name", "t"], opts);
-	commit(dir, { "README.txt": "x" });
-	return dir;
-}
+const repo = (): string => scratch.repo({ "README.txt": "x" });
 
 function commit(dir: string, files: Record<string, string>): void {
 	for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content, "utf8");
@@ -37,14 +32,9 @@ function writeState(dir: string, state: unknown): void {
 }
 
 describe("runPostCommit", () => {
-	const dirs: string[] = [];
 	let log: ReturnType<typeof jest.spyOn>;
 
-	const make = (): string => {
-		const dir = repo();
-		dirs.push(dir);
-		return dir;
-	};
+	const make = repo;
 	const output = (): string => log.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
 
 	beforeEach(() => {
@@ -52,7 +42,6 @@ describe("runPostCommit", () => {
 	});
 	afterEach(() => {
 		jest.restoreAllMocks();
-		for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
 	});
 
 	it("nudges about a plugin for a new file type", () => {
@@ -166,8 +155,7 @@ describe("runPostCommit", () => {
 		});
 
 		it("does nothing outside a git repository", () => {
-			const dir = mkdtempSync(join(tmpdir(), "opx-nogit-"));
-			dirs.push(dir);
+			const dir = scratch.dir("opx-nogit-");
 			expect(() => runPostCommit(dir, TODAY)).not.toThrow();
 			expect(log).not.toHaveBeenCalled();
 			expect(existsSync(join(dir, ".opx", "state.json"))).toBe(false);

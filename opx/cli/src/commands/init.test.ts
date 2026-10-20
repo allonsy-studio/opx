@@ -1,15 +1,23 @@
 import { jest } from "@jest/globals";
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+import type { CleanupSuggestion, Detector } from "@allons-y/opx";
+import { Command } from "commander";
+import { useScratch } from "shared/testing.js";
+
+/** The part of a prompt these tests read. */
+type Prompt = { message: string; options?: Array<{ value: unknown }> };
+
 const CANCEL = Symbol("cancel");
-const select = jest.fn<(o: { message: string }) => Promise<unknown>>();
-const confirm = jest.fn<(o: { message: string }) => Promise<unknown>>();
-const multiselect = jest.fn<(o: { message: string; initialValues: string[] }) => Promise<unknown>>();
+const select = jest.fn<(o: Prompt) => Promise<unknown>>();
+const confirm = jest.fn<(o: Prompt) => Promise<unknown>>();
 const cancel = jest.fn();
 const logInfo = jest.fn();
+const logWarn = jest.fn();
+const logSuccess = jest.fn();
+const detectMode = jest.fn<() => string>();
+const loadDetectors = jest.fn<(ctx: unknown) => Promise<Detector[]>>();
 
 jest.unstable_mockModule("@clack/prompts", () => ({
 	intro: jest.fn(),
@@ -17,27 +25,18 @@ jest.unstable_mockModule("@clack/prompts", () => ({
 	cancel,
 	select,
 	confirm,
-	multiselect,
 	isCancel: (v: unknown) => v === CANCEL,
-	log: { info: logInfo, success: jest.fn(), warn: jest.fn(), error: jest.fn() },
+	log: { info: logInfo, success: logSuccess, warn: logWarn, error: jest.fn() },
 }));
 
-const { runInteractive, runReport } = await import("./init.js");
+jest.unstable_mockModule("../tty.js", () => ({ detectMode }));
 
-import type { CleanupSuggestion, Detector } from "@allons-y/opx";
+const builtIn = await import("../built-in.js");
+jest.unstable_mockModule("../built-in.js", () => ({ ...builtIn, load: loadDetectors }));
 
-/** A git repo with one commit holding the given files. */
-function repo(files: Record<string, string>): string {
-	const dir = mkdtempSync(join(tmpdir(), "opx-init-"));
-	const opts = { cwd: dir, stdio: "ignore" as const };
-	execFileSync("git", ["init", "-b", "main"], opts);
-	execFileSync("git", ["config", "user.email", "t@t.io"], opts);
-	execFileSync("git", ["config", "user.name", "t"], opts);
-	for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content, "utf8");
-	execFileSync("git", ["add", "."], opts);
-	execFileSync("git", ["commit", "-m", "init"], opts);
-	return dir;
-}
+const { default: register, runInstall, runInteractive, runReport } = await import("./init.js");
+
+const scratch = useScratch();
 
 const read = (dir: string, file: string): string => readFileSync(join(dir, file), "utf8");
 type Parsed = {
@@ -49,15 +48,11 @@ const json = (dir: string, file: string): Parsed => JSON.parse(read(dir, file)) 
 const PKG = JSON.stringify({ name: "host", version: "1.0.0" });
 
 describe("init", () => {
-	const dirs: string[] = [];
 	const install = jest.fn<(cmd: string, cwd: string) => void>();
+	const originalCwd = process.cwd();
 	let log: ReturnType<typeof jest.spyOn>;
 
-	const make = (files: Record<string, string>): string => {
-		const dir = repo(files);
-		dirs.push(dir);
-		return dir;
-	};
+	const make = (files: Record<string, string>): string => scratch.repo(files);
 	const printed = (): string => log.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
 	/** Answer each select by the short name in its message. */
 	const answers = (map: Record<string, unknown>, fallback: unknown = "no"): void => {
@@ -71,10 +66,12 @@ describe("init", () => {
 		jest.clearAllMocks();
 		log = jest.spyOn(console, "log").mockImplementation(() => {});
 		confirm.mockResolvedValue(true);
+		detectMode.mockReturnValue("interactive");
+		loadDetectors.mockResolvedValue([]);
 	});
 	afterEach(() => {
+		process.chdir(originalCwd);
 		jest.restoreAllMocks();
-		for (const d of dirs.splice(0)) rmSync(d, { recursive: true, force: true });
 	});
 
 	describe("runInteractive", () => {
@@ -138,6 +135,30 @@ describe("init", () => {
 			await runInteractive(other, install);
 			expect(install).not.toHaveBeenCalled();
 			expect(json(other, ".opx/config.json").lint?.js).toBe(true);
+		});
+
+		it("installs with the package manager the project uses, bun and workspace roots included", async () => {
+			answers({ js: "yes" });
+			const bun = make({ "a.js": "x", "package.json": PKG, "bun.lock": "" });
+			await runInteractive(bun, install);
+			expect(install).toHaveBeenLastCalledWith("bun add -d @allons-y/opx-lint-js", bun);
+
+			const pnpm = make({ "a.js": "x", "package.json": PKG, "pnpm-lock.yaml": "", "pnpm-workspace.yaml": "" });
+			await runInteractive(pnpm, install);
+			expect(install).toHaveBeenLastCalledWith("pnpm add -D -w @allons-y/opx-lint-js", pnpm);
+		});
+
+		it("shows the command instead of running it when the project points at several package managers", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG, "yarn.lock": "", "package-lock.json": "{}" });
+			answers({ js: "yes" });
+			await runInteractive(dir, install);
+
+			expect(install).not.toHaveBeenCalled();
+			expect(confirm.mock.calls.some(([o]) => o.message.startsWith("Install"))).toBe(false);
+			const warned = logWarn.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
+			expect(warned).toContain("lockfiles for yarn and npm");
+			expect(warned).toContain("yarn add -D @allons-y/opx-lint-js");
+			expect(json(dir, ".opx/config.json").lint?.js).toBe(true);
 		});
 
 		it("adds a lint script only when none exists and the user agrees", async () => {
@@ -228,6 +249,158 @@ describe("init", () => {
 			await runInteractive(dir, install, { detectors });
 			expect(detectors).not.toHaveBeenCalled();
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+		});
+	});
+
+	describe("prompts", () => {
+		it("offers yes, no, or later for each suggestion, naming the package", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG });
+			answers({}, "no");
+			await runInteractive(dir, install);
+
+			const prompt = select.mock.calls.find(([o]) => o.message.startsWith("Enable js "))?.[0];
+			expect(prompt?.message).toContain("@allons-y/opx-lint-js");
+			expect(prompt?.options?.map((o) => o.value)).toEqual(["yes", "no", "later"]);
+		});
+
+		it("shows the command the install prompt would run", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG, "yarn.lock": "" });
+			answers({ js: "yes" });
+			await runInteractive(dir, install);
+			expect(confirm.mock.calls.some(([o]) => o.message.includes("yarn add -D @allons-y/opx-lint-js"))).toBe(true);
+		});
+
+		it("leaves the install to the person when its prompt is cancelled", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG });
+			answers({ js: "yes" });
+			confirm.mockResolvedValue(CANCEL);
+			await runInteractive(dir, install);
+
+			expect(install).not.toHaveBeenCalled();
+			expect(logInfo).toHaveBeenCalledWith("Run when ready: npm install --save-dev @allons-y/opx-lint-js");
+			expect(json(dir, ".opx/config.json").lint?.js).toBe(true);
+		});
+
+		it("skips the lint script when its prompt is cancelled", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG });
+			answers({ js: "yes" });
+			confirm.mockImplementation(async ({ message }) => (message.includes("package.json") ? CANCEL : true));
+			await runInteractive(dir, install);
+			expect(json(dir, "package.json").scripts).toBeUndefined();
+		});
+
+		it("says so when there is nothing new to set up", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG });
+			answers({}, "yes");
+			await runInteractive(dir, install);
+			logSuccess.mockClear();
+
+			await runInteractive(dir, install);
+			expect(logSuccess).toHaveBeenCalledWith(expect.stringContaining("No new tooling to suggest"));
+		});
+	});
+
+	describe("setup output", () => {
+		it("scaffolds eslint.config.js for an installed plugin, and says so", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG });
+			mkdirSync(join(dir, "node_modules", "@allons-y", "opx-lint-js"), { recursive: true });
+			answers({ js: "yes" });
+			await runInteractive(dir, install);
+
+			expect(read(dir, "eslint.config.js")).toContain("@allons-y/opx-lint-js/eslint.config.js");
+			expect(logSuccess).toHaveBeenCalledWith(expect.stringContaining("Wrote a composable eslint.config.js"));
+		});
+
+		it("does not print plugin loading messages while looking for cleanup", async () => {
+			const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+			const error = jest.spyOn(console, "error").mockImplementation(() => {});
+			loadDetectors.mockImplementation(async (ctx) => {
+				const { logger } = ctx as { logger: Record<"info" | "warn" | "error" | "debug", (message: string) => void> };
+				for (const level of ["info", "warn", "error", "debug"] as const) logger[level]("plugin x is declared but not installed");
+				return [];
+			});
+
+			await runInteractive(make({ "a.js": "x", "package.json": PKG }), install, { cleanup: true });
+			await runReport(make({ "a.js": "x", "package.json": PKG }), { cleanup: true });
+
+			expect(loadDetectors).toHaveBeenCalledTimes(2);
+			expect(warn).not.toHaveBeenCalled();
+			expect(error).not.toHaveBeenCalled();
+			expect(printed()).not.toContain("declared but not installed");
+		});
+	});
+
+	describe("runInstall", () => {
+		it("runs the command in the project", async () => {
+			await expect(runInstall("node -e 0", make({}))).resolves.toBeUndefined();
+		});
+
+		it("does nothing for an empty command", async () => {
+			await expect(runInstall("", make({}))).resolves.toBeUndefined();
+		});
+
+		it("fails when the command fails", async () => {
+			await expect(runInstall("node -e process.exit(3)", make({}))).rejects.toThrow();
+		});
+	});
+
+	describe("the init command", () => {
+		const run = async (dir: string, ...args: string[]): Promise<void> => {
+			process.chdir(dir);
+			const program = new Command().exitOverride();
+			register(program);
+			await program.parseAsync(["node", "opx", "init", ...args]);
+		};
+		const project = (): string => make({ "a.js": "x", ".eslintrc.json": "{}\n", "package.json": PKG });
+		const suggest: CleanupSuggestion = { kind: "file", target: ".eslintrc.json", reason: "not applied" };
+
+		beforeEach(() => {
+			answers({}, "no");
+			loadDetectors.mockResolvedValue([{ cleanup: () => [suggest] } as unknown as Detector]);
+		});
+
+		it("sets up interactively, then offers to delete the empty file with --cleanup", async () => {
+			const dir = project();
+			await run(dir, "--cleanup");
+
+			expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
+			expect(confirm.mock.calls.some(([o]) => o.message.startsWith("Delete"))).toBe(true);
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(false);
+		});
+
+		it("skips cleanup under --auto, which runs from postinstall, even with --cleanup", async () => {
+			const dir = project();
+			await run(dir, "--auto", "--cleanup");
+
+			expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
+			expect(loadDetectors).not.toHaveBeenCalled();
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+		});
+
+		it("does no cleanup unless asked", async () => {
+			const dir = project();
+			await run(dir);
+
+			expect(loadDetectors).not.toHaveBeenCalled();
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+		});
+
+		it("prints a report instead when the shell is not interactive", async () => {
+			detectMode.mockReturnValue("report");
+			const dir = project();
+			await run(dir, "--cleanup");
+
+			expect(select).not.toHaveBeenCalled();
+			expect(printed()).toContain("wrote starter .opx/config.json");
+			expect(printed()).toContain("cleanup suggestions from your plugins");
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+		});
+
+		it("only hints under --auto without a terminal", async () => {
+			detectMode.mockReturnValue("report");
+			await run(project(), "--auto");
+			expect(printed()).toContain("run `opx init` in an interactive shell");
+			expect(select).not.toHaveBeenCalled();
 		});
 	});
 
