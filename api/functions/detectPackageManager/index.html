@@ -90,33 +90,42 @@
 	<main id="main" class="docs-content" data-pagefind-body="">
 		
 		<h1 id="function%3A-detectpackagemanager()" tabindex="-1"><a class="header-anchor" href="#function%3A-detectpackagemanager()">Function: detectPackageManager()</a></h1>
-<pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">detectPackageManager</span><span class="token punctuation">(</span>cwd<span class="token punctuation">,</span> hostPkg<span class="token operator">?</span><span class="token punctuation">)</span><span class="token operator">:</span> PackageManager<span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/0530ab0d5f4f6b88376aca0c9ca5dfe5a160a00f/opx/engine/src/pkg-manager.ts#L16">pkg-manager.ts:16</a></p>
-<p>Detect the host project's package manager.</p>
-<p>Priority:</p>
-<ol>
-<li>yarn.lock → &quot;yarn&quot;</li>
-<li>pnpm-lock.yaml → &quot;pnpm&quot;</li>
-<li>package-lock.json → &quot;npm&quot;</li>
-<li>packageManager field in package.json (e.g. &quot;yarn@4.x&quot;)</li>
-<li>fallback &quot;npm&quot;</li>
-</ol>
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">detectPackageManager</span><span class="token punctuation">(</span>
+   cwd<span class="token punctuation">,</span> 
+   hostPkg<span class="token operator">?</span><span class="token punctuation">,</span> 
+   env<span class="token operator">?</span>
+<span class="token punctuation">)</span><span class="token operator">:</span> PackageManager<span class="token punctuation">;</span></code></pre>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/5815e3cbc467fbd76de97efb97ce409b902b0f9d/opx/engine/src/pkg-manager.ts#L117">pkg-manager.ts:117</a></p>
+<p>Detect the host project's package manager. See <a href="/opx/api/functions/inspectPackageManager/">inspectPackageManager</a>
+for the order and for how sure the answer is.</p>
 <h2 id="parameters" tabindex="-1"><a class="header-anchor" href="#parameters">Parameters</a></h2>
 <table>
 <thead>
 <tr>
 <th>Parameter</th>
 <th>Type</th>
+<th>Default value</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>cwd</code></td>
 <td><code>string</code></td>
+<td><code>undefined</code></td>
+<td>The project directory.</td>
 </tr>
 <tr>
 <td><code>hostPkg?</code></td>
 <td><a href="/opx/api/type-aliases/PackageJson/"><code>PackageJson</code></a></td>
+<td><code>undefined</code></td>
+<td>The project's <code>package.json</code>.</td>
+</tr>
+<tr>
+<td><code>env?</code></td>
+<td><a href="/opx/api/type-aliases/Environment/"><code>Environment</code></a></td>
+<td><code>process.env</code></td>
+<td>The environment to read the launcher from.</td>
 </tr>
 </tbody>
 </table>

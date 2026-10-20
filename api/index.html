@@ -136,8 +136,16 @@
 <td>The config keys for dynamic tasks: each maps a plugin short name to <code>true</code>, <code>false</code>, or that plugin's settings.</td>
 </tr>
 <tr>
+<td><a href="/opx/api/type-aliases/Environment/">Environment</a></td>
+<td>Environment variables by name, without depending on the <code>NodeJS</code> global from <code>@types/node</code>.</td>
+</tr>
+<tr>
 <td><a href="/opx/api/type-aliases/HookInstallResult/">HookInstallResult</a></td>
 <td>The outcome of <a href="/opx/api/functions/installPostCommitHook/">installPostCommitHook</a>.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/InstallOptions/">InstallOptions</a></td>
+<td>Options for <a href="/opx/api/functions/installCommand/">installCommand</a>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/LoadedPlugin/">LoadedPlugin</a></td>
@@ -170,6 +178,10 @@
 <tr>
 <td><a href="/opx/api/type-aliases/PackageManager/">PackageManager</a></td>
 <td>The package managers opx can detect and install with.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/PackageManagerInfo/">PackageManagerInfo</a></td>
+<td>What <a href="/opx/api/functions/inspectPackageManager/">inspectPackageManager</a> found.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/ResolvedTool/">ResolvedTool</a></td>
@@ -224,7 +236,7 @@
 </tr>
 <tr>
 <td><a href="/opx/api/functions/detectPackageManager/">detectPackageManager</a></td>
-<td>Detect the host project's package manager.</td>
+<td>Detect the host project's package manager. See <a href="/opx/api/functions/inspectPackageManager/">inspectPackageManager</a> for the order and for how sure the answer is.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/diff/">diff</a></td>
@@ -245,6 +257,10 @@
 <tr>
 <td><a href="/opx/api/functions/filterPathsByExtension/">filterPathsByExtension</a></td>
 <td>Filter CLI path arguments to those a detector should handle, given the file extensions it owns.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/inspectPackageManager/">inspectPackageManager</a></td>
+<td>Work out the host project's package manager, and how sure that is.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/installCommand/">installCommand</a></td>

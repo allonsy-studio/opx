@@ -95,12 +95,12 @@
    hostCwd<span class="token punctuation">,</span> 
    bundledRequire
 <span class="token punctuation">)</span><span class="token operator">:</span> ResolvedTool<span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/0530ab0d5f4f6b88376aca0c9ca5dfe5a160a00f/opx/engine/src/resolver.ts#L20">resolver.ts:20</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/5815e3cbc467fbd76de97efb97ce409b902b0f9d/opx/engine/src/resolver.ts#L20">resolver.ts:20</a></p>
 <p>Try to resolve a tool (e.g. &quot;eslint&quot;) from the host project first; fall back
 to the bundled copy that ships with the calling detector package.</p>
 <p><code>bundledRequire</code> is created with <code>createRequire(import.meta.url)</code> inside the
 detector package, so its resolution lookups start from the detector's own
-node_modules tree.</p>
+node_modules tree. Only its <code>resolve</code> is used, so any object with one works.</p>
 <h2 id="parameters" tabindex="-1"><a class="header-anchor" href="#parameters">Parameters</a></h2>
 <table>
 <thead>
@@ -120,7 +120,11 @@ node_modules tree.</p>
 </tr>
 <tr>
 <td><code>bundledRequire</code></td>
-<td><code>Require</code></td>
+<td>{ <code>resolve</code>: <code>string</code>; }</td>
+</tr>
+<tr>
+<td><code>bundledRequire.resolve</code></td>
+<td></td>
 </tr>
 </tbody>
 </table>
