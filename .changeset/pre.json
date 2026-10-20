@@ -21,6 +21,7 @@
     "initial-opx-release",
     "js-only-lint-js",
     "lighter-startup-shared-runner",
+    "modern-syntax-rules",
     "new-shared-workspace",
     "pin-release-tools",
     "self-contained-types"
