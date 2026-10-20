@@ -32,6 +32,9 @@ jobs:
             - name: Run build
               run: yarn ci
 
+            - name: Test the repository scripts
+              run: yarn test:scripts
+
             - name: Run test suite with coverage
               run: yarn coverage
 

@@ -49,6 +49,8 @@ yarn changeset
 
 Pick `patch` for bug fixes, `minor` for new features, and `major` for breaking changes. Internal-only changes (refactors, tests, CI, tooling, docs) don't need a changeset.
 
+Renovate bumps to the tools a package ships (its `dependencies`) get a patch changeset automatically: the [Dependency changeset](workflows/dependency-changeset.yml) workflow adds one to Renovate's pull request, and removes it if the bump no longer changes a shipped dependency. Edit it if the bump deserves more than a patch. Dev dependency bumps don't need one.
+
 ## Documentation
 
 If you change what a command, option, config key, or plugin does, update its page under `opx/docs/src` in the same pull request. The API reference is generated from the source, so keep JSDoc comments on exported types accurate.

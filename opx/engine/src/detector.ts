@@ -126,6 +126,28 @@ export type DetectorDescription = {
 	bundledDeps: string[];
 };
 
+/** A command a person can run to act on a suggestion. opx prints it and never runs it. */
+export type SuggestionCommand = {
+	/** The program and its arguments, such as `["npx", "@eslint/migrate-config", ".eslintrc.json"]`. */
+	run: string[];
+	/** What the command does, when its name does not say. */
+	description?: string;
+};
+
+/** Something a plugin says the project no longer needs now that the plugin is enabled. */
+export type CleanupSuggestion = {
+	/** What it is: a package, a file, or a `package.json` key. */
+	kind: "dependency" | "file" | "setting";
+	/** The package name, the file path from the repository root, or the `package.json` key. */
+	target: string;
+	/** Why the plugin makes it unnecessary. */
+	reason: string;
+	/** What to do about it when opx will not do it for you. */
+	hint?: string;
+	/** A command that does the tool-specific part, for files and `package.json` keys. */
+	command?: SuggestionCommand;
+};
+
 /** The contract every opx plugin implements: decide when it applies, then run. */
 export type Detector = {
 	/** The package id, such as `@allons-y/opx-lint-js`. */
@@ -142,6 +164,16 @@ export type Detector = {
 	detect(ctx: DetectorContext): boolean | Promise<boolean>;
 	/** Describe the detector for display. */
 	describe(ctx: DetectorContext): DetectorDescription;
+	/**
+	 * Suggest what the project can drop now that this plugin is enabled.
+	 *
+	 * Suggestions are advice. opx prints them, and deletes only a suggested file
+	 * that is empty and unchanged in git.
+	 *
+	 * @param ctx - The detector context.
+	 * @returns The suggestions, or none.
+	 */
+	cleanup?(ctx: DetectorContext): CleanupSuggestion[];
 	/**
 	 * Run the tool.
 	 *

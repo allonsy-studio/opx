@@ -7,7 +7,9 @@ import { join } from "node:path";
 const CANCEL = Symbol("cancel");
 const select = jest.fn<(o: { message: string }) => Promise<unknown>>();
 const confirm = jest.fn<(o: { message: string }) => Promise<unknown>>();
+const multiselect = jest.fn<(o: { message: string; initialValues: string[] }) => Promise<unknown>>();
 const cancel = jest.fn();
+const logInfo = jest.fn();
 
 jest.unstable_mockModule("@clack/prompts", () => ({
 	intro: jest.fn(),
@@ -15,11 +17,14 @@ jest.unstable_mockModule("@clack/prompts", () => ({
 	cancel,
 	select,
 	confirm,
+	multiselect,
 	isCancel: (v: unknown) => v === CANCEL,
-	log: { info: jest.fn(), success: jest.fn(), warn: jest.fn(), error: jest.fn() },
+	log: { info: logInfo, success: jest.fn(), warn: jest.fn(), error: jest.fn() },
 }));
 
 const { runInteractive, runReport } = await import("./init.js");
+
+import type { CleanupSuggestion, Detector } from "@allons-y/opx";
 
 /** A git repo with one commit holding the given files. */
 function repo(files: Record<string, string>): string {
@@ -170,23 +175,96 @@ describe("init", () => {
 		});
 	});
 
+	describe("cleanup", () => {
+		const files = {
+			"a.js": "x",
+			".eslintrc.json": "{}\n",
+			".eslintignore": "node_modules\n",
+			"package.json": JSON.stringify({ name: "host", devDependencies: { eslint: "^9.0.0" } }),
+		};
+		const suggestions: CleanupSuggestion[] = [
+			{ kind: "file", target: ".eslintrc.json", reason: "not applied" },
+			{ kind: "file", target: ".eslintignore", reason: "not applied", hint: "move the patterns" },
+			{ kind: "dependency", target: "eslint", reason: "bundled by @acme/opx-x" },
+		];
+		const detectors = jest.fn(async () => [{ cleanup: () => suggestions }] as unknown as Detector[]);
+		const infoText = (): string => logInfo.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
+
+		it("deletes an empty file git can restore once confirmed, and only advises on the rest", async () => {
+			const dir = make(files);
+			answers({}, "no");
+			await runInteractive(dir, install, { cleanup: true, detectors });
+
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(false);
+			expect(read(dir, ".eslintignore")).toBe("node_modules\n");
+			expect(infoText()).toContain("- .eslintignore: not applied");
+			expect(infoText()).toContain("move the patterns");
+			expect(infoText()).toContain("Drop the unused packages with: npm uninstall eslint");
+			expect(install).not.toHaveBeenCalled();
+			expect(json(dir, "package.json").scripts).toBeUndefined();
+		});
+
+		it("leaves the file when the confirmation is declined or cancelled", async () => {
+			answers({}, "no");
+			for (const reply of [false, CANCEL]) {
+				const dir = make(files);
+				confirm.mockResolvedValue(reply);
+				await runInteractive(dir, install, { cleanup: true, detectors });
+				expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+			}
+		});
+
+		it("does not ask when there is nothing to delete", async () => {
+			const dir = make({ ...files, ".eslintrc.json": '{ "root": true }' });
+			answers({}, "no");
+			await runInteractive(dir, install, { cleanup: true, detectors });
+			expect(confirm.mock.calls.some(([o]) => o.message.startsWith("Delete"))).toBe(false);
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+		});
+
+		it("does nothing about cleanup unless asked, and loads no plugin", async () => {
+			const dir = make(files);
+			answers({}, "no");
+			await runInteractive(dir, install, { detectors });
+			expect(detectors).not.toHaveBeenCalled();
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+		});
+	});
+
 	describe("runReport", () => {
-		it("writes a starter config and lists unconfigured detectors", () => {
+		it("writes a starter config and lists unconfigured detectors", async () => {
 			const dir = make({ "a.js": "x", "package.json": PKG });
-			runReport(dir);
+			await runReport(dir);
 
 			expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
 			expect(printed()).toContain("wrote starter .opx/config.json");
 			expect(printed()).toContain("opx enable js");
 		});
 
-		it("says nothing is new when every detector is configured", () => {
+		it("lists the plugins' cleanup suggestions without changing anything, only when asked", async () => {
+			const dir = make({ "a.js": "x", ".eslintrc.json": "{}", "package.json": JSON.stringify({ name: "host", devDependencies: { eslint: "^9.0.0" } }) });
+			const detectors = async (): Promise<Detector[]> => [
+				{ cleanup: () => [{ kind: "file", target: ".eslintrc.json", reason: "not applied" }, { kind: "dependency", target: "eslint", reason: "bundled" }] } as unknown as Detector,
+			];
+
+			await runReport(dir, { cleanup: true, detectors });
+			expect(printed()).toContain("cleanup suggestions from your plugins");
+			expect(printed()).toContain("  - .eslintrc.json");
+			expect(printed()).toContain("Drop the unused packages with: npm uninstall eslint");
+			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+
+			log.mockClear();
+			await runReport(dir, { detectors });
+			expect(printed()).not.toContain("cleanup suggestions");
+		});
+
+		it("says nothing is new when every detector is configured", async () => {
 			const dir = make({ "README.txt": "x" });
-			runReport(dir);
+			await runReport(dir);
 			const cfg = json(dir, ".opx/config.json");
 			writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ ...cfg, release: true }));
 			log.mockClear();
-			runReport(dir);
+			await runReport(dir);
 			expect(printed()).toBe("opx: nothing new to suggest.");
 		});
 	});

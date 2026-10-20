@@ -46,10 +46,10 @@
 	"types": "./bin/index.d.ts",
 	"dependencies": {
 		"@allons-y/opx": "^0.1.0-beta.1",
-		"@eslint/compat": "^2.1.1",
-		"@stylistic/eslint-plugin": "^5.10.0",
-		"eslint": "^10.11.0",
-		"typescript-eslint": "^8.71.0"
+		"@eslint/compat": "2.1.1",
+		"@stylistic/eslint-plugin": "5.10.0",
+		"eslint": "10.11.0",
+		"typescript-eslint": "8.71.0"
 	},
 	"devDependencies": {
 		"typescript": "^6.0.3"

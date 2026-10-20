@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import * as p from "@clack/prompts";
 import type { Command } from "commander";
+import type { Detector, DetectorContext, Logger } from "@allons-y/opx";
 import { CLI_NAME } from "../plugin-kit.js";
 
 import {
@@ -20,8 +21,9 @@ import {
 	type OpxConfig,
 } from "@allons-y/opx";
 
+import { applyCleanup, describePlan, planCleanup } from "../cleanup.js";
 import { buildContext, readHostPackage } from "../context.js";
-import { virtualDetectors } from "../built-in.js";
+import { load as loadDetectors, virtualDetectors } from "../built-in.js";
 import { scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { defaultSkipUntilDate } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
@@ -29,6 +31,19 @@ import { detectMode } from "../tty.js";
 export type InitOptions = {
 	auto: boolean;
 	quiet: boolean;
+	/** Opt in to the plugins' cleanup suggestions and the offer to delete empty files. */
+	cleanup?: boolean;
+};
+
+/** Loads the detectors of the enabled plugins; injectable so tests don't import real plugins. */
+export type DetectorLoader = (ctx: DetectorContext) => Promise<Detector[]>;
+
+/** Options shared by the interactive and report flows. */
+export type CleanupOptions = {
+	/** Set to `true` to show the plugins' cleanup suggestions and offer to delete empty files. */
+	cleanup?: boolean;
+	/** Loads the enabled plugins' detectors; defaults to the built-in loader. */
+	detectors?: DetectorLoader;
 };
 
 export default function register(program: Command): void {
@@ -37,6 +52,7 @@ export default function register(program: Command): void {
 		.description(`Scan the repo and interactively wire up ${CLI_NAME} tooling`)
 		.option("--auto", "auto-mode (used by postinstall); only proceeds in TTY", false)
 		.option("--quiet", "suppress informational output when --auto exits early", false)
+		.option("--cleanup", "show what your plugins make unnecessary, and offer to delete empty files git can restore")
 		.action(async (opts: InitOptions) => {
 			const cwd = process.cwd();
 			const mode = detectMode(false);
@@ -49,9 +65,9 @@ export default function register(program: Command): void {
 			}
 
 			if (mode === "interactive") {
-				await runInteractive(cwd);
+				await runInteractive(cwd, runInstall, { cleanup: opts.cleanup && !opts.auto });
 			} else {
-				runReport(cwd);
+				await runReport(cwd, { cleanup: opts.cleanup });
 			}
 		});
 }
@@ -74,8 +90,9 @@ const runInstall: InstallRunner = async (cmd, cwd) => {
  *
  * @param cwd - The repository root.
  * @param install - Runs the package manager; defaults to spawning it.
+ * @param options - Cleanup settings; see {@link CleanupOptions}.
  */
-export async function runInteractive(cwd: string, install: InstallRunner = runInstall): Promise<void> {
+export async function runInteractive(cwd: string, install: InstallRunner = runInstall, options: CleanupOptions = {}): Promise<void> {
 	p.intro(`${CLI_NAME} toolkit setup`);
 
 	if (!existsSync(configPath(cwd))) {
@@ -228,15 +245,47 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		p.log.success(`Updated .gitignore to ignore local .${CLI_NAME}/ files (config.json stays tracked)`);
 	}
 
+	if (options.cleanup) {
+		await offerCleanup(cwd, options.detectors ?? loadDetectors);
+	}
+
 	p.outro("Setup complete.");
+}
+
+/** Drops every message, so loading plugins for cleanup never warns about ones that are not installed. */
+const SILENT: Logger = { info() {}, warn() {}, error() {}, debug() {} };
+
+/**
+ * Show what the enabled plugins suggest dropping, and offer to delete empty files.
+ *
+ * Only empty files that git can restore are ever deleted. Everything else is
+ * printed for the person to do.
+ *
+ * @param cwd - The repository root.
+ * @param load - Loads the enabled plugins' detectors.
+ */
+async function offerCleanup(cwd: string, load: DetectorLoader): Promise<void> {
+	const ctx = buildContext({ cwd, logger: SILENT });
+	const plan = planCleanup(ctx, await load(ctx));
+	const lines = describePlan(plan);
+	if (lines.length > 0) p.log.info(lines.join("\n"));
+	if (plan.delete.length === 0) return;
+
+	const confirmed = await p.confirm({ message: `Delete the ${plan.delete.length} empty file(s) listed above? git can restore them.`, initialValue: true });
+	if (p.isCancel(confirmed) || !confirmed) {
+		p.log.info("Left them in place.");
+		return;
+	}
+	p.log.success(`Deleted ${applyCleanup(cwd, plan.delete).join(", ")}.`);
 }
 
 /**
  * Non-interactive `init`: print what would be suggested instead of prompting.
  *
  * @param cwd - The repository root.
+ * @param options - Cleanup settings; see {@link CleanupOptions}.
  */
-export function runReport(cwd: string): void {
+export async function runReport(cwd: string, options: CleanupOptions = {}): Promise<void> {
 	if (!existsSync(configPath(cwd))) {
 		writeConfig(cwd, defaultConfig());
 		console.log(`${CLI_NAME}: wrote starter .${CLI_NAME}/config.json.`);
@@ -253,10 +302,18 @@ export function runReport(cwd: string): void {
 	});
 	if (remaining.length === 0) {
 		console.log(`${CLI_NAME}: nothing new to suggest.`);
-		return;
+	} else {
+		console.log(`${CLI_NAME}: detected file types that match these built-in detectors:`);
+		for (const s of remaining) {
+			console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
+		}
 	}
-	console.log(`${CLI_NAME}: detected file types that match these built-in detectors:`);
-	for (const s of remaining) {
-		console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
+
+	if (!options.cleanup) return;
+	const quiet = buildContext({ cwd, logger: SILENT });
+	const lines = describePlan(planCleanup(quiet, await (options.detectors ?? loadDetectors)(quiet)));
+	if (lines.length > 0) {
+		console.log(`${CLI_NAME}: cleanup suggestions from your plugins (run \`${CLI_NAME} init --cleanup\` in a terminal to delete empty files):`);
+		for (const line of lines) console.log(line);
 	}
 }

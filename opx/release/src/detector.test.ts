@@ -53,6 +53,17 @@ describe("opxReleaseDetector", () => {
 		});
 	});
 
+	describe("dependencies", () => {
+		it("pins the tools it ships to exact versions", async () => {
+			const { readFileSync } = await import("node:fs");
+			const { fileURLToPath } = await import("node:url");
+			const pkg = JSON.parse(readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8")) as { dependencies: Record<string, string> };
+			for (const [name, version] of Object.entries(pkg.dependencies)) {
+				if (!name.startsWith("@allons-y/")) expect({ name, version }).toEqual({ name, version: expect.stringMatching(/^\d+\.\d+\.\d+$/) });
+			}
+		});
+	});
+
 	describe("run", () => {
 		it("delegates to runRelease and returns its exit code", async () => {
 			const c = ctx(true);

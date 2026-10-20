@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import type { DetectorContext, OpxConfig, OpxState, PackageJson } from "@allons-y/opx";
+import type { DetectorContext, Logger, OpxConfig, OpxState, PackageJson } from "@allons-y/opx";
 import { createConsoleLogger, detectPackageManager, readConfig, readState } from "@allons-y/opx";
 
 import { getCurrentBranch, scanCommittedTree } from "./scanner.js";
@@ -11,6 +11,8 @@ export type BuildContextOptions = {
 	debug?: boolean;
 	dryRun?: boolean;
 	fix?: boolean;
+	/** Where to report; defaults to the console. */
+	logger?: Logger;
 };
 
 export function readHostPackage(cwd: string): PackageJson {
@@ -29,7 +31,7 @@ export function readHostPackage(cwd: string): PackageJson {
  * @returns The context passed to detectors and commands.
  */
 export function buildContext(options: BuildContextOptions): DetectorContext {
-	const { cwd, debug = false, dryRun = false, fix = false } = options;
+	const { cwd, debug = false, dryRun = false, fix = false, logger = createConsoleLogger({ debug }) } = options;
 	const hostPkg = readHostPackage(cwd);
 	const config: OpxConfig = readConfig(cwd);
 	const state: OpxState = readState(cwd);
@@ -48,7 +50,7 @@ export function buildContext(options: BuildContextOptions): DetectorContext {
 		get branch() {
 			return branch ??= getCurrentBranch(cwd);
 		},
-		logger: createConsoleLogger({ debug }),
+		logger,
 		dryRun,
 		fix,
 		write: (chunk) => void process.stdout.write(chunk),
