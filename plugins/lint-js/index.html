@@ -108,6 +108,40 @@
 </tr>
 </tbody>
 </table>
+<h2 id="rules" tabindex="-1"><a class="header-anchor" href="#rules">Rules</a></h2>
+<p>On top of <code>@eslint/js</code> recommended, the bundled config sets these to <code>error</code> for <code>.js</code>, <code>.mjs</code> and <code>.cjs</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>no-var</code>, <code>prefer-const</code></td>
+<td>Block-scoped bindings only.</td>
+</tr>
+<tr>
+<td><code>prefer-arrow-callback</code>, <code>object-shorthand</code></td>
+<td>Arrow callbacks and shorthand properties and methods.</td>
+</tr>
+<tr>
+<td><code>prefer-template</code></td>
+<td>Template literals over string concatenation.</td>
+</tr>
+<tr>
+<td><code>prefer-spread</code>, <code>prefer-rest-params</code>, <code>prefer-object-spread</code></td>
+<td>Spread and rest over <code>.apply()</code>, <code>arguments</code> and <code>Object.assign({}, …)</code>.</td>
+</tr>
+<tr>
+<td><code>no-unused-vars</code> with <code>ignoreRestSiblings</code></td>
+<td>Lets <code>const { omit, ...rest } = obj</code> drop a key without a warning.</td>
+</tr>
+</tbody>
+</table>
+<p>Most of these fix under <code>opx lint --fix</code>. <code>prefer-rest-params</code> and some <code>prefer-spread</code> cases need a manual edit. Two <code>@stylistic</code> rules, <code>template-curly-spacing</code> (<code>never</code>) and <code>object-curly-spacing</code> (<code>always</code>), keep the fixed output tidy.</p>
+<p>Left out on purpose: <code>no-console</code>. Build scripts and CLIs write to stdout, so turn it on in your own config where it fits (for example, off for <code>scripts/</code>).</p>
 <h2 id="configure" tabindex="-1"><a class="header-anchor" href="#configure">Configure</a></h2>
 <p>Use your own flat config instead of the bundled one:</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
