@@ -1938,7 +1938,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lydell/node-pty@npm:^1.2.0-beta.15":
+"@lydell/node-pty@npm:1.2.0-beta.15":
   version: 1.2.0-beta.15
   resolution: "@lydell/node-pty@npm:1.2.0-beta.15"
   dependencies:
@@ -7218,7 +7218,7 @@ __metadata:
     "@allons-y/opx-lint-ts": "workspace:*"
     "@allons-y/opx-release": "workspace:*"
     "@arethetypeswrong/cli": "npm:^0.18.5"
-    "@lydell/node-pty": "npm:^1.2.0-beta.15"
+    "@lydell/node-pty": "npm:1.2.0-beta.15"
     "@types/jest": "npm:^30"
     cross-env: "npm:^10.1.0"
     esbuild: "npm:^0.28.2"
