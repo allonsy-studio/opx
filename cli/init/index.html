@@ -91,7 +91,7 @@
 		<h1 data-pagefind-meta="title">opx init</h1>
 		<p>Scan the committed tree and interactively wire up opx.</p>
 <h2 id="synopsis" tabindex="-1"><a class="header-anchor" href="#synopsis">Synopsis</a></h2>
-<pre class="language-sh"><code class="language-sh">opx init <span class="token punctuation">[</span>--auto<span class="token punctuation">]</span> <span class="token punctuation">[</span>--quiet<span class="token punctuation">]</span></code></pre>
+<pre class="language-sh"><code class="language-sh">opx init <span class="token punctuation">[</span>--auto<span class="token punctuation">]</span> <span class="token punctuation">[</span>--quiet<span class="token punctuation">]</span> <span class="token punctuation">[</span>--cleanup<span class="token punctuation">]</span></code></pre>
 <h2 id="options" tabindex="-1"><a class="header-anchor" href="#options">Options</a></h2>
 <table>
 <thead>
@@ -112,6 +112,11 @@
 <td><code>false</code></td>
 <td>Suppress informational output when <code>--auto</code> exits early</td>
 </tr>
+<tr>
+<td><code>--cleanup</code></td>
+<td><code>false</code></td>
+<td>Opt in to the <a href="#cleanup">cleanup suggestions</a> from your plugins, and the offer to delete empty files</td>
+</tr>
 </tbody>
 </table>
 <h2 id="what-it-does" tabindex="-1"><a class="header-anchor" href="#what-it-does">What it does</a></h2>
@@ -122,9 +127,48 @@
 <li>Scaffolds a root <code>eslint.config.js</code> composed from your enabled lint plugins. It never overwrites an existing file.</li>
 <li>Offers to add <code>&quot;lint&quot;: &quot;opx lint&quot;</code> to your <code>package.json</code> scripts.</li>
 <li>Installs the <code>post-commit</code> husky hook and updates <code>.gitignore</code> to ignore <code>.opx/*</code> except <code>.opx/config.json</code>, which stays tracked.</li>
+<li>With <code>--cleanup</code>, shows the <a href="#cleanup">cleanup suggestions</a> your enabled plugins make, and offers to delete empty files they replace.</li>
 </ol>
+<h2 id="cleanup" tabindex="-1"><a class="header-anchor" href="#cleanup">Cleanup</a></h2>
+<p>Cleanup is off unless asked for, because it can delete files. Run <code>opx init --cleanup</code> to see what each enabled plugin makes unnecessary. <code>opx init</code> prints those suggestions and does very little itself. It deletes a file only when <strong>all</strong> of these hold:</p>
+<ol>
+<li>The plugin suggested it, and it is a regular file inside the repository (not a symlink or a folder).</li>
+<li>It is <strong>empty</strong>: nothing but whitespace, comments, or <code>{}</code>.</li>
+<li>git can restore it: it is tracked and unchanged since <code>HEAD</code>.</li>
+</ol>
+<p>It asks once before deleting. Everything else is advice for you to act on. opx never edits <code>package.json</code>, never edits your <code>eslint.config.js</code>, and never runs a command a plugin suggests, including your package manager.</p>
+<p>For example, with <code>lint-js</code>, <code>lint-json</code>, <code>lint-md</code>, or <code>lint-ts</code> enabled:</p>
+<table>
+<thead>
+<tr>
+<th>What</th>
+<th>What opx does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>An empty <code>.eslintrc*</code> or <code>.eslintignore</code> that git can restore</td>
+<td>Offers to delete it.</td>
+</tr>
+<tr>
+<td>A legacy ESLint config with content (<code>.eslintrc*</code>, <code>.eslintignore</code>, <code>eslintConfig</code> or <code>eslintIgnore</code> in <code>package.json</code>)</td>
+<td>Tells you opx does not apply it, and where to move what you still want: your override file if you set <code>lint.&lt;name&gt;</code>, otherwise a new flat config you point it at. For an <code>.eslintrc*</code> file it prints <code>npx @eslint/migrate-config &lt;file&gt;</code>, unless a flat config already exists, since that command overwrites one. You run it and delete the file.</td>
+</tr>
+<tr>
+<td>A package the plugin bundles (<code>eslint</code>, <code>globals</code>, …) that you list in <code>devDependencies</code></td>
+<td>Prints the <code>remove</code> command for your package manager, with the version the plugin ships, if nothing in the project appears to use it.</td>
+</tr>
+</tbody>
+</table>
+<p>A package is held back, and shown under &quot;Keeping&quot;, when:</p>
+<ul>
+<li>the project uses it: an <code>import</code>, <code>require</code>, or quoted reference in a source or config file, or a command in a <code>package.json</code> script, <code>.husky</code> hook, lint-staged config, or workflow;</li>
+<li>it is also listed under <code>dependencies</code>, <code>peerDependencies</code>, or <code>optionalDependencies</code>, which removing it would change; or</li>
+<li>opx cannot list the project's files to check.</li>
+</ul>
+<p>A plugin is only consulted when it is enabled and installed. Because the suggestions ship with the plugin, they match the version you have. See <a href="../../guides/writing-a-detector/">Writing a detector</a> to add them to your own plugin.</p>
 <h2 id="non-interactive-use" tabindex="-1"><a class="header-anchor" href="#non-interactive-use">Non-interactive use</a></h2>
-<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them.</p>
+<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them. With <code>--cleanup</code> it also prints the cleanup suggestions, and changes nothing. <code>init --auto</code> (postinstall) never runs cleanup, even with <code>--cleanup</code>.</p>
 
 	</main>
 </div>

@@ -100,6 +100,10 @@
 </thead>
 <tbody>
 <tr>
+<td><a href="/opx/api/type-aliases/CleanupSuggestion/">CleanupSuggestion</a></td>
+<td>Something a plugin says the project no longer needs now that the plugin is enabled.</td>
+</tr>
+<tr>
 <td><a href="/opx/api/type-aliases/Detector/">Detector</a></td>
 <td>The contract every opx plugin implements: decide when it applies, then run.</td>
 </tr>
@@ -178,6 +182,10 @@
 <tr>
 <td><a href="/opx/api/type-aliases/StaticTaskConfig/">StaticTaskConfig</a></td>
 <td>The config keys for static tasks, each a boolean.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/SuggestionCommand/">SuggestionCommand</a></td>
+<td>A command a person can run to act on a suggestion. opx prints it and never runs it.</td>
 </tr>
 </tbody>
 </table>
@@ -281,6 +289,10 @@
 <tr>
 <td><a href="/opx/api/functions/statePath/">statePath</a></td>
 <td>Locate <code>.opx/state.json</code>.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/uninstallCommand/">uninstallCommand</a></td>
+<td>Build the command that removes packages with a package manager.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/writeConfig/">writeConfig</a></td>
