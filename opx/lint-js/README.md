@@ -28,6 +28,22 @@ Requires [`@allons-y/opx-cli`](https://www.npmjs.com/package/@allons-y/opx-cli).
 
 The bundled flat config owns both **semantic lint** and **formatting** — there is no separate Prettier step.
 
+## Rules
+
+On top of `@eslint/js` recommended, the bundled config sets these to `error` for `.js`, `.mjs` and `.cjs`:
+
+| Rule | Why |
+|---|---|
+| `no-var`, `prefer-const` | Block-scoped bindings only. |
+| `prefer-arrow-callback`, `object-shorthand` | Arrow callbacks and shorthand properties and methods. |
+| `prefer-template` | Template literals over string concatenation. |
+| `prefer-spread`, `prefer-rest-params`, `prefer-object-spread` | Spread and rest over `.apply()`, `arguments` and `Object.assign({}, …)`. |
+| `no-unused-vars` with `ignoreRestSiblings` | Lets `const { omit, ...rest } = obj` drop a key without a warning. |
+
+Most of these fix under `opx lint --fix`. `prefer-rest-params` and some `prefer-spread` cases need a manual edit. Two `@stylistic` rules, `template-curly-spacing` (`never`) and `object-curly-spacing` (`always`), keep the fixed output tidy.
+
+Left out on purpose: `no-console`. Build scripts and CLIs write to stdout, so turn it on in your own config where it fits (for example, off for `scripts/`).
+
 ## Running
 
 After enabling, run via the opx CLI:

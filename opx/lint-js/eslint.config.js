@@ -23,6 +23,22 @@ export default defineConfig([
 		},
 	},
 	{
+		// Modern syntax: keeps ES5 idioms out of ESM code. Most auto-fix; prefer-rest-params
+		// and some prefer-spread cases need a manual edit. no-console stays opt-in.
+		files: ["**/*.{js,mjs,cjs}"],
+		rules: {
+			"no-var": "error",
+			"prefer-const": "error",
+			"prefer-arrow-callback": "error",
+			"prefer-template": "error",
+			"prefer-spread": "error",
+			"prefer-rest-params": "error",
+			"prefer-object-spread": "error",
+			"object-shorthand": "error",
+			"no-unused-vars": ["error", { ignoreRestSiblings: true }],
+		},
+	},
+	{
 		// Scope formatting rules to JS so this config composes cleanly: when
 		// spread alongside opx-lint-json / opx-lint-md (or third-party configs),
 		// these rules must not leak onto .json/.md files.
@@ -35,6 +51,9 @@ export default defineConfig([
 			"@stylistic/comma-dangle": ["error", "always-multiline"],
 			"@stylistic/eol-last": ["error", "always"],
 			"@stylistic/no-trailing-spaces": "error",
+			// Tidy the output of the prefer-template and prefer-object-spread fixes.
+			"@stylistic/template-curly-spacing": ["error", "never"],
+			"@stylistic/object-curly-spacing": ["error", "always"],
 		},
 	},
 ]);
