@@ -1,5 +1,16 @@
 # @allons-y/opx-release
 
+## 0.1.0-beta.2
+
+### Patch Changes
+
+- 5815e3c: List `types` first in `exports["."]`, as TypeScript requires: it matches conditions in order, so `types` must come before `import`. The type declarations already resolved because they sit beside the JavaScript, but `publint` flagged the order as an error. The build now runs `publint` and `attw` on every packed package.
+- 0530ab0: Pin the tools the plugin ships to exact versions.
+- Updated dependencies [5815e3c]
+- Updated dependencies [0530ab0]
+- Updated dependencies [5815e3c]
+  - @allons-y/opx@0.1.0-beta.2
+
 ## 0.1.0-beta.1
 
 ### Minor Changes

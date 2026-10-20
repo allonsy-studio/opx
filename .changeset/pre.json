@@ -15,9 +15,14 @@
   "changesets": [
     "add-lint-ts",
     "apache-2-license",
+    "detect-package-manager",
+    "exports-types-first",
+    "init-cleanup",
     "initial-opx-release",
     "js-only-lint-js",
     "lighter-startup-shared-runner",
-    "new-shared-workspace"
+    "new-shared-workspace",
+    "pin-release-tools",
+    "self-contained-types"
   ]
 }
