@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>opx</title>
+		<meta name="color-scheme" content="light dark">
+		<meta name="description" content="A tiny CLI and a family of installable plugins for linting, building, and releasing front-end projects. Take as much opinion as you want.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/preview/pr-37/assets/css/main.css">
+		<script src="https://kit.fontawesome.com/42e99b4632.js" crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<a class="studio-banner" href="https://allons-y.studio">
+			<img src="/opx/preview/pr-37/assets/img/oss-banner.svg" alt="Brought to you by Allons-y Studio" width="1600" height="64">
+		</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/preview/pr-37/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a>
+		</header>
+		<main id="main">
+	<section class="hero">
+		<h1>opx: the <em>optionally</em> opinionated front-end toolkit.</h1>
+		<p class="lede">opx scans your repository, works out which languages and workflows you have, and runs the matching plugins from your own <code>node_modules</code>. Install only the opinions you want.</p>
+		<div class="hero-actions">
+			<a class="button" href="/opx/preview/pr-37/getting-started/">Get started</a>
+			<a class="button secondary" href="/opx/preview/pr-37/cli/">CLI reference</a>
+			<a class="button secondary" href="/opx/preview/pr-37/api/">API reference</a>
+		</div>
+		<ul class="facts">
+			<li><span class="fa-brands fa-osi" aria-hidden="true"></span>Free &amp; open source · Apache-2.0</li>
+			<li><span class="fa-brands fa-node-js" aria-hidden="true"></span>Node 24+</li>
+			<li><span class="fa-solid fa-flask" aria-hidden="true"></span>Currently in beta</li>
+		</ul>
+<div class="hero-terminal">
+			<span class="terminal-bar" aria-hidden="true"><i></i><i></i><i></i></span>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-cli
+<span class="token function">yarn</span> opx init
+<span class="token function">yarn</span> opx lint</code></pre>
+		</div>
+	</section>
+
+	<section class="features" aria-label="Highlights">
+		<div class="feature">
+			<span class="icon" aria-hidden="true"><span class="fa-solid fa-feather-pointed fa-xl"></span></span>
+			<h2>A tiny core</h2>
+			<p>The CLI knows nothing about ESLint or changesets. It discovers plugins in your dependencies and delegates to them.</p>
+		</div>
+		<div class="feature">
+			<span class="icon" aria-hidden="true"><span class="fa-solid fa-toggle-on fa-xl"></span></span>
+			<h2>Opt in per tool</h2>
+			<p>Enable only the detectors you want with <code>opx enable</code>. Nothing is installed or configured behind your back.</p>
+		</div>
+		<div class="feature">
+			<span class="icon" aria-hidden="true"><span class="fa-solid fa-puzzle-piece fa-xl"></span></span>
+			<h2>Composable configs</h2>
+			<p>Every lint package exports a plain flat-config array. Spread it into your own <code>eslint.config.js</code> and layer your rules on top.</p>
+		</div>
+		<div class="feature">
+			<span class="icon" aria-hidden="true"><span class="fa-solid fa-rocket fa-xl"></span></span>
+			<h2>Release without ceremony</h2>
+			<p>A lightweight changesets flow: record a change, version, and publish with one command family.</p>
+		</div>
+	</section>
+
+	<section class="landing-section">
+		<h2>Packages</h2>
+		<table>
+			<thead><tr><th>Package</th><th>What it does</th></tr></thead>
+			<tbody>
+				<tr><td><a href="/opx/preview/pr-37/cli/"><code>@allons-y/opx-cli</code></a></td><td>The <code>opx</code> binary.</td></tr>
+				<tr><td><a href="/opx/preview/pr-37/api/"><code>@allons-y/opx</code></a></td><td>The engine: the <code>Detector</code> contract, config, state, and plugin loader.</td></tr>
+				<tr><td><a href="/opx/preview/pr-37/plugins/lint-js/"><code>@allons-y/opx-lint-js</code></a></td><td>JavaScript and TypeScript linting and formatting.</td></tr>
+				<tr><td><a href="/opx/preview/pr-37/plugins/lint-json/"><code>@allons-y/opx-lint-json</code></a></td><td>JSON, JSONC, and JSON5 linting.</td></tr>
+				<tr><td><a href="/opx/preview/pr-37/plugins/lint-md/"><code>@allons-y/opx-lint-md</code></a></td><td>Markdown linting.</td></tr>
+				<tr><td><a href="/opx/preview/pr-37/plugins/release/"><code>@allons-y/opx-release</code></a></td><td>A changesets-based release flow.</td></tr>
+			</tbody>
+		</table>
+	</section>
+</main>
+
+		<footer class="site-footer">
+			<div class="site-footer-brand">
+				<p class="site-footer-title">opx</p>
+				<p>The optionally opinionated front-end toolkit.</p>
+				<p class="site-footer-meta"><a href="https://github.com/allonsy-studio/opx/blob/main/LICENSE">Licensed under Apache-2.0</a></p>
+			</div>
+			<div>
+				<p class="site-footer-title">Project</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a></li>
+					<li><a href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a></li>
+				</ul>
+			</div>
+			<div>
+				<p class="site-footer-title">Help</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx/issues">Report an issue</a></li>
+					<li><a href="https://github.com/allonsy-studio/opx/blob/main/.github/CONTRIBUTING.md">Contributing guide</a></li>
+				</ul>
+			</div>
+			<div class="site-footer-studio">
+				<a href="https://allons-y.studio">
+					<picture>
+						<source media="(prefers-color-scheme: dark)" srcset="/opx/preview/pr-37/assets/img/oss-footer-dark.svg">
+						<img src="/opx/preview/pr-37/assets/img/oss-footer-light.svg" alt="Brought to you by Allons-y Studio" width="440" height="75">
+					</picture>
+				</a>
+			</div>
+		</footer>
+	</body>
+</html>
