@@ -3,6 +3,9 @@ import { tmpdir } from "node:os";
 import type { DetectorContext } from "@allons-y/opx";
 
 import { opxLintJsDetector } from "./detector.js";
+import { useScratch } from "shared/testing.js";
+
+const scratch = useScratch();
 
 function ctx(fileTypes: Set<string>): DetectorContext {
 	return { fileTypes } as unknown as DetectorContext;
@@ -25,10 +28,9 @@ describe("opxLintJsDetector", () => {
 	});
 
 	it("delegates run() to the runner against a clean file", async () => {
-		const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
-		const { tmpdir } = await import("node:os");
+		const { mkdirSync, writeFileSync } = await import("node:fs");
 		const { join } = await import("node:path");
-		const dir = mkdtempSync(join(tmpdir(), "opx-lint-"));
+		const dir = scratch.dir("opx-lint-");
 		mkdirSync(join(dir, ".opx", "cache", "eslint"), { recursive: true });
 		writeFileSync(join(dir, "clean.js"), "export const ok = 1;\n");
 		const c = {

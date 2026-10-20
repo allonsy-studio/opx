@@ -2,7 +2,7 @@
 export type DetectorId = string;
 
 /** The package managers opx can detect and install with. */
-export type PackageManager = "npm" | "yarn" | "pnpm";
+export type PackageManager = "npm" | "yarn" | "pnpm" | "bun";
 
 /** Leveled logging that detectors write through instead of using `console` directly. */
 export type Logger = {

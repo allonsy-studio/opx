@@ -1,17 +1,19 @@
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { DetectorContext } from "@allons-y/opx";
 
 import { runEslint } from "./runner.js";
+import { useScratch } from "shared/testing.js";
+
+const scratch = useScratch();
 
 const HERE = resolve(fileURLToPath(import.meta.url), "..");
 const BUNDLED_CONFIG = resolve(HERE, "..", "eslint.config.js");
 
 function makeDir(): string {
-	const dir = mkdtempSync(join(tmpdir(), "opx-lint-js-"));
+	const dir = scratch.dir("opx-lint-js-");
 	mkdirSync(join(dir, ".opx", "cache", "eslint"), { recursive: true });
 	return dir;
 }

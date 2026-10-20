@@ -32,7 +32,8 @@ export {
 } from "./state.js";
 export type { DiffEntry, DiffResult } from "./diff.js";
 export { applyDeferral, defaultSkipUntilDate, diff, isDeferred } from "./diff.js";
-export { detectPackageManager, installCommand, uninstallCommand } from "./pkg-manager.js";
+export type { Environment, InstallOptions, PackageManagerInfo } from "./pkg-manager.js";
+export { detectPackageManager, inspectPackageManager, installCommand, uninstallCommand } from "./pkg-manager.js";
 export type { ResolvedTool } from "./resolver.js";
 export { resolveTool } from "./resolver.js";
 export { filterPathsByExtension } from "./paths.js";

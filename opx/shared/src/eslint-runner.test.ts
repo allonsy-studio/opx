@@ -1,9 +1,11 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import type { DetectorContext } from "@allons-y/opx";
 import { runEslint, type EslintRunSpec } from "./eslint-runner.js";
+import { useScratch } from "./testing.js";
+
+const scratch = useScratch();
 
 type Fake = {
 	options: Record<string, unknown>;
@@ -58,7 +60,7 @@ function makeCtx(cwd: string, overrides: Partial<DetectorContext> = {}): Detecto
 }
 
 describe("runEslint", () => {
-	const dir = mkdtempSync(join(tmpdir(), "opx-eslint-runner-"));
+	const dir = scratch.dir("opx-eslint-runner-");
 
 	it("lints the default paths with the bundled config and returns 0 when clean", async () => {
 		const fake = makeSpec(0, "");
@@ -106,11 +108,11 @@ describe("runEslint", () => {
 
 	it("loads .gitignore as a base config only when the file exists", async () => {
 		const bare = makeSpec(0);
-		await runEslint(makeCtx(mkdtempSync(join(tmpdir(), "opx-eslint-bare-"))), [], bare.spec);
+		await runEslint(makeCtx(scratch.dir("opx-eslint-bare-")), [], bare.spec);
 		expect(bare.ignoreLoaded).toBe(false);
 		expect(bare.options.baseConfig).toBeUndefined();
 
-		const withIgnore = mkdtempSync(join(tmpdir(), "opx-eslint-ignore-"));
+		const withIgnore = scratch.dir("opx-eslint-ignore-");
 		writeFileSync(join(withIgnore, ".gitignore"), "dist\n");
 		const ignored = makeSpec(0);
 		await runEslint(makeCtx(withIgnore), [], ignored.spec);

@@ -15,9 +15,9 @@ export type ResolvedTool = {
  *
  * `bundledRequire` is created with `createRequire(import.meta.url)` inside the
  * detector package, so its resolution lookups start from the detector's own
- * node_modules tree.
+ * node_modules tree. Only its `resolve` is used, so any object with one works.
  */
-export function resolveTool(toolName: string, hostCwd: string, bundledRequire: NodeJS.Require): ResolvedTool {
+export function resolveTool(toolName: string, hostCwd: string, bundledRequire: { resolve(request: string): string }): ResolvedTool {
 	const hostRequire = createRequire(pathToFileURL(`${hostCwd}/__opx_resolve__`));
 	try {
 		const packagePath = hostRequire.resolve(`${toolName}/package.json`);

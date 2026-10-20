@@ -1,10 +1,12 @@
 import { jest } from "@jest/globals";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { loadLocalEnv } from "./env.js";
+import { useScratch } from "shared/testing.js";
+
+const scratch = useScratch();
 
 describe("loadLocalEnv", () => {
 	afterEach(() => {
@@ -28,7 +30,7 @@ describe("loadLocalEnv", () => {
 	// Jest gives each test file its own copy of process.env, so check the real
 	// behavior the dotenv replacement relies on in a child process.
 	it("relies on Node loading new variables without overriding ones already set", () => {
-		const file = join(mkdtempSync(join(tmpdir(), "opx-env-")), ".env");
+		const file = join(scratch.dir("opx-env-"), ".env");
 		writeFileSync(file, "OPX_TEST_NEW=from-file\nOPX_TEST_KEEP=from-file\n", "utf8");
 		const out = execFileSync(
 			process.execPath,
