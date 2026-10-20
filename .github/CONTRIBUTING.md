@@ -51,6 +51,8 @@ Pick `patch` for bug fixes, `minor` for new features, and `major` for breaking c
 
 Renovate bumps to the tools a package ships (its `dependencies`) get a patch changeset automatically: the [Dependency changeset](workflows/dependency-changeset.yml) workflow adds one to Renovate's pull request, and removes it if the bump no longer changes a shipped dependency. Edit it if the bump deserves more than a patch. Dev dependency bumps don't need one.
 
+The [Release](workflows/release.yml) workflow opens the "Version Packages" pull request. To have it come from a GitHub App instead of `github-actions[bot]`, so its CI runs without someone approving each run, create an App with `contents` and `pull requests` write access, install it on this repository, and set the `RELEASE_APP_CLIENT_ID` variable and the `RELEASE_APP_PRIVATE_KEY` secret. Without them the workflow falls back to the default token.
+
 ## Documentation
 
 If you change what a command, option, config key, or plugin does, update its page under `opx/docs/src` in the same pull request. The API reference is generated from the source, so keep JSDoc comments on exported types accurate.
