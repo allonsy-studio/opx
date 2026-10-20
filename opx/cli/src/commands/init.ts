@@ -31,8 +31,8 @@ import { detectMode } from "../tty.js";
 export type InitOptions = {
 	auto: boolean;
 	quiet: boolean;
-	/** Show the plugins' cleanup suggestions and offer to delete empty files. */
-	cleanup: boolean;
+	/** Opt in to the plugins' cleanup suggestions and the offer to delete empty files. */
+	cleanup?: boolean;
 };
 
 /** Loads the detectors of the enabled plugins; injectable so tests don't import real plugins. */
@@ -40,7 +40,7 @@ export type DetectorLoader = (ctx: DetectorContext) => Promise<Detector[]>;
 
 /** Options shared by the interactive and report flows. */
 export type CleanupOptions = {
-	/** Set to `false` to skip cleanup. */
+	/** Set to `true` to show the plugins' cleanup suggestions and offer to delete empty files. */
 	cleanup?: boolean;
 	/** Loads the enabled plugins' detectors; defaults to the built-in loader. */
 	detectors?: DetectorLoader;
@@ -52,7 +52,7 @@ export default function register(program: Command): void {
 		.description(`Scan the repo and interactively wire up ${CLI_NAME} tooling`)
 		.option("--auto", "auto-mode (used by postinstall); only proceeds in TTY", false)
 		.option("--quiet", "suppress informational output when --auto exits early", false)
-		.option("--no-cleanup", "skip the cleanup suggestions from your plugins")
+		.option("--cleanup", "show what your plugins make unnecessary, and offer to delete empty files git can restore")
 		.action(async (opts: InitOptions) => {
 			const cwd = process.cwd();
 			const mode = detectMode(false);
@@ -245,7 +245,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		p.log.success(`Updated .gitignore to ignore local .${CLI_NAME}/ files (config.json stays tracked)`);
 	}
 
-	if (options.cleanup !== false) {
+	if (options.cleanup) {
 		await offerCleanup(cwd, options.detectors ?? loadDetectors);
 	}
 
@@ -309,11 +309,11 @@ export async function runReport(cwd: string, options: CleanupOptions = {}): Prom
 		}
 	}
 
-	if (options.cleanup === false) return;
+	if (!options.cleanup) return;
 	const quiet = buildContext({ cwd, logger: SILENT });
 	const lines = describePlan(planCleanup(quiet, await (options.detectors ?? loadDetectors)(quiet)));
 	if (lines.length > 0) {
-		console.log(`${CLI_NAME}: cleanup suggestions from your plugins (run \`${CLI_NAME} init\` in a terminal to delete empty files):`);
+		console.log(`${CLI_NAME}: cleanup suggestions from your plugins (run \`${CLI_NAME} init --cleanup\` in a terminal to delete empty files):`);
 		for (const line of lines) console.log(line);
 	}
 }

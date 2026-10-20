@@ -73,7 +73,7 @@ describe("command registration", () => {
 		expect(printed()).toContain("wrote starter");
 	});
 
-	it("init shows what the lint-js plugin suggests dropping, and --no-cleanup leaves it out", async () => {
+	it("init shows what the lint-js plugin suggests dropping only with --cleanup", async () => {
 		mkdirSync(join(dir, ".opx"));
 		writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ version: 1, lint: { js: true } }));
 		writeFileSync(join(dir, "package.json"), JSON.stringify({ devDependencies: { "@allons-y/opx-lint-js": "^1.0.0", eslint: "^9.0.0" } }));
@@ -83,7 +83,7 @@ describe("command registration", () => {
 		execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });
 		execFileSync("git", ["commit", "-m", "deps"], { cwd: dir, stdio: "ignore" });
 
-		await run(registerInit, "init");
+		await run(registerInit, "init", "--cleanup");
 		expect(printed()).toContain("Empty files that git can restore:\n  - .eslintrc.json");
 		expect(printed()).toContain("- .eslintignore: opx lint uses its own config, not this");
 		expect(printed()).toContain("Run: npx @eslint/migrate-config .eslintrc.yml");
@@ -92,7 +92,7 @@ describe("command registration", () => {
 		expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 
 		log.mockClear();
-		await run(registerInit, "init", "--no-cleanup");
+		await run(registerInit, "init");
 		expect(printed()).not.toContain("bundled by");
 	});
 

@@ -132,7 +132,7 @@ try {
 
 	// The packed plugins' suggestions reach the CLI: an empty legacy file is offered for deletion, the rest is advice
 	// with a command, and the version named is the one the plugin ships, not the project's older eslint.
-	const init = opx("init");
+	const init = opx("init", "--cleanup");
 	check(
 		"opx init shows the plugins' cleanup suggestions",
 		/Empty files that git can restore:\n\s+- \.eslintrc\.json/.test(init.stdout) && init.stdout.includes(".eslintignore: opx lint uses its own config"),

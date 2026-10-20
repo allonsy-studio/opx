@@ -193,7 +193,7 @@ describe("init", () => {
 		it("deletes an empty file git can restore once confirmed, and only advises on the rest", async () => {
 			const dir = make(files);
 			answers({}, "no");
-			await runInteractive(dir, install, { detectors });
+			await runInteractive(dir, install, { cleanup: true, detectors });
 
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(false);
 			expect(read(dir, ".eslintignore")).toBe("node_modules\n");
@@ -209,7 +209,7 @@ describe("init", () => {
 			for (const reply of [false, CANCEL]) {
 				const dir = make(files);
 				confirm.mockResolvedValue(reply);
-				await runInteractive(dir, install, { detectors });
+				await runInteractive(dir, install, { cleanup: true, detectors });
 				expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 			}
 		});
@@ -217,15 +217,15 @@ describe("init", () => {
 		it("does not ask when there is nothing to delete", async () => {
 			const dir = make({ ...files, ".eslintrc.json": '{ "root": true }' });
 			answers({}, "no");
-			await runInteractive(dir, install, { detectors });
+			await runInteractive(dir, install, { cleanup: true, detectors });
 			expect(confirm.mock.calls.some(([o]) => o.message.startsWith("Delete"))).toBe(false);
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 		});
 
-		it("skips cleanup with cleanup: false, without loading any plugin", async () => {
+		it("does nothing about cleanup unless asked, and loads no plugin", async () => {
 			const dir = make(files);
 			answers({}, "no");
-			await runInteractive(dir, install, { cleanup: false, detectors });
+			await runInteractive(dir, install, { detectors });
 			expect(detectors).not.toHaveBeenCalled();
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 		});
@@ -241,20 +241,20 @@ describe("init", () => {
 			expect(printed()).toContain("opx enable js");
 		});
 
-		it("lists the plugins' cleanup suggestions without changing anything, unless cleanup is off", async () => {
+		it("lists the plugins' cleanup suggestions without changing anything, only when asked", async () => {
 			const dir = make({ "a.js": "x", ".eslintrc.json": "{}", "package.json": JSON.stringify({ name: "host", devDependencies: { eslint: "^9.0.0" } }) });
 			const detectors = async (): Promise<Detector[]> => [
 				{ cleanup: () => [{ kind: "file", target: ".eslintrc.json", reason: "not applied" }, { kind: "dependency", target: "eslint", reason: "bundled" }] } as unknown as Detector,
 			];
 
-			await runReport(dir, { detectors });
+			await runReport(dir, { cleanup: true, detectors });
 			expect(printed()).toContain("cleanup suggestions from your plugins");
 			expect(printed()).toContain("  - .eslintrc.json");
 			expect(printed()).toContain("Drop the unused packages with: npm uninstall eslint");
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 
 			log.mockClear();
-			await runReport(dir, { cleanup: false, detectors });
+			await runReport(dir, { detectors });
 			expect(printed()).not.toContain("cleanup suggestions");
 		});
 

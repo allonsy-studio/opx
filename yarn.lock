@@ -259,12 +259,12 @@ __metadata:
   resolution: "@allons-y/opx-release@workspace:opx/release"
   dependencies:
     "@allons-y/opx": "npm:^0.1.0-beta.1"
-    "@changesets/cli": "npm:^2.31.1"
-    "@changesets/get-github-info": "npm:^0.8.0"
+    "@changesets/cli": "npm:2.31.1"
+    "@changesets/get-github-info": "npm:0.8.0"
     "@changesets/types": "npm:6.1.0"
-    "@changesets/write": "npm:^0.4.0"
-    "@clack/prompts": "npm:^1.8.1"
-    "@manypkg/get-packages": "npm:^1.1.3"
+    "@changesets/write": "npm:0.4.0"
+    "@clack/prompts": "npm:1.8.1"
+    "@manypkg/get-packages": "npm:1.1.3"
   peerDependencies:
     typescript: ^5.0.0 || ^6.0.0
   peerDependenciesMeta:
@@ -793,7 +793,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/cli@npm:^2.31.1":
+"@changesets/cli@npm:2.31.1":
   version: 2.31.1
   resolution: "@changesets/cli@npm:2.31.1"
   dependencies:
@@ -866,7 +866,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/get-github-info@npm:^0.8.0":
+"@changesets/get-github-info@npm:0.8.0":
   version: 0.8.0
   resolution: "@changesets/get-github-info@npm:0.8.0"
   dependencies:
@@ -980,7 +980,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@changesets/write@npm:^0.4.0":
+"@changesets/write@npm:0.4.0, @changesets/write@npm:^0.4.0":
   version: 0.4.0
   resolution: "@changesets/write@npm:0.4.0"
   dependencies:
@@ -1002,7 +1002,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@clack/prompts@npm:^1.8.1":
+"@clack/prompts@npm:1.8.1, @clack/prompts@npm:^1.8.1":
   version: 1.8.1
   resolution: "@clack/prompts@npm:1.8.1"
   dependencies:
@@ -1845,7 +1845,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@manypkg/get-packages@npm:^1.1.3":
+"@manypkg/get-packages@npm:1.1.3, @manypkg/get-packages@npm:^1.1.3":
   version: 1.1.3
   resolution: "@manypkg/get-packages@npm:1.1.3"
   dependencies:

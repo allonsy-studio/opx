@@ -57,7 +57,7 @@ export function buildChangeset(packages) {
 	return `---\n${header}\n---\n\nUpdate dependencies: ${[...lines].join(", ")}.\n`;
 }
 
-/** A branch name as a file name: `renovate/lint-plugin-tools` becomes `renovate-lint-plugin-tools`. */
+/** A branch name as a file name: `renovate/plugin-tools` becomes `renovate-plugin-tools`. */
 export function slugOf(branch) {
 	return branch.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }

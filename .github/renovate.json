@@ -30,15 +30,15 @@
 			"matchPackageNames": ["@changesets/*"]
 		},
 		{
-			"description": "The tools a lint plugin ships are pinned: a bump changes what users get and what the plugin's cleanup advice names, so it is reviewed and released on its own.",
-			"matchFileNames": ["opx/lint-*/package.json"],
+			"description": "The tools a plugin ships are pinned: a bump changes what users get and what the plugin's cleanup advice names, so it is reviewed and released on its own.",
+			"matchFileNames": ["opx/*/package.json", "!opx/{cli,engine,shared,docs}/package.json"],
 			"matchDepTypes": ["dependencies"],
 			"matchPackageNames": ["!@allons-y/*"],
 			"rangeStrategy": "pin",
-			"groupName": "lint plugin tools",
+			"groupName": "plugin tools",
 			"semanticCommitType": "fix",
-			"semanticCommitScope": "lint",
-			"addLabels": ["bundled-tools"]
+			"semanticCommitScope": "plugins",
+			"addLabels": ["plugin-tools"]
 		}
 	],
 	"postUpdateOptions": ["yarnDedupeHighest"],

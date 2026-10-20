@@ -85,7 +85,7 @@ describe("buildChangeset", () => {
 
 describe("slugOf", () => {
 	it("turns a branch name into a file name", () => {
-		assert.equal(slugOf("renovate/lint-plugin-tools"), "renovate-lint-plugin-tools");
+		assert.equal(slugOf("renovate/plugin-tools"), "renovate-plugin-tools");
 		assert.equal(slugOf("Renovate/@scope/Pkg_1.2"), "renovate-scope-pkg-1-2");
 		assert.equal(slugOf("../../etc/passwd"), "etc-passwd");
 		assert.equal(slugOf("a".repeat(200)).length, 80);
