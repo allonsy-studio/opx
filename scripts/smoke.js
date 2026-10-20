@@ -76,10 +76,13 @@ try {
 	// 2. Install the tarballs into a scratch repository.
 	const app = join(work, "app");
 	mkdirSync(join(app, "src"), { recursive: true });
-	writeFileSync(join(app, "package.json"), `${JSON.stringify({ name: "smoke-app", private: true, type: "module" }, null, "\t")}\n`);
+	writeFileSync(join(app, "package.json"), `${JSON.stringify({ name: "smoke-app", private: true, type: "module", devDependencies: { eslint: "^9.0.0" } }, null, "\t")}\n`);
 	writeFileSync(join(app, "src", "a.js"), "export const a = 1\n");
 	writeFileSync(join(app, "README.md"), "# Smoke\n");
 	writeFileSync(join(app, ".gitignore"), "node_modules\n.opx/*\n!.opx/config.json\n");
+	writeFileSync(join(app, ".eslintrc.json"), "{}\n");
+	writeFileSync(join(app, ".eslintignore"), "coverage\n");
+	writeFileSync(join(app, ".eslintrc.yml"), "rules:\n  semi: error\n");
 	run("git", ["init", "--quiet"], app);
 
 	const installed = run("npm", ["install", "--save-dev", "--no-audit", "--no-fund", ...tarballs], app);
@@ -126,6 +129,21 @@ try {
 	}
 	check("opx scan --json reports nothing left to enable", scanned !== null && scanned.needsPrompt.length === 0, scan.stdout + scan.stderr);
 	check("opx scan --strict exits 0", opx("scan", "--strict").status === 0);
+
+	// The packed plugins' suggestions reach the CLI: an empty legacy file is offered for deletion, the rest is advice
+	// with a command, and the version named is the one the plugin ships, not the project's older eslint.
+	const init = opx("init");
+	check(
+		"opx init shows the plugins' cleanup suggestions",
+		/Empty files that git can restore:\n\s+- \.eslintrc\.json/.test(init.stdout) && init.stdout.includes(".eslintignore: opx lint uses its own config"),
+		init.stdout + init.stderr,
+	);
+	check("opx init prints the migrate command for a legacy config", init.stdout.includes("Run: npx @eslint/migrate-config .eslintrc.yml"), init.stdout);
+	check(
+		"opx init names the eslint version the plugin ships",
+		/eslint: bundled by @allons-y\/opx-lint-\w+ at (?!9\.)\d+\.\d+\.\d+/.test(init.stdout),
+		init.stdout,
+	);
 } catch (error) {
 	if (error.message !== "install failed") failures.push(String(error));
 } finally {

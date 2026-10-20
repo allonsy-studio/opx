@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Command } from "commander";
@@ -71,6 +71,29 @@ describe("command registration", () => {
 		await run(registerInit, "init");
 		expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
 		expect(printed()).toContain("wrote starter");
+	});
+
+	it("init shows what the lint-js plugin suggests dropping, and --no-cleanup leaves it out", async () => {
+		mkdirSync(join(dir, ".opx"));
+		writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ version: 1, lint: { js: true } }));
+		writeFileSync(join(dir, "package.json"), JSON.stringify({ devDependencies: { "@allons-y/opx-lint-js": "^1.0.0", eslint: "^9.0.0" } }));
+		writeFileSync(join(dir, ".eslintrc.json"), "{}\n");
+		writeFileSync(join(dir, ".eslintignore"), "coverage\n");
+		writeFileSync(join(dir, ".eslintrc.yml"), "rules:\n  semi: error\n");
+		execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });
+		execFileSync("git", ["commit", "-m", "deps"], { cwd: dir, stdio: "ignore" });
+
+		await run(registerInit, "init");
+		expect(printed()).toContain("Empty files that git can restore:\n  - .eslintrc.json");
+		expect(printed()).toContain("- .eslintignore: opx lint uses its own config, not this");
+		expect(printed()).toContain("Run: npx @eslint/migrate-config .eslintrc.yml");
+		expect(printed()).toMatch(/- eslint: bundled by @allons-y\/opx-lint-js at \d+\.\d+\.\d+; nothing else appears to use it/);
+		expect(printed()).toContain("Drop the unused packages with: npm uninstall eslint");
+		expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+
+		log.mockClear();
+		await run(registerInit, "init", "--no-cleanup");
+		expect(printed()).not.toContain("bundled by");
 	});
 
 	it("init --auto only hints outside a TTY, and stays quiet with --quiet", async () => {

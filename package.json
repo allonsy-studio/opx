@@ -22,6 +22,7 @@
 		"build": "yarn workspaces foreach --all --parallel --interlaced --topological-dev --no-private run build",
 		"ci": "run-s clean build typecheck",
 		"test": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run test",
+		"test:scripts": "node --test scripts/*.test.js",
 		"coverage": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run coverage",
 		"lint": "yarn build && opx lint",
 		"format": "yarn build && opx lint --fix",

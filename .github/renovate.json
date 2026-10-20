@@ -2,6 +2,7 @@
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"baseBranchPatterns": ["main"],
 	"extends": ["config:best-practices", "group:githubArtifactActions"],
+	"gitIgnoredAuthors": ["41898282+github-actions[bot]@users.noreply.github.com"],
 	"labels": ["dependencies", "renovate"],
 	"lockFileMaintenance": {
 		"enabled": true,
@@ -27,6 +28,17 @@
 		{
 			"groupName": "changesets ecosystem",
 			"matchPackageNames": ["@changesets/*"]
+		},
+		{
+			"description": "The tools a lint plugin ships are pinned: a bump changes what users get and what the plugin's cleanup advice names, so it is reviewed and released on its own.",
+			"matchFileNames": ["opx/lint-*/package.json"],
+			"matchDepTypes": ["dependencies"],
+			"matchPackageNames": ["!@allons-y/*"],
+			"rangeStrategy": "pin",
+			"groupName": "lint plugin tools",
+			"semanticCommitType": "fix",
+			"semanticCommitScope": "lint",
+			"addLabels": ["bundled-tools"]
 		}
 	],
 	"postUpdateOptions": ["yarnDedupeHighest"],

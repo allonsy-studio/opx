@@ -50,3 +50,23 @@ export function installCommand(pm: PackageManager, packages: string[], opts: { d
 			return `npm install ${dev ? "--save-dev " : ""}${packages.join(" ")}`;
 	}
 }
+
+/**
+ * Build the command that removes packages with a package manager.
+ *
+ * @param pm - The package manager to use.
+ * @param packages - The packages to remove.
+ * @returns The command, or an empty string when there are no packages.
+ */
+export function uninstallCommand(pm: PackageManager, packages: string[]): string {
+	if (packages.length === 0) return "";
+	switch (pm) {
+		case "yarn":
+			return `yarn remove ${packages.join(" ")}`;
+		case "pnpm":
+			return `pnpm remove ${packages.join(" ")}`;
+		case "npm":
+		default:
+			return `npm uninstall ${packages.join(" ")}`;
+	}
+}

@@ -1,0 +1,76 @@
+name: Dependency changeset
+
+# A Renovate bump to a tool a package ships changes what users get, so it needs a
+# changeset or it never publishes. This adds one to Renovate's pull request.
+#
+# The script that writes it comes from the base branch, never from the pull
+# request, and nothing from the pull request is installed or run, because this
+# job can push.
+#
+# Pushes made with the default token do not start other workflows, so CI would
+# not run on the changeset commit. Set a `CHANGESET_TOKEN` secret (a fine-grained
+# token or a GitHub App token with `contents: write` on this repository) so it does.
+
+on:
+    pull_request:
+        types: [opened, synchronize, reopened]
+
+concurrency:
+    group: dependency-changeset-${{ github.event.pull_request.number }}
+    cancel-in-progress: true
+
+permissions:
+    contents: write
+
+jobs:
+    changeset:
+        if: >-
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            startsWith(github.head_ref, 'renovate/')
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out the trusted script from the base branch
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.base_ref }}
+                  path: trusted
+                  persist-credentials: false
+
+            - name: Check out the pull request branch
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.head_ref }}
+                  path: branch
+                  fetch-depth: 0
+                  token: ${{ secrets.CHANGESET_TOKEN || github.token }}
+
+            - name: Setup Node
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version-file: trusted/.nvmrc
+
+            - name: Write the changeset
+              working-directory: branch
+              env:
+                  BASE_REF: origin/${{ github.base_ref }}
+                  HEAD_REF: ${{ github.head_ref }}
+              run: node "$GITHUB_WORKSPACE/trusted/scripts/dependency-changeset.js" "$BASE_REF" "$HEAD_REF"
+
+            - name: Commit the changeset
+              working-directory: branch
+              env:
+                  HEAD_REF: ${{ github.head_ref }}
+                  CHANGESET_TOKEN: ${{ secrets.CHANGESET_TOKEN }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git add .changeset
+                  if git diff --cached --quiet; then
+                      echo "The changeset is already up to date."
+                      exit 0
+                  fi
+                  git commit -m "chore: update dependency changeset"
+                  git push origin "HEAD:refs/heads/$HEAD_REF"
+                  if [ -z "$CHANGESET_TOKEN" ]; then
+                      echo "::warning::No CHANGESET_TOKEN secret is set, so CI will not run on this commit. See the comment at the top of this workflow."
+                  fi

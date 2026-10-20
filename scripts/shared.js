@@ -25,6 +25,7 @@ const sharedDir = join(root, "opx", "shared", "src");
 /** Shared source name, mapped to the packages under `opx/` that use it. */
 const TARGETS = {
 	"eslint-runner": ["lint-js", "lint-json", "lint-md", "lint-ts"],
+	"eslint-cleanup": ["lint-js", "lint-json", "lint-md", "lint-ts"],
 };
 
 /**
