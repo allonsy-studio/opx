@@ -136,7 +136,7 @@
 <li>It is <strong>empty</strong>: nothing but whitespace, comments, or <code>{}</code>.</li>
 <li>git can restore it: it is tracked and unchanged since <code>HEAD</code>.</li>
 </ol>
-<p>It asks once before deleting. Everything else is advice for you to act on. opx never edits <code>package.json</code>, never edits your <code>eslint.config.js</code>, and never runs your package manager to remove anything.</p>
+<p>It asks once before deleting. Everything else is advice for you to act on. opx never edits <code>package.json</code>, never edits your <code>eslint.config.js</code>, and never runs a command a plugin suggests, including your package manager.</p>
 <p>For example, with <code>lint-js</code>, <code>lint-json</code>, <code>lint-md</code>, or <code>lint-ts</code> enabled:</p>
 <table>
 <thead>
@@ -152,11 +152,11 @@
 </tr>
 <tr>
 <td>A legacy ESLint config with content (<code>.eslintrc*</code>, <code>.eslintignore</code>, <code>eslintConfig</code> or <code>eslintIgnore</code> in <code>package.json</code>)</td>
-<td>Tells you opx does not apply it, and how to move it into <code>eslint.config.js</code> (<code>npx @eslint/migrate-config &lt;file&gt;</code> can convert it). You delete it.</td>
+<td>Tells you opx does not apply it, and where to move what you still want: your override file if you set <code>lint.&lt;name&gt;</code>, otherwise a new flat config you point it at. For an <code>.eslintrc*</code> file it prints <code>npx @eslint/migrate-config &lt;file&gt;</code>, unless a flat config already exists, since that command overwrites one. You run it and delete the file.</td>
 </tr>
 <tr>
 <td>A package the plugin bundles (<code>eslint</code>, <code>globals</code>, …) that you list in <code>devDependencies</code></td>
-<td>Prints the <code>remove</code> command for your package manager, if nothing in the project appears to use it.</td>
+<td>Prints the <code>remove</code> command for your package manager, with the version the plugin ships, if nothing in the project appears to use it.</td>
 </tr>
 </tbody>
 </table>
