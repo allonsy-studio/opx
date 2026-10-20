@@ -91,7 +91,7 @@
 		<h1 data-pagefind-meta="title">opx init</h1>
 		<p>Scan the committed tree and interactively wire up opx.</p>
 <h2 id="synopsis" tabindex="-1"><a class="header-anchor" href="#synopsis">Synopsis</a></h2>
-<pre class="language-sh"><code class="language-sh">opx init <span class="token punctuation">[</span>--auto<span class="token punctuation">]</span> <span class="token punctuation">[</span>--quiet<span class="token punctuation">]</span> <span class="token punctuation">[</span>--no-cleanup<span class="token punctuation">]</span></code></pre>
+<pre class="language-sh"><code class="language-sh">opx init <span class="token punctuation">[</span>--auto<span class="token punctuation">]</span> <span class="token punctuation">[</span>--quiet<span class="token punctuation">]</span> <span class="token punctuation">[</span>--cleanup<span class="token punctuation">]</span></code></pre>
 <h2 id="options" tabindex="-1"><a class="header-anchor" href="#options">Options</a></h2>
 <table>
 <thead>
@@ -113,9 +113,9 @@
 <td>Suppress informational output when <code>--auto</code> exits early</td>
 </tr>
 <tr>
-<td><code>--no-cleanup</code></td>
-<td>cleanup on</td>
-<td>Skip the <a href="#cleanup">cleanup suggestions</a> from your plugins</td>
+<td><code>--cleanup</code></td>
+<td><code>false</code></td>
+<td>Opt in to the <a href="#cleanup">cleanup suggestions</a> from your plugins, and the offer to delete empty files</td>
 </tr>
 </tbody>
 </table>
@@ -127,10 +127,10 @@
 <li>Scaffolds a root <code>eslint.config.js</code> composed from your enabled lint plugins. It never overwrites an existing file.</li>
 <li>Offers to add <code>&quot;lint&quot;: &quot;opx lint&quot;</code> to your <code>package.json</code> scripts.</li>
 <li>Installs the <code>post-commit</code> husky hook and updates <code>.gitignore</code> to ignore <code>.opx/*</code> except <code>.opx/config.json</code>, which stays tracked.</li>
-<li>Shows the <a href="#cleanup">cleanup suggestions</a> your enabled plugins make, and offers to delete empty files they replace.</li>
+<li>With <code>--cleanup</code>, shows the <a href="#cleanup">cleanup suggestions</a> your enabled plugins make, and offers to delete empty files they replace.</li>
 </ol>
 <h2 id="cleanup" tabindex="-1"><a class="header-anchor" href="#cleanup">Cleanup</a></h2>
-<p>Each enabled plugin knows what it makes unnecessary, so each one suggests its own cleanup. <code>opx init</code> prints those suggestions and does very little itself. It deletes a file only when <strong>all</strong> of these hold:</p>
+<p>Cleanup is off unless asked for, because it can delete files. Run <code>opx init --cleanup</code> to see what each enabled plugin makes unnecessary. <code>opx init</code> prints those suggestions and does very little itself. It deletes a file only when <strong>all</strong> of these hold:</p>
 <ol>
 <li>The plugin suggested it, and it is a regular file inside the repository (not a symlink or a folder).</li>
 <li>It is <strong>empty</strong>: nothing but whitespace, comments, or <code>{}</code>.</li>
@@ -168,7 +168,7 @@
 </ul>
 <p>A plugin is only consulted when it is enabled and installed. Because the suggestions ship with the plugin, they match the version you have. See <a href="../../guides/writing-a-detector/">Writing a detector</a> to add them to your own plugin.</p>
 <h2 id="non-interactive-use" tabindex="-1"><a class="header-anchor" href="#non-interactive-use">Non-interactive use</a></h2>
-<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them. It also prints the cleanup suggestions, and changes nothing. <code>init --auto</code> (postinstall) never shows them.</p>
+<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them. With <code>--cleanup</code> it also prints the cleanup suggestions, and changes nothing. <code>init --auto</code> (postinstall) never runs cleanup, even with <code>--cleanup</code>.</p>
 
 	</main>
 </div>
