@@ -35,7 +35,7 @@ function ctx(partial: Partial<DetectorContext>): DetectorContext {
 
 describe("derived constants", () => {
 	it("SUPPORTED_FILE_EXTS contains detectable short names only", () => {
-		expect(SUPPORTED_FILE_EXTS).toEqual(expect.arrayContaining(["js", "md", "json"]));
+		expect(SUPPORTED_FILE_EXTS).toEqual(expect.arrayContaining(["js", "ts", "md", "json"]));
 		expect(SUPPORTED_FILE_EXTS).not.toContain("release");
 		expect(SUPPORTED_FILE_EXTS).not.toContain("test");
 	});
@@ -47,6 +47,7 @@ describe("derived constants", () => {
 
 	it("PACKAGE_HINTS maps every short name to its packages", () => {
 		expect(PACKAGE_HINTS.js).toContain("@allons-y/opx-lint-js");
+		expect(PACKAGE_HINTS.ts).toContain("@allons-y/opx-lint-ts");
 		expect(PACKAGE_HINTS.release).toContain("@allons-y/opx-release");
 	});
 });
@@ -55,6 +56,14 @@ describe("suggest", () => {
 	it("returns short names whose extensions appear in the file set", () => {
 		expect(suggest(new Set([".md"]))).toContain("md");
 		expect(suggest(new Set([".mjs"]))).toEqual(["js"]);
+	});
+
+	it.each([".ts", ".tsx", ".mts", ".cts"])("suggests ts, and not js, for %s", (ext) => {
+		expect(suggest(new Set([ext]))).toEqual(["ts"]);
+	});
+
+	it("suggests both js and ts for a mixed tree", () => {
+		expect(suggest(new Set([".js", ".ts"]))).toEqual(["js", "ts"]);
 	});
 
 	it("returns empty when nothing matches", () => {
@@ -67,6 +76,15 @@ describe("suggest", () => {
 });
 
 describe("virtualDetectors", () => {
+	it("suggests TypeScript linting for a .ts-only tree, flagging it installed when present", () => {
+		const missing = virtualDetectors(new Set([".ts"]), {});
+		expect(missing.find((r) => r.shortName === "ts")).toMatchObject({ pkg: "@allons-y/opx-lint-ts", installed: false });
+		expect(missing.some((r) => r.shortName === "js")).toBe(false);
+
+		const present = virtualDetectors(new Set([".ts"]), { devDependencies: { "@allons-y/opx-lint-ts": "1" } });
+		expect(present.find((r) => r.shortName === "ts")?.installed).toBe(true);
+	});
+
 	it("suggests markdown linting for an .mdx-only tree", () => {
 		const result = virtualDetectors(new Set([".mdx"]), {});
 		expect(result.some((r) => r.pkg === "@allons-y/opx-lint-md")).toBe(true);

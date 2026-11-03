@@ -11,7 +11,7 @@ function tmp(): string {
 describe("composeEslintConfig", () => {
 	it("returns null when no short names map to config packages", () => {
 		expect(composeEslintConfig([])).toBeNull();
-		expect(composeEslintConfig(["css", "ts"])).toBeNull();
+		expect(composeEslintConfig(["css", "scss"])).toBeNull();
 	});
 
 	it("emits imports and spreads for known config-shipping detectors", () => {
@@ -22,6 +22,12 @@ describe("composeEslintConfig", () => {
 		expect(out).toContain("\t...js,");
 		expect(out).toContain("\t...md,");
 		expect(out).toContain("export default [");
+	});
+
+	it("composes the TypeScript detector's config alongside JavaScript's", () => {
+		const out = composeEslintConfig(["js", "ts"]);
+		expect(out).toContain('import ts from "@allons-y/opx-lint-ts/eslint.config.js";');
+		expect(out).toContain("\t...ts,");
 	});
 
 	it("filters out unknown names while keeping known ones", () => {

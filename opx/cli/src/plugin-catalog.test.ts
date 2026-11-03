@@ -19,13 +19,24 @@ describe("PLUGIN_CATALOG", () => {
 
 	it("includes the core file-type and undetectable plugins", () => {
 		const names = PLUGIN_CATALOG.map((e) => e.shortName);
-		expect(names).toEqual(expect.arrayContaining(["js", "md", "json", "release"]));
+		expect(names).toEqual(expect.arrayContaining(["js", "ts", "md", "json", "release"]));
 	});
 
 	it("maps js to its lint and build packages and known extensions", () => {
 		const js = PLUGIN_CATALOG.find((e) => e.shortName === "js");
 		expect(js?.packages).toContain("@allons-y/opx-lint-js");
 		expect(js?.extensions).toEqual(expect.arrayContaining([".js", ".mjs", ".cjs", ".jsx"]));
+	});
+
+	it("maps ts to its lint package and every TypeScript extension", () => {
+		const ts = PLUGIN_CATALOG.find((e) => e.shortName === "ts");
+		expect(ts?.packages).toEqual(["@allons-y/opx-lint-ts"]);
+		expect(ts?.extensions).toEqual([".ts", ".tsx", ".mts", ".cts"]);
+	});
+
+	it("gives each file extension to one plugin only", () => {
+		const all = PLUGIN_CATALOG.flatMap((e) => [...e.extensions]);
+		expect(new Set(all).size).toBe(all.length);
 	});
 
 	it("leaves release without file extensions", () => {
@@ -45,6 +56,7 @@ describe("PLUGIN_CATALOG", () => {
 describe("task helpers", () => {
 	it("derives the tasks a plugin provides", () => {
 		expect(tasksFor("js")).toEqual(["lint"]);
+		expect(tasksFor("ts")).toEqual(["lint"]);
 		expect(tasksFor("somethingElse")).toEqual(["lint", "build"]);
 	});
 
@@ -52,6 +64,7 @@ describe("task helpers", () => {
 		expect(isStaticTask("release")).toBe(true);
 		expect(isStaticTask("js")).toBe(false);
 		expect(isShipped("js")).toBe(true);
+		expect(isShipped("ts")).toBe(true);
 		expect(isShipped("css")).toBe(false);
 	});
 });
