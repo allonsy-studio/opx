@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
@@ -9,6 +9,7 @@ const ESLINT_CONFIG_PACKAGES: Record<string, string> = {
 	js: "@allons-y/opx-lint-js",
 	json: "@allons-y/opx-lint-json",
 	md: "@allons-y/opx-lint-md",
+	ts: "@allons-y/opx-lint-ts",
 };
 
 /**
@@ -66,4 +67,42 @@ export function scaffoldEslintConfig(cwd: string, shortNames: string[]): string 
 
 	writeFileSync(target, contents, "utf8");
 	return target;
+}
+
+/** Whether a module already declares `name`, as an import, a named import, or a variable. */
+function declares(text: string, name: string): boolean {
+	const declaration = new RegExp(`\\b(?:import|const|let|var)\\s+(?:\\*\\s+as\\s+)?${name}\\b|\\bas\\s+${name}\\b|import\\s*\\{[^}]*\\b${name}\\b[^}]*\\}`);
+	return declaration.test(text);
+}
+
+/** Root ESLint config file names, in the order ESLint looks for them. */
+const ROOT_CONFIGS = ["eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts"];
+
+/**
+ * Explain how to add opx configs that an existing root ESLint config leaves out.
+ *
+ * The scaffold never edits a file that exists, so this prints the lines to add
+ * instead. A binding the file already uses, such as `ts`, gets an `opx` prefix.
+ *
+ * @param cwd - The repository root.
+ * @param shortNames - Lint plugins to check, such as `["ts"]`.
+ * @returns The advice to print, or null when there is no config or nothing is missing.
+ */
+export function eslintConfigHint(cwd: string, shortNames: string[]): string | null {
+	const file = ROOT_CONFIGS.find((name) => existsSync(join(cwd, name)));
+	if (!file) return null;
+	const text = readFileSync(join(cwd, file), "utf8");
+	const missing = shortNames.filter((name) => {
+		const pkg = ESLINT_CONFIG_PACKAGES[name];
+		return pkg !== undefined && !text.includes(`${pkg}/eslint.config.js`);
+	});
+	if (missing.length === 0) return null;
+	const bindings = missing.map((name) => ({
+		name,
+		binding: declares(text, name) ? `opx${name[0]?.toUpperCase()}${name.slice(1)}` : name,
+		pkg: ESLINT_CONFIG_PACKAGES[name],
+	}));
+	const imports = bindings.map((b) => `  import ${b.binding} from "${b.pkg}/eslint.config.js";`).join("\n");
+	const spreads = bindings.map((b) => `  ...${b.binding},`).join("\n");
+	return `${file} doesn't include the ${missing.join(", ")} config yet, so editors won't match \`opx lint\`. Add:\n${imports}\nthen spread ${missing.length > 1 ? "them" : "it"} into the exported array:\n${spreads}`;
 }

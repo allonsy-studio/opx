@@ -21,6 +21,26 @@ const EXTENSIONLESS_TYPES: Record<string, string> = {
 	".yarnrc.yml": "yarnrc",
 };
 
+/** Declaration files, which describe types rather than holding source. */
+const DECLARATION_FILE = /\.d\.[mc]?ts$/i;
+
+/**
+ * The file type token for a file name: its lowercase extension, `.d.ts` for
+ * declaration files, or a known extensionless name such as `dockerfile`.
+ *
+ * Declaration files get their own token, so a JavaScript package that ships
+ * hand-written types is not mistaken for a TypeScript project.
+ *
+ * @param name - A file's base name.
+ * @returns The token, or null when the file has none.
+ */
+export function fileTypeOf(name: string): string | null {
+	if (DECLARATION_FILE.test(name)) return ".d.ts";
+	const ext = extname(name);
+	if (ext) return ext.toLowerCase();
+	return EXTENSIONLESS_TYPES[name] ?? null;
+}
+
 export type ScanResult = {
 	fileTypes: Set<string>;
 	fileCount: number;
@@ -49,14 +69,8 @@ export function scanCommittedTree(cwd: string): ScanResult {
 
 	const files = text.split("\0").filter((p) => p.length > 0);
 	for (const file of files) {
-		const name = basename(file);
-		const ext = extname(name);
-		if (ext) {
-			fileTypes.add(ext.toLowerCase());
-			continue;
-		}
-		const known = EXTENSIONLESS_TYPES[name];
-		if (known) fileTypes.add(known);
+		const type = fileTypeOf(basename(file));
+		if (type) fileTypes.add(type);
 	}
 
 	return { fileTypes, fileCount: files.length };

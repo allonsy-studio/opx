@@ -25,11 +25,39 @@ yarn add --dev @allons-y/opx-lint-ts typescript
 }
 ```
 
+## Move from lint-js 0.x
+
+`@allons-y/opx-lint-js` 0.x also linted TypeScript. From 1.0 it lints JavaScript only, so upgrading it without adding lint-ts silently stops TypeScript linting. Running both versions side by side lints every `.ts` file twice, with two rule sets.
+
+1. Install lint-ts & a JavaScript-only lint-js in one step:
+
+   ```sh
+   yarn add --dev @allons-y/opx-lint-ts "@allons-y/opx-lint-js@^1.0.0-beta.1"
+   ```
+
+2. Run `opx enable ts`. When your other lint plugins all point at your own `eslint.config.js`, `ts` points there too.
+3. If you have your own `eslint.config.js`, spread the lint-ts config into it. `opx enable ts` prints the lines to add:
+
+   ```js
+   import js from "@allons-y/opx-lint-js/eslint.config.js";
+   import ts from "@allons-y/opx-lint-ts/eslint.config.js";
+
+   export default [
+   	...js,
+   	...ts,
+   	// Your own rules, such as a license header for src/**/*.ts, still apply after the spreads.
+   ];
+   ```
+
+`opx init` handles steps 1 & 2 when you accept `ts`, and prints the lines for step 3.
+
 ## Covers
 
 | Files | Rules |
 | --- | --- |
 | `.ts`, `.tsx`, `.mts`, `.cts` | `typescript-eslint`, `@stylistic/eslint-plugin` |
+
+Declaration files such as `types.d.ts` are linted once the plugin is on. On their own, they don't make `opx scan` or `opx init` suggest it, so a JavaScript package that ships hand-written types isn't treated as a TypeScript project.
 
 ## Configure
 

@@ -25,7 +25,9 @@ import {
 import { applyCleanup, describePlan, planCleanup } from "../cleanup.js";
 import { buildContext, readHostPackage } from "../context.js";
 import { load as loadDetectors, virtualDetectors } from "../built-in.js";
-import { scaffoldEslintConfig } from "../eslint-scaffold.js";
+import { eslintConfigHint, scaffoldEslintConfig } from "../eslint-scaffold.js";
+import { LINT_JS, LINT_JS_UPGRADE, lintJsLintsTypeScript } from "../lint-js-version.js";
+import { conventionSetting } from "../toggle.js";
 import { defaultSkipUntilDate } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
 
@@ -168,7 +170,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		...config,
 		lint: {
 			...(config.lint ?? {}),
-			...Object.fromEntries(acceptedLint.map((shortName) => [shortName, true])),
+			...Object.fromEntries(acceptedLint.map((shortName) => [shortName, conventionSetting(config.lint, shortName)])),
 		},
 		build: {
 			...(config.build ?? {}),
@@ -196,6 +198,17 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		writeState(cwd, defaultState());
 	}
 
+	// lint-js 0.x also lints TypeScript, and npm's `latest` tag still points at
+	// it, so pair lint-ts with a JavaScript-only lint-js.
+	if (acceptedLint.includes("ts") && enabledNames(nextConfig.lint).includes("js")) {
+		const fresh = installCandidates.indexOf(LINT_JS);
+		if (fresh >= 0) installCandidates[fresh] = LINT_JS_UPGRADE;
+		else if (lintJsLintsTypeScript(cwd, ctx.hostPkg)) {
+			installCandidates.push(LINT_JS_UPGRADE);
+			p.log.info(`Your ${LINT_JS} is a 0.x release, which also lints TypeScript. Upgrading it so lint-ts alone lints .ts files.`);
+		}
+	}
+
 	if (installCandidates.length > 0) {
 		const pm = inspectPackageManager(cwd, ctx.hostPkg);
 		const cmd = installCommand(pm.name, installCandidates, pm);
@@ -220,6 +233,9 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	const scaffolded = scaffoldEslintConfig(cwd, Object.keys(nextConfig.lint ?? {}));
 	if (scaffolded) {
 		p.log.success("Wrote a composable eslint.config.js — edit it to add your own or third-party rules.");
+	} else {
+		const hint = eslintConfigHint(cwd, acceptedLint);
+		if (hint) p.log.info(hint);
 	}
 
 	// Patch host package.json scripts opportunistically.

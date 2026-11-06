@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { useScratch } from "shared/testing.js";
 
-import { getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } from "./scanner.js";
+import { fileTypeOf, getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } from "./scanner.js";
 
 const scratch = useScratch();
 
@@ -15,12 +15,25 @@ function commit(dir: string, name: string, content = "x"): void {
 	execFileSync("git", ["commit", "-m", "msg"], { cwd: dir, stdio: "ignore" });
 }
 
+describe("fileTypeOf", () => {
+	it("gives declaration files their own type", () => {
+		expect(fileTypeOf("eleventy.d.ts")).toBe(".d.ts");
+		expect(fileTypeOf("index.d.mts")).toBe(".d.ts");
+		expect(fileTypeOf("index.D.CTS")).toBe(".d.ts");
+		expect(fileTypeOf("cli.ts")).toBe(".ts");
+		expect(fileTypeOf("Styles.CSS")).toBe(".css");
+		expect(fileTypeOf("Makefile")).toBe("makefile");
+		expect(fileTypeOf("README")).toBeNull();
+	});
+});
+
 describe("scanCommittedTree", () => {
 	it("collects extensions and known extensionless types from the committed tree", () => {
-		const dir = scratch.repo({ "a.ts": "x", Dockerfile: "FROM x", "styles.CSS": "x" });
+		const dir = scratch.repo({ "a.ts": "x", Dockerfile: "FROM x", "styles.CSS": "x", "types.d.ts": "x" });
 
 		const scan = scanCommittedTree(dir);
 		expect(scan.fileTypes.has(".ts")).toBe(true);
+		expect(scan.fileTypes.has(".d.ts")).toBe(true);
 		expect(scan.fileTypes.has(".css")).toBe(true);
 		expect(scan.fileTypes.has("dockerfile")).toBe(true);
 		expect(scan.fileCount).toBeGreaterThanOrEqual(3);

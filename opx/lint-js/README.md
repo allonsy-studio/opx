@@ -83,7 +83,7 @@ export default [
 ];
 ```
 
-Every block is `files`-scoped, so the JS formatting rules never leak onto other languages — it composes cleanly with `@allons-y/opx-lint-json`, `@allons-y/opx-lint-md`, and third-party plugins. `opx init` scaffolds this file for you. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.
+Every block is `files`-scoped, so the JS formatting rules never leak onto other languages — it composes cleanly with `@allons-y/opx-lint-ts`, `@allons-y/opx-lint-json`, `@allons-y/opx-lint-md`, and third-party plugins. `opx init` scaffolds this file for you. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.
 
 ## Requirements
 

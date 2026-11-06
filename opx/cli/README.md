@@ -10,7 +10,7 @@ yarn add --dev @allons-y/opx-cli
 npm i -D @allons-y/opx-cli
 ```
 
-This installs the `opx` binary. The CLI is intentionally tiny — detector packages (`@allons-y/opx-lint-js`, `@allons-y/opx-lint-md`, `@allons-y/opx-lint-json`, ...) are loaded on demand and are not pre-installed.
+This installs the `opx` binary. The CLI is intentionally tiny — detector packages (`@allons-y/opx-lint-js`, `@allons-y/opx-lint-ts`, `@allons-y/opx-lint-md`, `@allons-y/opx-lint-json`, ...) are loaded on demand and are not pre-installed.
 
 ## Usage
 
@@ -24,7 +24,7 @@ opx <command> [options]
 |---|---|
 | `opx scan` | Scan the committed tree and report which detectors would activate. |
 | `opx init` | Interactive setup: pick detectors, install packages, wire a `lint` script and post-commit hook, and, with `--cleanup`, show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
-| `opx enable <name>` | Enable a detector by short name (`js`, `md`, `json`, ...) or fully-qualified package id. Use `--task lint\|build` to target a concern. |
+| `opx enable <name>` | Enable a detector by short name (`js`, `ts`, `md`, `json`, ...) or fully-qualified package id. Use `--task lint\|build` to target a concern. |
 | `opx disable <name>` | Disable a detector (also accepts `--task`). |
 | `opx lint [paths...]` | Run every enabled lint detector. `--fix` auto-fixes where supported. |
 | `opx build [paths...]` | Run every enabled build detector. |

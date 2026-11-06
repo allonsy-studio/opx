@@ -38,11 +38,11 @@ export type DynamicTask = "lint" | "build";
 
 /**
  * The config keys for dynamic tasks: each maps a plugin short name to `true`,
- * `false`, or that plugin's settings.
+ * `false`, a path to the plugin's config file, or that plugin's settings.
  */
 export type DynamicTaskConfig<PluginName extends string = string, PluginConfig = Record<string, unknown>> = {
 	[key in DynamicTask]?: {
-		[key in PluginName]: PluginConfig | boolean;
+		[key in PluginName]: PluginConfig | boolean | string;
 	}
 };
 
