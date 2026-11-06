@@ -97,6 +97,29 @@
   <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
   <span class="token property">"lint"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"ts"</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span>
 <span class="token punctuation">}</span></code></pre>
+<h2 id="move-from-lint-js-0.x" tabindex="-1"><a class="header-anchor" href="#move-from-lint-js-0.x">Move from lint-js 0.x</a></h2>
+<p><code>@allons-y/opx-lint-js</code> 0.x also linted TypeScript. From 1.0 it lints JavaScript only, so upgrading it without adding lint-ts silently stops TypeScript linting. Running both versions side by side lints every <code>.ts</code> file twice, with two rule sets.</p>
+<ol>
+<li>
+<p>Install lint-ts &amp; a JavaScript-only lint-js in one step:</p>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-lint-ts <span class="token string">"@allons-y/opx-lint-js@^1.0.0-beta.1"</span></code></pre>
+</li>
+<li>
+<p>Run <code>opx enable ts</code>. When your other lint plugins all point at your own <code>eslint.config.js</code>, <code>ts</code> points there too.</p>
+</li>
+<li>
+<p>If you have your own <code>eslint.config.js</code>, spread the lint-ts config into it. <code>opx enable ts</code> prints the lines to add:</p>
+<pre class="language-js"><code class="language-js"><span class="token keyword">import</span> js <span class="token keyword">from</span> <span class="token string">"@allons-y/opx-lint-js/eslint.config.js"</span><span class="token punctuation">;</span>
+<span class="token keyword">import</span> ts <span class="token keyword">from</span> <span class="token string">"@allons-y/opx-lint-ts/eslint.config.js"</span><span class="token punctuation">;</span>
+
+<span class="token keyword">export</span> <span class="token keyword">default</span> <span class="token punctuation">[</span>
+	<span class="token operator">...</span>js<span class="token punctuation">,</span>
+	<span class="token operator">...</span>ts<span class="token punctuation">,</span>
+	<span class="token comment">// Your own rules, such as a license header for src/**/*.ts, still apply after the spreads.</span>
+<span class="token punctuation">]</span><span class="token punctuation">;</span></code></pre>
+</li>
+</ol>
+<p><code>opx init</code> handles steps 1 &amp; 2 when you accept <code>ts</code>, and prints the lines for step 3.</p>
 <h2 id="covers" tabindex="-1"><a class="header-anchor" href="#covers">Covers</a></h2>
 <table>
 <thead>
@@ -112,6 +135,7 @@
 </tr>
 </tbody>
 </table>
+<p>Declaration files such as <code>types.d.ts</code> are linted once the plugin is on. On their own, they don't make <code>opx scan</code> or <code>opx init</code> suggest it, so a JavaScript package that ships hand-written types isn't treated as a TypeScript project.</p>
 <h2 id="configure" tabindex="-1"><a class="header-anchor" href="#configure">Configure</a></h2>
 <p>Use your own flat config instead of the bundled one:</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>

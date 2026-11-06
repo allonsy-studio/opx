@@ -123,8 +123,8 @@
 <ol>
 <li>Creates <code>.opx/config.json</code> if there isn't one.</li>
 <li>For each suggested plugin not yet enabled, asks <strong>Yes</strong>, <strong>No</strong>, or <strong>Later</strong>. &quot;Later&quot; records a deferral in <code>.opx/state.json</code> for the current branch.</li>
-<li>Saves your choices and offers to install any missing packages with the project's <a href="#package-manager">package manager</a> (npm, Yarn, pnpm, or Bun).</li>
-<li>Scaffolds a root <code>eslint.config.js</code> composed from your enabled lint plugins. It never overwrites an existing file.</li>
+<li>Saves your choices and offers to install any missing packages with the project's <a href="#package-manager">package manager</a> (npm, Yarn, pnpm, or Bun). An accepted lint plugin points at the same config file as your other lint plugins when they all share one. Accepting <code>ts</code> installs <code>lint-js</code> from its JavaScript-only 1.x range, or upgrades a 0.x release, since 0.x also lints TypeScript.</li>
+<li>Scaffolds a root <code>eslint.config.js</code> composed from your enabled lint plugins. It never overwrites an existing file. When you have one, it prints the import &amp; spread lines that file needs for the plugins you just accepted.</li>
 <li>Offers to add <code>&quot;lint&quot;: &quot;opx lint&quot;</code> to your <code>package.json</code> scripts.</li>
 <li>Installs the <code>post-commit</code> husky hook and updates <code>.gitignore</code> to ignore <code>.opx/*</code> except <code>.opx/config.json</code>, which stays tracked.</li>
 <li>With <code>--cleanup</code>, shows the <a href="#cleanup">cleanup suggestions</a> your enabled plugins make, and offers to delete empty files they replace.</li>
