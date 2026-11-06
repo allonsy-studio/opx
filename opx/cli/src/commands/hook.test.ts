@@ -61,6 +61,13 @@ describe("runPostCommit", () => {
 		expect(output()).toContain("new md files");
 	});
 
+	it("does not nudge about ts for a new declaration file", () => {
+		const dir = make();
+		commit(dir, { "types.d.ts": "export {};" });
+		runPostCommit(dir, TODAY);
+		expect(output()).not.toContain("new ts files");
+	});
+
 	it("stays quiet for file types no plugin handles", () => {
 		const dir = make();
 		commit(dir, { "data.xyz": "x" });

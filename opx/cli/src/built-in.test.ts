@@ -62,6 +62,10 @@ describe("suggest", () => {
 		expect(suggest(new Set([ext]))).toEqual(["ts"]);
 	});
 
+	it("does not suggest ts for declaration files alone", () => {
+		expect(suggest(new Set([".js", ".d.ts"]))).toEqual(["js"]);
+	});
+
 	it("suggests both js and ts for a mixed tree", () => {
 		expect(suggest(new Set([".js", ".ts"]))).toEqual(["js", "ts"]);
 	});

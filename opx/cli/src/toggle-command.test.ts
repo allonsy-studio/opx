@@ -47,6 +47,29 @@ describe("runToggleCommand", () => {
 		expect(config.release).toBe(true);
 	});
 
+	it("prints the lines the project's eslint.config.js lacks after enabling", () => {
+		const dir = project({ version: 1, lint: { js: "./eslint.config.js" } });
+		writeFileSync(join(dir, "eslint.config.js"), 'import js from "@allons-y/opx-lint-js/eslint.config.js";\nexport default [...js];\n');
+		runToggleCommand(dir, "ts", true);
+		expect(configOf(dir).lint.ts).toBe("./eslint.config.js");
+		expect(said(log)).toContain('import ts from "@allons-y/opx-lint-ts/eslint.config.js";');
+	});
+
+	it("asks for a lint-js upgrade when lint-ts joins a 0.x lint-js", () => {
+		const dir = project({ version: 1, lint: { js: true } }, { name: "p", devDependencies: { "@allons-y/opx-lint-js": "^0.1.0-beta.0" } });
+		runToggleCommand(dir, "ts", true);
+		expect(said(log)).toContain("linted twice");
+		expect(said(log)).toContain("@allons-y/opx-lint-js@^1.0.0-beta.1");
+	});
+
+	it("gives no follow-up advice when nothing applies", () => {
+		const dir = project({ version: 1, lint: { js: true } }, { name: "p", devDependencies: { "@allons-y/opx-lint-js": "^1.0.0-beta.3" } });
+		runToggleCommand(dir, "ts", true);
+		expect(log).toHaveBeenCalledTimes(1);
+		runToggleCommand(dir, "ts", true);
+		expect(said(log)).not.toContain("linted twice");
+	});
+
 	it("disables a plugin", () => {
 		const dir = project({ version: 1, lint: { js: true, md: true } });
 		expect(runToggleCommand(dir, "js", false)).toBe(0);
