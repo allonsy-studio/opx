@@ -38,8 +38,10 @@ jobs:
             - name: Run build
               run: yarn ci
 
-            - name: Test the repository scripts
-              run: yarn test:scripts
+            - name: Test the code outside the workspaces
+              # On Node 26, `yarn coverage` runs them with coverage instead.
+              if: matrix.node != 26
+              run: yarn test:root
 
             - name: Test
               if: matrix.node != 26
@@ -49,43 +51,30 @@ jobs:
               if: matrix.node == 26
               run: yarn coverage
 
-            - name: Aggregate coverage reports
+            - name: Coverage report
               id: coverage
-              if: matrix.node == 26
+              # Also after a coverage failure, so the comment shows which package missed.
+              if: ${{ !cancelled() && matrix.node == 26 }}
+              # One row per package and a `.` row for the code outside them, checked against the minimums in configs/jest.config.js.
               run: |
-                  shopt -s globstar nullglob
-                  files=(opx/*/coverage/cobertura-coverage.xml)
-                  if (( ${#files[@]} == 0 )); then
-                      echo "found=false" >> "$GITHUB_OUTPUT"
-                      exit 0
-                  fi
-                  mkdir -p coverage
-                  cp "${files[0]}" coverage/cobertura-coverage.xml
-                  for f in opx/*/coverage/coverage-final.json; do
-                      [[ -e "$f" ]] && cp "$f" "coverage/$(basename "$(dirname "$(dirname "$f")")")-coverage.json"
-                  done
-                  echo "found=true" >> "$GITHUB_OUTPUT"
+                  node scripts/coverage-report.js > code-coverage-results.md
+                  cat code-coverage-results.md
+                  shopt -s nullglob
+                  files=(opx/*/coverage/coverage-summary.json)
+                  if (( ${#files[@]} > 0 )); then echo "found=true"; else echo "found=false"; fi >> "$GITHUB_OUTPUT"
 
             - name: Upload coverage data
-              if: steps.coverage.outputs.found == 'true'
+              if: ${{ !cancelled() && steps.coverage.outputs.found == 'true' }}
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
               with:
                   name: coverage-data-${{ github.run_id }}
-                  path: |
-                      coverage/coverage*.json
-
-            - name: Coverage summary
-              if: steps.coverage.outputs.found == 'true'
-              uses: irongut/CodeCoverageSummary@51cc3a756ddcd398d447c044c02cb6aa83fdae95 # v1.3.0
-              with:
-                  filename: coverage/cobertura-coverage.xml
-                  format: "markdown"
-                  output: "both"
+                  path: opx/*/coverage/coverage-final.json
 
             - name: Add coverage PR comment
               # Fork PRs get a read-only token, so the comment can't be posted;
               # the job summary below still carries the report.
               if: >-
+                  !cancelled() &&
                   steps.coverage.outputs.found == 'true' &&
                   github.event_name == 'pull_request' &&
                   github.event.pull_request.head.repo.full_name == github.repository
@@ -95,7 +84,7 @@ jobs:
                   path: code-coverage-results.md
 
             - name: Write to job summary
-              if: steps.coverage.outputs.found == 'true'
+              if: ${{ !cancelled() && steps.coverage.outputs.found == 'true' }}
               run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
 
     # The same build and tests on the other platforms and TypeScript versions the
