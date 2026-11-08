@@ -3,3 +3,5 @@
 ---
 
 The starter `.changeset/config.json` now comes from the package's own `config.json`, so the exported file matches what `opx release init` writes. The old export held settings changesets doesn't read (`format`) and paths that don't match a `dist/` build. The `.changeset/README.md` it writes now says when to add a changeset instead of listing commands. The README documents the `changeset`, `version`, and `release` scripts, npm trusted publishing, pre-releases, and snapshot releases.
+
+The README names the repository's own package manager (`npm run changeset`, `pnpm changeset`, and so on). `opx release add status`, which is what `yarn changeset status` runs, now points to `opx release status` instead of opening the add prompt.

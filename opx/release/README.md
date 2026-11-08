@@ -125,7 +125,7 @@ The workflow's token must be allowed to create pull requests (Settings → Actio
 
 ### Authenticating to npm
 
-Use **trusted publishing** (OIDC). There is no token to store or rotate, and npm adds provenance to every version:
+Use **trusted publishing** (OIDC). There is no token to store or rotate, and npm adds a provenance attestation to each version when the repository and the package are both public:
 
 1. On npmjs.com, open each package's settings and add a trusted publisher: this repository and the workflow file name (`release.yml`).
 2. Give the job `id-token: write`, as above.

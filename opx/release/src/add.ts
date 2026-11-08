@@ -13,7 +13,10 @@ const BUMPS: Bump[] = ["patch", "minor", "major"];
 export type ReleasablePackage = { name: string; version: string };
 
 /** Flags parsed from `opx release add …` for the non-interactive / CI path. */
-export type ParsedAdd = { empty: boolean; type?: string; pkgs: string[]; summary?: string };
+export type ParsedAdd = { empty: boolean; type?: string; pkgs: string[]; summary?: string; positionals?: string[] };
+
+/** `opx release` subcommands that land in `add` when typed after `yarn changeset`. */
+const OTHER_SUBCOMMANDS = new Set(["status", "version", "publish", "pre", "tag", "init"]);
 
 // ---------------------------------------------------------------------------
 // Pure core (no I/O) — unit-tested directly.
@@ -25,11 +28,11 @@ function splitList(value: string | undefined): string[] {
 }
 
 /**
- * Parse the tail of `release add` into a structured request. Unknown tokens are
- * ignored so changesets-style positionals never break parsing.
+ * Parse the tail of `release add` into a structured request. Unknown flags are
+ * ignored; bare words are kept in `positionals` so `runAdd` can catch a mistyped subcommand.
  */
 export function parseAddArgs(args: string[]): ParsedAdd {
-	const parsed: ParsedAdd = { empty: false, pkgs: [] };
+	const parsed: ParsedAdd = { empty: false, pkgs: [], positionals: [] };
 	for (let i = 0; i < args.length; i++) {
 		switch (args[i]) {
 			case "--empty":
@@ -48,6 +51,7 @@ export function parseAddArgs(args: string[]): ParsedAdd {
 				parsed.summary = args[++i];
 				break;
 			default:
+				if (!args[i]?.startsWith("-")) parsed.positionals?.push(args[i] as string);
 				break;
 		}
 	}
@@ -193,6 +197,11 @@ const defaultDeps: AddDeps = {
  */
 export async function runAdd(ctx: DetectorContext, addArgs: string[], deps: AddDeps = defaultDeps): Promise<number> {
 	const parsed = parseAddArgs(addArgs);
+	const other = parsed.positionals?.find((word) => OTHER_SUBCOMMANDS.has(word));
+	if (other) {
+		console.error(`opx: \`${other}\` isn't an option for \`release add\`. Did you mean \`opx release ${other}\`?`);
+		return 1;
+	}
 
 	let changeset: Changeset;
 	if (hasAddFlags(parsed)) {
