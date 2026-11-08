@@ -1,10 +1,17 @@
-import { execFileSync } from "node:child_process";
+import { jest } from "@jest/globals";
+import * as childProcess from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { useScratch } from "shared/testing.js";
 
-import { getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } from "./scanner.js";
+const { execFileSync } = childProcess;
+
+/** Runs the real git unless a test queues its own output. */
+const mockedExec = jest.fn(childProcess.execFileSync);
+jest.unstable_mockModule("node:child_process", () => ({ ...childProcess, execFileSync: mockedExec }));
+
+const { getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } = await import("./scanner.js");
 
 const scratch = useScratch();
 
@@ -38,8 +45,13 @@ describe("scanCommittedTree", () => {
 });
 
 describe("getCurrentBranch", () => {
-	it("returns the branch name of a committed repo", () => {
-		expect(getCurrentBranch(scratch.repo({ "a.ts": "x" }))).toBe("main");
+	it("asks git for the abbreviated ref, trims it, and falls back to HEAD when it prints nothing", () => {
+		mockedExec.mockReturnValueOnce(Buffer.from("feature\n"));
+		expect(getCurrentBranch("/repo")).toBe("feature");
+		expect(mockedExec).toHaveBeenCalledWith("git", ["rev-parse", "--abbrev-ref", "HEAD"], expect.objectContaining({ cwd: "/repo" }));
+
+		mockedExec.mockReturnValueOnce(Buffer.from(""));
+		expect(getCurrentBranch("/repo")).toBe("HEAD");
 	});
 
 	it("returns HEAD for a non-git directory", () => {
@@ -61,8 +73,11 @@ describe("listFilesInHeadCommit", () => {
 });
 
 describe("getHeadCommit", () => {
-	it("returns the HEAD sha after a commit", () => {
-		expect(getHeadCommit(scratch.repo({ "a.ts": "x" }))).toMatch(/^[0-9a-f]{40}$/);
+	it("returns the commit just made, without a trailing newline", () => {
+		const dir = scratch.repo({ "a.ts": "x" });
+		commit(dir, "b.js");
+		const made = execFileSync("git", ["rev-parse", "HEAD"], { cwd: dir }).toString("utf8").trim();
+		expect(getHeadCommit(dir)).toBe(made);
 	});
 
 	it("returns undefined for a non-git directory", () => {

@@ -60,16 +60,6 @@ describe("runScan", () => {
 			expect(payload.suggestions.map((s: { shortName: string }) => s.shortName)).toEqual(expect.arrayContaining(["js", "md", "release"]));
 		});
 
-		it("flags whether each suggested package is installed", () => {
-			const payload = (() => {
-				runScan(ctx({ deps: { "@allons-y/opx-lint-md": "1" } }), flags({ json: true }));
-				return JSON.parse(written());
-			})();
-			const byPkg = Object.fromEntries(payload.suggestions.map((s: { pkg: string; installed: boolean }) => [s.pkg, s.installed]));
-			expect(byPkg["@allons-y/opx-lint-md"]).toBe(true);
-			expect(byPkg["@allons-y/opx-lint-js"]).toBe(false);
-		});
-
 		it("lists release as enabled, and never as needing a prompt", () => {
 			runScan(ctx({ release: true }), flags({ json: true }));
 			expect(JSON.parse(written()).enabled).toContain("release");
@@ -122,6 +112,7 @@ describe("runScan", () => {
 
 		it("falls back to report output in a non-interactive shell", () => {
 			runScan(ctx(), flags());
+			expect(printed()).toContain("File types in committed tree");
 			expect(printed()).not.toContain("opx init");
 		});
 

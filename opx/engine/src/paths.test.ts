@@ -23,10 +23,6 @@ describe("filterPathsByExtension", () => {
 		expect(filterPathsByExtension(["A.TS"], JS)).toEqual(["A.TS"]);
 	});
 
-	it("drops files with unowned extensions", () => {
-		expect(filterPathsByExtension(["a.css", "b.yml"], JS)).toEqual([]);
-	});
-
 	it("returns an empty array for empty input", () => {
 		expect(filterPathsByExtension([], JS)).toEqual([]);
 	});

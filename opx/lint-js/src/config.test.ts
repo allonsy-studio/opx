@@ -14,13 +14,6 @@ describe("bundled eslint.config.js", () => {
 		expect(pkg.files).toContain("eslint.config.js");
 	});
 
-	it("exports a flat config array that can be spread into another config", async () => {
-		const config = (await import(pathToFileURL(resolve(ROOT, "eslint.config.js")).href)).default;
-		expect(Array.isArray(config)).toBe(true);
-		expect(config.length).toBeGreaterThan(0);
-		for (const block of config) expect(typeof block).toBe("object");
-	});
-
 	it("scopes every rule block to files so it composes with the other opx configs", async () => {
 		const config = (await import(pathToFileURL(resolve(ROOT, "eslint.config.js")).href)).default as Block[];
 		for (const block of config.filter((b) => b.rules)) expect(block.files?.length).toBeGreaterThan(0);

@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
@@ -7,6 +7,11 @@ import { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hoo
 function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-hooks-"));
 }
+
+/** Windows has no executable bit, so mode checks run only on POSIX. */
+const itPosix = process.platform === "win32" ? it.skip : it;
+
+const mode = (path: string): number => statSync(path).mode & 0o777;
 
 describe("installPostCommitHook", () => {
 	it("creates a new post-commit hook", () => {
@@ -39,8 +44,9 @@ describe("installPostCommitHook", () => {
 		const dir = tmp();
 		mkdirSync(join(dir, ".husky"), { recursive: true });
 		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", "utf8");
-		installPostCommitHook(dir);
+		expect(installPostCommitHook(dir).created).toBe(false);
 		const once = readFileSync(join(dir, ".husky", "post-commit"), "utf8");
+		expect(once).toContain("echo hi");
 		installPostCommitHook(dir);
 		const twice = readFileSync(join(dir, ".husky", "post-commit"), "utf8");
 		expect(twice).toBe(once);
@@ -70,15 +76,17 @@ describe("installPostCommitHook", () => {
 		rmSync(dir, { recursive: true });
 	});
 
-	it("appends to an existing hook that lacks the marker", () => {
+	itPosix("makes a new hook executable", () => {
+		const dir = tmp();
+		expect(mode(installPostCommitHook(dir).path)).toBe(0o755);
+		rmSync(dir, { recursive: true });
+	});
+
+	itPosix("makes an existing hook executable when it adds the line", () => {
 		const dir = tmp();
 		mkdirSync(join(dir, ".husky"), { recursive: true });
-		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", "utf8");
-		const result = installPostCommitHook(dir);
-		expect(result.created).toBe(false);
-		const contents = readFileSync(result.path, "utf8");
-		expect(contents).toContain("echo hi");
-		expect(contents).toContain("opx hook post-commit");
+		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", { encoding: "utf8", mode: 0o644 });
+		expect(mode(installPostCommitHook(dir).path)).toBe(0o755);
 		rmSync(dir, { recursive: true });
 	});
 });

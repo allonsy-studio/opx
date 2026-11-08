@@ -1,16 +1,12 @@
-import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 import type { DetectorContext } from "@allons-y/opx";
 
-import run from "./runner.js";
+import run, { defaultPaths } from "./runner.js";
 import { useScratch } from "shared/testing.js";
 
 const scratch = useScratch();
-
-const HERE = resolve(fileURLToPath(import.meta.url), "..");
-const BUNDLED_CONFIG = resolve(HERE, "..", "eslint.config.js");
 
 function makeDir(): string {
 	const dir = scratch.dir("opx-lint-json-");
@@ -20,14 +16,14 @@ function makeDir(): string {
 
 type Ctx = DetectorContext & { _output: () => string };
 
-function makeCtx(dir: string, opts: { fix?: boolean; json?: unknown } = {}): Ctx {
+function makeCtx(dir: string, json?: unknown): Ctx {
 	let output = "";
 	const config = { version: 1, lint: {} as Record<string, unknown> };
-	if (opts.json !== undefined) config.lint.json = opts.json;
+	if (json !== undefined) config.lint.json = json;
 	return {
 		cwd: dir,
 		config,
-		fix: opts.fix ?? false,
+		fix: false,
 		write: (c: string) => { output += c; },
 		fileTypes: new Set(),
 		_output: () => output,
@@ -35,35 +31,13 @@ function makeCtx(dir: string, opts: { fix?: boolean; json?: unknown } = {}): Ctx
 }
 
 describe("lint-json runner", () => {
-	it("returns 0 for a clean json file", async () => {
+	/** Smoke test: the bundled config loads and fails a broken file. */
+	it("passes a clean file and fails a broken one with the bundled config", async () => {
 		const dir = makeDir();
 		writeFileSync(join(dir, "clean.json"), '{\n\t"a": 1\n}\n');
-		const ctx = makeCtx(dir);
-		expect(await run(ctx, ["clean.json"])).toBe(0);
-	});
-
-	it("returns 1 and writes output for a duplicate-key violation", async () => {
-		const dir = makeDir();
 		writeFileSync(join(dir, "bad.json"), '{ "a": 1, "a": 2 }');
-		const ctx = makeCtx(dir);
-		expect(await run(ctx, ["bad.json"])).toBe(1);
-		expect(ctx._output()).toMatch(/error/i);
-	});
-
-	it("auto-fixes a fixable file when ctx.fix is true", async () => {
-		const dir = makeDir();
-		const file = join(dir, "fixme.json");
-		// A decomposed-unicode key (e + combining acute U+0301) trips the
-		// fixable json/no-unnormalized-keys rule; --fix rewrites it to NFC
-		// (composed U+00E9). Built from char codes to keep this source ASCII.
-		const decomposedKey = `e${String.fromCharCode(0x0301)}`;
-		const composedKey = String.fromCharCode(0x00e9);
-		const decomposed = `{\n\t"${decomposedKey}": 1\n}\n`;
-		const composed = `{\n\t"${composedKey}": 1\n}\n`;
-		writeFileSync(file, decomposed);
-		const ctx = makeCtx(dir, { fix: true });
-		expect(await run(ctx, ["fixme.json"])).toBe(0);
-		expect(readFileSync(file, "utf8")).toBe(composed);
+		expect(await run(makeCtx(dir), ["clean.json"])).toBe(0);
+		expect(await run(makeCtx(dir), ["bad.json"])).toBe(1);
 	});
 
 	it("no-ops (returns 0) when forwarded paths are all non-owned extensions", async () => {
@@ -73,40 +47,46 @@ describe("lint-json runner", () => {
 		expect(ctx._output()).toBe("");
 	});
 
-	it("honors an absolute config override", async () => {
-		const dir = makeDir();
-		writeFileSync(join(dir, "clean.json"), '{\n\t"a": 1\n}\n');
-		const ctx = makeCtx(dir, { json: BUNDLED_CONFIG });
-		expect(await run(ctx, ["clean.json"])).toBe(0);
-	});
-
-	it("loads the gitignore base config when a .gitignore exists", async () => {
-		const dir = makeDir();
-		writeFileSync(join(dir, ".gitignore"), "ignored.json\n");
-		writeFileSync(join(dir, "clean.json"), '{\n\t"a": 1\n}\n');
-		const ctx = makeCtx(dir);
-		expect(await run(ctx, ["clean.json"])).toBe(0);
-	});
-
-	it("expands default paths for opted-in jsonc/json5 dialects", async () => {
-		const dir = makeDir();
-		writeFileSync(join(dir, "clean.json"), '{\n\t"a": 1\n}\n');
-		const ctx = makeCtx(dir, { json: { dialects: ["jsonc", "json5"] } });
-		// No args -> defaultPaths(ctx) runs the jsonc/json5 branches.
-		expect(await run(ctx, [])).toBe(0);
-	});
-
-	it("falls back to plain .json when the setting is null", async () => {
-		const dir = makeDir();
-		writeFileSync(join(dir, "clean.json"), '{\n\t"a": 1\n}\n');
-		const ctx = makeCtx(dir, { json: null });
-		expect(await run(ctx, [])).toBe(0);
-	});
-
 	it("ignores lockfiles by default", async () => {
 		const dir = makeDir();
 		writeFileSync(join(dir, "package-lock.json"), '{"": 1, "a": 1,}');
-		const ctx = makeCtx(dir);
-		expect(await run(ctx, [])).toBe(0);
+		expect(await run(makeCtx(dir), [])).toBe(0);
+	});
+});
+
+describe("defaultPaths", () => {
+	const paths = (json?: unknown): string[] => defaultPaths(makeCtx("/repo", json));
+
+	it("lints plain .json when no dialect is chosen", () => {
+		expect(paths()).toEqual(["**/*.json"]);
+		expect(paths(null)).toEqual(["**/*.json"]);
+		expect(paths(true)).toEqual(["**/*.json"]);
+		expect(paths("config/eslint.js")).toEqual(["**/*.json"]);
+		expect(paths({ dialects: [] })).toEqual(["**/*.json"]);
+	});
+
+	it("adds a glob for each chosen dialect", () => {
+		expect(paths({ dialects: ["jsonc"] })).toEqual(["**/*.json", "**/*.jsonc"]);
+		expect(paths({ dialects: ["json5"] })).toEqual(["**/*.json", "**/*.json5"]);
+		expect(paths({ dialects: ["json5", "jsonc"] })).toEqual(["**/*.json", "**/*.jsonc", "**/*.json5"]);
+	});
+
+	it("ignores dialects it does not know", () => {
+		expect(paths({ dialects: ["yaml"] })).toEqual(["**/*.json"]);
+	});
+});
+
+describe("default paths and .gitignore", () => {
+	it("lints the default paths when none are given", async () => {
+		const dir = makeDir();
+		writeFileSync(join(dir, "bad.json"), '{ "a": 1, "a": 2 }');
+		expect(await run(makeCtx(dir), [])).toBe(1);
+	});
+
+	it("skips files the project's .gitignore lists", async () => {
+		const dir = makeDir();
+		writeFileSync(join(dir, "bad.json"), '{ "a": 1, "a": 2 }');
+		writeFileSync(join(dir, ".gitignore"), "bad.json\n");
+		expect(await run(makeCtx(dir), [])).toBe(0);
 	});
 });

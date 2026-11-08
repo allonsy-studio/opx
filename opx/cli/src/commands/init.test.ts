@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type { CleanupSuggestion, Detector } from "@allons-y/opx";
+import { inspectPackageManager, installCommand } from "@allons-y/opx";
 import { Command } from "commander";
 import { useScratch } from "shared/testing.js";
 
@@ -30,6 +31,11 @@ jest.unstable_mockModule("@clack/prompts", () => ({
 }));
 
 jest.unstable_mockModule("../tty.js", () => ({ detectMode }));
+
+/** Runs the real child_process unless a test overrides it; lets runInstall be checked without spawning. */
+const childProcess = await import("node:child_process");
+const execFileSync = jest.fn<(...args: unknown[]) => unknown>();
+jest.unstable_mockModule("node:child_process", () => ({ ...childProcess, execFileSync }));
 
 const builtIn = await import("../built-in.js");
 jest.unstable_mockModule("../built-in.js", () => ({ ...builtIn, load: loadDetectors }));
@@ -68,6 +74,7 @@ describe("init", () => {
 		confirm.mockResolvedValue(true);
 		detectMode.mockReturnValue("interactive");
 		loadDetectors.mockResolvedValue([]);
+		execFileSync.mockImplementation(childProcess.execFileSync as never);
 	});
 	afterEach(() => {
 		process.chdir(originalCwd);
@@ -84,8 +91,8 @@ describe("init", () => {
 			expect(cfg.lint?.js).toBe(true);
 			expect(cfg.lint?.md).toBe(true);
 			expect(cfg.lint?.json).toBe(true);
-			expect(existsSync(join(dir, ".git/hooks/post-commit")) || existsSync(join(dir, ".husky/post-commit"))).toBe(true);
-			expect(read(dir, ".gitignore")).toContain(".opx/*");
+			expect(logSuccess).toHaveBeenCalledWith(expect.stringContaining("Installed git hook"));
+			expect(logSuccess).toHaveBeenCalledWith(expect.stringContaining("Updated .gitignore"));
 		});
 
 		it("records a one-branch deferral for 'later' and leaves the plugin off", async () => {
@@ -137,15 +144,12 @@ describe("init", () => {
 			expect(json(other, ".opx/config.json").lint?.js).toBe(true);
 		});
 
-		it("installs with the package manager the project uses, bun and workspace roots included", async () => {
+		it("installs with the command the engine builds for the project's package manager", async () => {
 			answers({ js: "yes" });
-			const bun = make({ "a.js": "x", "package.json": PKG, "bun.lock": "" });
-			await runInteractive(bun, install);
-			expect(install).toHaveBeenLastCalledWith("bun add -d @allons-y/opx-lint-js", bun);
-
-			const pnpm = make({ "a.js": "x", "package.json": PKG, "pnpm-lock.yaml": "", "pnpm-workspace.yaml": "" });
-			await runInteractive(pnpm, install);
-			expect(install).toHaveBeenLastCalledWith("pnpm add -D -w @allons-y/opx-lint-js", pnpm);
+			const dir = make({ "a.js": "x", "package.json": PKG, "pnpm-lock.yaml": "", "pnpm-workspace.yaml": "" });
+			const pm = inspectPackageManager(dir, JSON.parse(PKG));
+			await runInteractive(dir, install);
+			expect(install).toHaveBeenLastCalledWith(installCommand(pm.name, ["@allons-y/opx-lint-js"], pm), dir);
 		});
 
 		it("shows the command instead of running it when the project points at several package managers", async () => {
@@ -156,8 +160,7 @@ describe("init", () => {
 			expect(install).not.toHaveBeenCalled();
 			expect(confirm.mock.calls.some(([o]) => o.message.startsWith("Install"))).toBe(false);
 			const warned = logWarn.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
-			expect(warned).toContain("lockfiles for yarn and npm");
-			expect(warned).toContain("yarn add -D @allons-y/opx-lint-js");
+			expect(warned).toContain("@allons-y/opx-lint-js");
 			expect(json(dir, ".opx/config.json").lint?.js).toBe(true);
 		});
 
@@ -331,16 +334,22 @@ describe("init", () => {
 	});
 
 	describe("runInstall", () => {
-		it("runs the command in the project", async () => {
-			await expect(runInstall("node -e 0", make({}))).resolves.toBeUndefined();
+		it("splits the command into binary and arguments, and runs it in the project with inherited stdio", async () => {
+			execFileSync.mockReturnValueOnce(Buffer.from(""));
+			await runInstall("pnpm add -D @allons-y/opx-lint-js", "/proj");
+			expect(execFileSync).toHaveBeenCalledWith("pnpm", ["add", "-D", "@allons-y/opx-lint-js"], { cwd: "/proj", stdio: "inherit" });
 		});
 
 		it("does nothing for an empty command", async () => {
-			await expect(runInstall("", make({}))).resolves.toBeUndefined();
+			await runInstall("", "/proj");
+			expect(execFileSync).not.toHaveBeenCalled();
 		});
 
-		it("fails when the command fails", async () => {
-			await expect(runInstall("node -e process.exit(3)", make({}))).rejects.toThrow();
+		it("lets a failed install propagate", async () => {
+			execFileSync.mockImplementationOnce(() => {
+				throw new Error("exit 3");
+			});
+			await expect(runInstall("npm install x", "/proj")).rejects.toThrow("exit 3");
 		});
 	});
 

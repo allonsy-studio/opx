@@ -18,7 +18,7 @@ const CONFIG_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
  * @param ctx - The detector context.
  * @returns The globs to lint.
  */
-function defaultPaths(ctx: DetectorContext): string[] {
+export function defaultPaths(ctx: DetectorContext): string[] {
 	const { dialects = [] } = (ctx.config.lint?.json ?? {}) as { dialects?: string[] };
 	const paths = ["**/*.json"];
 	if (dialects.includes("jsonc")) paths.push("**/*.jsonc");
