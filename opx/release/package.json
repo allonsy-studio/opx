@@ -24,6 +24,10 @@
 			"types": "./bin/index.d.ts",
 			"import": "./bin/index.js"
 		},
+		"./changelog": {
+			"types": "./bin/custom-changelog.d.ts",
+			"default": "./bin/custom-changelog.js"
+		},
 		"./config.json": "./config.json",
 		"./package.json": "./package.json"
 	},
