@@ -111,6 +111,16 @@ describe("load", () => {
 		expect(loaded[0]?.shortName).toBe("js");
 	});
 
+	it("loads the release plugin when release holds settings", async () => {
+		const loaded = await load(
+			ctx({
+				hostPkg: { devDependencies: { "@allons-y/opx-release": "1" } },
+				config: { version: 1, lint: {}, build: {}, release: { githubReleases: false }, test: false },
+			}),
+		);
+		expect(loaded.map((d) => d.shortName)).toEqual(["release"]);
+	});
+
 	it("ignores configured detectors that are not installed", async () => {
 		const loaded = await load(
 			ctx({

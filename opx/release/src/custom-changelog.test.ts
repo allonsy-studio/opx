@@ -268,7 +268,7 @@ describe("review edge cases", () => {
 	});
 
 	it("falls back to a placeholder headline for a summary that starts with code", async () => {
-		const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+		const warn = jest.spyOn(console, "error").mockImplementation(() => {});
 		try {
 			const out = await changelog.getReleaseLine(cs("```js\nx()\n```"), "patch", opts);
 			expect(out).toBe("- _No summary._\n\n  ```js\n  x()\n  ```");
@@ -279,7 +279,7 @@ describe("review edge cases", () => {
 	});
 
 	it("falls back to a placeholder headline for an upgrade note alone", async () => {
-		const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+		const warn = jest.spyOn(console, "error").mockImplementation(() => {});
 		try {
 			const out = await changelog.getReleaseLine(cs("migration: Reinstall."), "major", opts);
 			expect(out).toBe("- _No summary._\n\n  **To upgrade:** Reinstall.");

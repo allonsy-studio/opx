@@ -9,6 +9,11 @@ import type { DetectorContext, PackageManager } from "@allons-y/opx";
 
 import { runAdd } from "./add.js";
 import { runChangeset } from "./changeset-cli.js";
+import { publishDeps, runPublish } from "./publish.js";
+import { detectRepo } from "./repo.js";
+import { uiFor, type Ui } from "./ui.js";
+
+export { detectRepo };
 import { detectBaseBranch } from "./base-branch.js";
 
 /** Read the starter config shipped as `@allons-y/opx-release/config.json`. */
@@ -71,24 +76,6 @@ export function parseInitArgs(args: string[]): InitOptions {
 		}
 	}
 	return parsed;
-}
-
-/**
- * Read `owner/repo` from the root `package.json` `repository` field.
- * @returns The GitHub slug, or `undefined` when it isn't a GitHub repository.
- */
-export function detectRepo(cwd: string): string | undefined {
-	try {
-		const pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as { repository?: string | { url?: string } };
-		const raw = typeof pkg.repository === "string" ? pkg.repository : pkg.repository?.url;
-		if (!raw) return undefined;
-		const url = /github\.com[/:]([^/]+\/[^/]+?)(?:\.git)?\/?$/.exec(raw);
-		if (url?.[1]) return url[1];
-		const short = /^(?:github:)?([\w.-]+\/[\w.-]+)$/.exec(raw);
-		return short?.[1];
-	} catch {
-		return undefined;
-	}
 }
 
 /**
@@ -172,22 +159,22 @@ export function isSnapshot(args: string[]): boolean {
  * Run `changeset version`, then stamp release dates when the config asks for them.
  * With `"commit": true`, changesets commits first, so the dates are folded into that commit.
  */
-async function runVersion(ctx: DetectorContext, args: string[]): Promise<number> {
+async function runVersion(ctx: DetectorContext, args: string[], ui: Ui): Promise<number> {
 	const stamp = releaseDateEnabled(ctx.cwd) && !isSnapshot(args);
 	const before = stamp ? await packageVersions(ctx.cwd) : new Map<string, string>();
 	const headBefore = stamp ? gitHead(ctx.cwd) : undefined;
-	const code = await runChangeset(ctx.cwd, args);
+	const code = await runChangeset(ctx.cwd, args, ui);
 	if (code !== 0 || !stamp) return code;
 	const after = await packageVersions(ctx.cwd);
 	const bumped = [...after].filter(([dir, version]) => before.get(dir) !== version).map(([dir, version]) => ({ dir, version }));
 	const files = stampReleaseDates(bumped, formatReleaseDate(new Date()));
 	if (files.length === 0) return 0;
-	console.log(`opx: added release dates to ${files.length} changelog(s).`);
+	ui.ok(`Added release dates to ${files.length} changelog${files.length === 1 ? "" : "s"}`);
 	const headAfter = gitHead(ctx.cwd);
 	if (headBefore && headAfter && headBefore !== headAfter) {
 		const added = spawnSync("git", ["add", "--", ...files], { cwd: ctx.cwd });
 		const amended = added.status === 0 && spawnSync("git", ["commit", "--amend", "--no-edit", "--no-verify"], { cwd: ctx.cwd }).status === 0;
-		if (!amended) console.warn("opx: couldn't add the release dates to changesets' commit; commit them yourself.");
+		if (!amended) ui.warn("Couldn't add the release dates to changesets' commit", "commit them yourself");
 	}
 	return 0;
 }
@@ -200,12 +187,14 @@ async function runVersion(ctx: DetectorContext, args: string[]): Promise<number>
  *   opx release init       → just write the starter config
  *   opx release init --changelog [--date] [--maintainer <handle>] → also opt in to the custom changelog
  *   opx release version    → changeset version, then release dates when enabled
+ *   opx release publish    → changeset publish, then tags, GitHub releases, and Action builds
  *   opx release add ...    → opx-native flow (prompts here, no interactive child)
  *   opx release <cmd> ...  → changeset <cmd> ... (version, publish, status, …)
  */
 export async function runRelease(ctx: DetectorContext, args: string[]): Promise<number> {
+	const ui = uiFor(ctx);
 	const created = init(ctx);
-	if (created) console.log("opx: wrote a starter .changeset/config.json.");
+	if (created) ui.ok("Set up changesets", ".changeset/config.json and README.md");
 
 	const [sub, ...rest] = args;
 
@@ -215,9 +204,11 @@ export async function runRelease(ctx: DetectorContext, args: string[]): Promise<
 		// `--date` only means something with the custom changelog, so it opts in too.
 		if (options.changelog || options.releaseDate) {
 			const repo = useCustomChangelog(ctx.cwd, options.maintainers, options.releaseDate);
-			console.log(`opx: .changeset/config.json now uses ${CUSTOM_CHANGELOG}.`);
-			if (!repo) console.log("opx: no GitHub repository in package.json; set `repo` in the changelog options or GITHUB_REPOSITORY.");
-			console.log("opx: `opx release version` now needs GITHUB_TOKEN.");
+			ui.ok("Switched to the readable changelog format", CUSTOM_CHANGELOG);
+			if (!repo) ui.warn("No GitHub repository in package.json", "set `repo` in the changelog options, or GITHUB_REPOSITORY");
+			ui.hint("`opx release version` now needs GITHUB_TOKEN to look up pull requests and authors.");
+		} else if (!created) {
+			ui.skip("Changesets is already set up", ".changeset/config.json");
 		}
 		return 0;
 	}
@@ -227,7 +218,8 @@ export async function runRelease(ctx: DetectorContext, args: string[]): Promise<
 	if (sub === "add") return runAdd(ctx, rest);
 
 	// Every other subcommand is non-interactive; forward it to the changesets CLI.
-	if (sub === "version") return runVersion(ctx, args);
+	if (sub === "version") return runVersion(ctx, args, ui);
+	if (sub === "publish") return runPublish(ctx.cwd, rest, ctx.config.release, { ...publishDeps, ui });
 	const forwarded = args.length > 0 ? args : ["status"];
-	return runChangeset(ctx.cwd, forwarded);
+	return runChangeset(ctx.cwd, forwarded, ui);
 }

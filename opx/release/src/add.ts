@@ -7,6 +7,7 @@ import type { Changeset, VersionType } from "@changesets/types";
 import type { DetectorContext } from "@allons-y/opx";
 
 import { runChangeset } from "./changeset-cli.js";
+import { uiFor, type Ui } from "./ui.js";
 
 /** The bump levels opx exposes (changesets' `none` is not user-selectable here). */
 export type Bump = "patch" | "minor" | "major";
@@ -137,6 +138,8 @@ export type AddDeps = {
 	write: (changeset: Changeset, cwd: string) => Promise<string>;
 	/** Run `changeset add` with these args and return its exit code. */
 	prompt: (cwd: string, args: string[]) => Promise<number>;
+	/** Where messages go. Defaults to the host's output. */
+	ui?: Ui;
 };
 
 const defaultDeps: AddDeps = {
@@ -154,10 +157,12 @@ const defaultDeps: AddDeps = {
  * @returns `0` on success; otherwise `1`, or the prompt's exit code.
  */
 export async function runAdd(ctx: DetectorContext, addArgs: string[], deps: AddDeps = defaultDeps): Promise<number> {
+	const ui = deps.ui ?? uiFor(ctx);
 	const parsed = parseAddArgs(addArgs);
 	const other = parsed.positionals?.find((word) => OTHER_SUBCOMMANDS.has(word));
 	if (other) {
-		console.error(`opx: \`${other}\` isn't an option for \`release add\`. Did you mean \`opx release ${other}\`?`);
+		ui.fail(`\`${other}\` isn't an option for \`opx release add\``);
+		ui.hint(`Did you mean \`opx release ${other}\`?`);
 		return 1;
 	}
 
@@ -168,19 +173,19 @@ export async function runAdd(ctx: DetectorContext, addArgs: string[], deps: AddD
 		try {
 			changeset = changesetFromFlags(parsed, available);
 		} catch (err) {
-			console.error(`opx: ${(err as Error).message}`);
+			ui.fail((err as Error).message);
 			return 1;
 		}
 	} else if (deps.isInteractive()) {
 		return deps.prompt(ctx.cwd, addArgs);
 	} else {
-		console.error(
-			"opx: `release add` needs an interactive terminal, or pass --type/--pkg/--summary (or --empty).",
-		);
+		ui.fail("Can't prompt for a change without a terminal");
+		ui.hint("Pass --type, --pkg, and --summary, or --empty.");
 		return 1;
 	}
 
 	const id = await deps.write(changeset, ctx.cwd);
-	console.log(`opx: wrote .changeset/${id}.md — run \`opx release version\` to apply.`);
+	ui.ok("Recorded a change", `.changeset/${id}.md`);
+	ui.hint("Next: `opx release version` applies it.");
 	return 0;
 }
