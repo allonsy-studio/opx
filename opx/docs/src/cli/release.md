@@ -21,8 +21,9 @@ opx release [subcommand] [args...]
 | *(none)* / `status` | Show pending changes and the versions they'd produce |
 | `init` | Write a starter `.changeset/config.json` and stop |
 | `add` | Record a change (see below) |
-| `version` | Apply pending changes: bump versions and update changelogs |
-| `publish` | Publish packages whose versions aren't on the registry |
+| `version` | Apply pending changes: bump versions and update changelogs. `--snapshot <name>` makes a [snapshot](../../plugins/release/#snapshot-releases) version |
+| `publish` | Publish packages whose versions aren't on the registry. `--tag <name>` publishes under a dist-tag; `--no-git-tag` skips git tags |
+| `pre enter <tag>` / `pre exit` | Start or end a [pre-release](../../plugins/release/#pre-releases) |
 
 Any other subcommand is passed to the bundled changesets CLI.
 

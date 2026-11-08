@@ -26,7 +26,7 @@ jest.unstable_mockModule("node:child_process", () => ({
 	spawn,
 }));
 
-const { init, runRelease } = await import("./runner.js");
+const { CHANGESET_README, init, runRelease, starterConfig } = await import("./runner.js");
 
 function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-rel-"));
@@ -71,6 +71,35 @@ describe("init", () => {
 			// No git repository here, so it falls back to main.
 			// Second call: config already present → returns false.
 			expect(init(ctx(dir))).toBe(false);
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+});
+
+describe("starter config", () => {
+	it("writes the shipped config.json plus baseBranch", () => {
+		const dir = tmp();
+		try {
+			init(ctx(dir));
+			const written = JSON.parse(readFileSync(join(dir, ".changeset", "config.json"), "utf8"));
+			expect(written).toEqual({ ...starterConfig(), baseBranch: "main" });
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it("only uses keys changesets understands", () => {
+		const known = ["$schema", "changelog", "commit", "fixed", "linked", "access", "baseBranch", "updateInternalDependencies", "ignore", "privatePackages", "bumpVersionsWithWorkspaceProtocolOnly", "snapshot", "prettier", "changedFilePatterns", "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH"];
+		expect(Object.keys(starterConfig()).filter((key) => !known.includes(key))).toEqual([]);
+	});
+
+	it("writes a README that says when a changeset is needed", () => {
+		const dir = tmp();
+		try {
+			init(ctx(dir));
+			expect(readFileSync(join(dir, ".changeset", "README.md"), "utf8")).toBe(CHANGESET_README);
+			expect(CHANGESET_README).toMatch(/need none/);
 		} finally {
 			rmSync(dir, { recursive: true, force: true });
 		}
