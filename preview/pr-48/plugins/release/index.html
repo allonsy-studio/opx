@@ -102,10 +102,10 @@
 <p>The first <code>opx release</code> command creates <code>.changeset/config.json</code> and a short README if you don't have them. Every subcommand is described in the <a href="../../cli/release/"><code>opx release</code> reference</a>.</p>
 <h2 id="changelog-format" tabindex="-1"><a class="header-anchor" href="#changelog-format">Changelog format</a></h2>
 <p>The starter config uses <code>@changesets/cli/changelog</code>. To opt in to the Allons-y format instead, run:</p>
-<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx release init <span class="token parameter variable">--changelog</span> <span class="token parameter variable">--maintainer</span> <span class="token operator">&lt;</span>your-github-handle<span class="token operator">></span></code></pre>
-<p>This sets <code>changelog</code> in <code>.changeset/config.json</code> and leaves every other field alone. It reads <code>repo</code> from the <code>repository</code> field in your root <code>package.json</code>. Repeat <code>--maintainer</code> or comma-separate handles. Or set it by hand:</p>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx release init <span class="token parameter variable">--changelog</span></code></pre>
+<p>This sets <code>changelog</code> in <code>.changeset/config.json</code> and leaves every other field alone. It reads <code>repo</code> from the <code>repository</code> field in your root <code>package.json</code>. Or set it by hand:</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
-  <span class="token property">"changelog"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"@allons-y/opx-release/changelog"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token property">"repo"</span><span class="token operator">:</span> <span class="token string">"acme/widgets"</span><span class="token punctuation">,</span> <span class="token property">"maintainers"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"octocat"</span><span class="token punctuation">]</span> <span class="token punctuation">}</span><span class="token punctuation">]</span>
+  <span class="token property">"changelog"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"@allons-y/opx-release/changelog"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token property">"repo"</span><span class="token operator">:</span> <span class="token string">"acme/widgets"</span> <span class="token punctuation">}</span><span class="token punctuation">]</span>
 <span class="token punctuation">}</span></code></pre>
 <p>Each entry reads like a sentence, with the PR (or commit) link and any thanks after it:</p>
 <pre class="language-md"><code class="language-md"><span class="token list punctuation">-</span> Fix crash on empty config. (<span class="token url">[<span class="token content">#12</span>](<span class="token url">https://github.com/acme/widgets/pull/12</span>)</span>) — thanks <span class="token url">[<span class="token content">@alice</span>](<span class="token url">https://github.com/alice</span>)</span>!</code></pre>
@@ -123,7 +123,7 @@
 </tr>
 <tr>
 <td><code>maintainers</code></td>
-<td>Handles that are never thanked (case-insensitive). Everyone else is.</td>
+<td>Handles that are never thanked (case-insensitive). Everyone else is. Defaults to the <code>author</code> and <code>contributors</code> in your root <code>package.json</code>.</td>
 </tr>
 <tr>
 <td><code>disableThanks</code></td>
@@ -131,6 +131,7 @@
 </tr>
 </tbody>
 </table>
+<p>Maintainers come from GitHub noreply emails (<code>1234+octocat@users.noreply.github.com</code>) or <code>https://github.com/octocat</code> URLs in <code>author</code> and <code>contributors</code>. A person with neither is skipped. To list them yourself, pass <code>--maintainer &lt;handle&gt;</code> to <code>init</code> or set <code>maintainers</code>; an explicit list replaces the default.</p>
 <p>A changeset summary can override what the lookup finds, one per line: <code>pr: 123</code>, <code>commit: a1b2c3d</code>, <code>author: @octocat</code>. Bare <code>#123</code> references become links.</p>
 <p>The generator calls the GitHub API, so <code>opx release version</code> needs <code>GITHUB_TOKEN</code>. In CI, <code>changesets/action</code> provides it. Locally, put it in <code>.env</code>. You don't need <code>@changesets/changelog-github</code>; the plugin ships its own lookup.</p>
 <h2 id="publishing-a-monorepo" tabindex="-1"><a class="header-anchor" href="#publishing-a-monorepo">Publishing a monorepo</a></h2>
