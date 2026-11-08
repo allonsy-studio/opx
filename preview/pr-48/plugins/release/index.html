@@ -107,8 +107,8 @@
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
   <span class="token property">"changelog"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"@allons-y/opx-release/changelog"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token property">"repo"</span><span class="token operator">:</span> <span class="token string">"acme/widgets"</span> <span class="token punctuation">}</span><span class="token punctuation">]</span>
 <span class="token punctuation">}</span></code></pre>
-<p>Each entry reads like a sentence, with the PR (or commit) link and any thanks after it:</p>
-<pre class="language-md"><code class="language-md"><span class="token list punctuation">-</span> Fix crash on empty config. (<span class="token url">[<span class="token content">#12</span>](<span class="token url">https://github.com/acme/widgets/pull/12</span>)</span>) — thanks <span class="token url">[<span class="token content">@alice</span>](<span class="token url">https://github.com/alice</span>)</span>!</code></pre>
+<p>Each entry reads like a sentence, with the PR (or commit) link and any thanks after it. 📝 marks the link:</p>
+<pre class="language-md"><code class="language-md"><span class="token list punctuation">-</span> Fix crash on empty config. (📝 <span class="token url">[<span class="token content">#12</span>](<span class="token url">https://github.com/acme/widgets/pull/12</span>)</span>) — thanks <span class="token url">[<span class="token content">@alice</span>](<span class="token url">https://github.com/alice</span>)</span>!</code></pre>
 <table>
 <thead>
 <tr>
@@ -131,7 +131,7 @@
 </tr>
 <tr>
 <td><code>releaseDate</code></td>
-<td><code>true</code> adds a <code>_Released YYYY-MM-DD_</code> line under each new version heading. <code>init --date</code> sets it.</td>
+<td><code>true</code> adds a <code>📅 _Released 8 November 2026_</code> line under each new version heading. <code>init --date</code> sets it.</td>
 </tr>
 </tbody>
 </table>
@@ -154,11 +154,11 @@ migration: Replace <span class="token code-snippet code keyword">`run`</span> wi
 <p>renders as:</p>
 <pre class="language-md"><code class="language-md"><span class="token title important"><span class="token punctuation">##</span> 2.0.0</span>
 
-<span class="token italic"><span class="token punctuation">_</span><span class="token content">Released 2026-11-08</span><span class="token punctuation">_</span></span>
+📅 <span class="token italic"><span class="token punctuation">_</span><span class="token content">Released 8 November 2026</span><span class="token punctuation">_</span></span>
 
 <span class="token title important"><span class="token punctuation">###</span> Major Changes</span>
 
-<span class="token list punctuation">-</span> ✨ Rename the <span class="token code-snippet code keyword">`run`</span> option to <span class="token code-snippet code keyword">`exec`</span>. Closes <span class="token url">[<span class="token content">#4</span>](<span class="token url">https://github.com/acme/widgets/issues/4</span>)</span>.
+<span class="token list punctuation">-</span> ✨ Rename the <span class="token code-snippet code keyword">`run`</span> option to <span class="token code-snippet code keyword">`exec`</span>. Closes <span class="token url">[<span class="token content">#4</span>](<span class="token url">https://github.com/acme/widgets/issues/4</span>)</span>. (📝 <span class="token url">[<span class="token content">#7</span>](<span class="token url">https://github.com/acme/widgets/pull/7</span>)</span>)
 
   ```js
   widgets({ exec: true });
@@ -169,7 +169,7 @@ migration: Replace <span class="token code-snippet code keyword">`run`</span> wi
 <pre class="language-md"><code class="language-md"><span class="token list punctuation">-</span> Updated <span class="token code-snippet code keyword">`@acme/core`</span> 1.0.0 → 2.0.0 (<span class="token url">[<span class="token content">diff</span>](<span class="token url">https://github.com/acme/widgets/compare/@acme/core@1.0.0...@acme/core@2.0.0</span>)</span>)</code></pre>
 <p>Several dependencies share one bullet, one per line under it. Private packages have no tags, so they get no diff link.</p>
 <h3 id="release-dates" tabindex="-1"><a class="header-anchor" href="#release-dates">Release dates</a></h3>
-<p>Changesets never dates a version. With <code>releaseDate: true</code>, <code>opx release version</code> adds <code>_Released YYYY-MM-DD_</code> (UTC) under each version it just wrote. It doesn't date older versions or snapshot releases. The date goes on its own line, not in the heading, because <code>changesets/action</code> finds a version's notes by matching the heading text exactly.</p>
+<p>Changesets never dates a version. With <code>releaseDate: true</code>, <code>opx release version</code> adds a line such as <code>📅 _Released 8 November 2026_</code> under each version it just wrote. The date is in UTC, with the month spelled out, so it reads the same in every locale. It doesn't date older versions or snapshot releases. The date goes on its own line, not in the heading, because <code>changesets/action</code> finds a version's notes by matching the heading text exactly.</p>
 <p>The date is the day <code>opx release version</code> runs. In CI, that's when the release pull request was last updated, which is usually the day it merges.</p>
 <p>The generator calls the GitHub API, so <code>opx release version</code> needs <code>GITHUB_TOKEN</code>. In CI, <code>changesets/action</code> provides it. Locally, put it in <code>.env</code>. You don't need <code>@changesets/changelog-github</code>; the plugin ships its own lookup.</p>
 <h2 id="scripts" tabindex="-1"><a class="header-anchor" href="#scripts">Scripts</a></h2>
