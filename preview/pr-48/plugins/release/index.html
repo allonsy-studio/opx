@@ -129,10 +129,48 @@
 <td><code>disableThanks</code></td>
 <td><code>true</code> drops the thanks for everyone.</td>
 </tr>
+<tr>
+<td><code>releaseDate</code></td>
+<td><code>true</code> adds a <code>_Released YYYY-MM-DD_</code> line under each new version heading. <code>init --date</code> sets it.</td>
+</tr>
 </tbody>
 </table>
 <p>Maintainers come from GitHub noreply emails (<code>1234+octocat@users.noreply.github.com</code>) or <code>https://github.com/octocat</code> URLs in <code>author</code> and <code>contributors</code>. A person with neither is skipped. To list them yourself, pass <code>--maintainer &lt;handle&gt;</code> to <code>init</code> or set <code>maintainers</code>; an explicit list replaces the default.</p>
 <p>A changeset summary can override what the lookup finds, one per line: <code>pr: 123</code>, <code>commit: a1b2c3d</code>, <code>author: @octocat</code>. Bare <code>#123</code> references become links.</p>
+<h3 id="writing-a-changeset" tabindex="-1"><a class="header-anchor" href="#writing-a-changeset">Writing a changeset</a></h3>
+<p>The first line becomes the entry. Everything after it stays inside the entry, so paragraphs, lists, and fenced code blocks render as part of that change. References like <code>#123</code> inside code are left alone. Emoji are kept as written.</p>
+<p>For a breaking change, end the summary with a <code>migration:</code> line (or <code>upgrade:</code>). The rest of the summary becomes a <strong>To upgrade:</strong> paragraph under the entry:</p>
+<pre class="language-md"><code class="language-md"><span class="token front-matter-block"><span class="token punctuation">---</span>
+<span class="token front-matter yaml language-yaml"><span class="token key atrule">"@acme/widgets"</span><span class="token punctuation">:</span> major</span>
+<span class="token punctuation">---</span></span>
+
+✨ Rename the <span class="token code-snippet code keyword">`run`</span> option to <span class="token code-snippet code keyword">`exec`</span>. Closes #4.
+
+<span class="token code"><span class="token punctuation">```</span><span class="token code-language">js</span>
+<span class="token code-block language-js"><span class="token function">widgets</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">exec</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="token punctuation">```</span></span>
+
+migration: Replace <span class="token code-snippet code keyword">`run`</span> with <span class="token code-snippet code keyword">`exec`</span> in your config.</code></pre>
+<p>renders as:</p>
+<pre class="language-md"><code class="language-md"><span class="token title important"><span class="token punctuation">##</span> 2.0.0</span>
+
+<span class="token italic"><span class="token punctuation">_</span><span class="token content">Released 2026-11-08</span><span class="token punctuation">_</span></span>
+
+<span class="token title important"><span class="token punctuation">###</span> Major Changes</span>
+
+<span class="token list punctuation">-</span> ✨ Rename the <span class="token code-snippet code keyword">`run`</span> option to <span class="token code-snippet code keyword">`exec`</span>. Closes <span class="token url">[<span class="token content">#4</span>](<span class="token url">https://github.com/acme/widgets/issues/4</span>)</span>.
+
+  ```js
+  widgets({ exec: true });
+  ```
+
+  <span class="token bold"><span class="token punctuation">**</span><span class="token content">To upgrade:</span><span class="token punctuation">**</span></span> Replace <span class="token code-snippet code keyword">`run`</span> with <span class="token code-snippet code keyword">`exec`</span> in your config.</code></pre>
+<p>A dependency bump shows the old and new versions, with a link to the diff between their tags:</p>
+<pre class="language-md"><code class="language-md"><span class="token list punctuation">-</span> Updated <span class="token code-snippet code keyword">`@acme/core`</span> 1.0.0 → 2.0.0 (<span class="token url">[<span class="token content">diff</span>](<span class="token url">https://github.com/acme/widgets/compare/@acme/core@1.0.0...@acme/core@2.0.0</span>)</span>)</code></pre>
+<p>Several dependencies share one bullet, one per line under it. Private packages have no tags, so they get no diff link.</p>
+<h3 id="release-dates" tabindex="-1"><a class="header-anchor" href="#release-dates">Release dates</a></h3>
+<p>Changesets never dates a version. With <code>releaseDate: true</code>, <code>opx release version</code> adds <code>_Released YYYY-MM-DD_</code> (UTC) under each version it just wrote. It doesn't date older versions or snapshot releases. The date goes on its own line, not in the heading, because <code>changesets/action</code> finds a version's notes by matching the heading text exactly.</p>
+<p>The date is the day <code>opx release version</code> runs. In CI, that's when the release pull request was last updated, which is usually the day it merges.</p>
 <p>The generator calls the GitHub API, so <code>opx release version</code> needs <code>GITHUB_TOKEN</code>. In CI, <code>changesets/action</code> provides it. Locally, put it in <code>.env</code>. You don't need <code>@changesets/changelog-github</code>; the plugin ships its own lookup.</p>
 <h2 id="scripts" tabindex="-1"><a class="header-anchor" href="#scripts">Scripts</a></h2>
 <p>Add these to the root <code>package.json</code> so contributors and CI run the same commands:</p>
