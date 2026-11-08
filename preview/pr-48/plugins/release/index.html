@@ -123,7 +123,7 @@
 </tr>
 <tr>
 <td><code>maintainers</code></td>
-<td>Handles that are never thanked (case-insensitive). Everyone else is. Defaults to the <code>author</code> and <code>contributors</code> in your root <code>package.json</code>.</td>
+<td>Handles that are never thanked (case-insensitive). Everyone else is, except bots such as Renovate and Dependabot. Defaults to the <code>author</code> and <code>contributors</code> in your workspace root's <code>package.json</code>.</td>
 </tr>
 <tr>
 <td><code>disableThanks</code></td>
@@ -136,9 +136,9 @@
 </tbody>
 </table>
 <p>Maintainers come from GitHub noreply emails (<code>1234+octocat@users.noreply.github.com</code>) or <code>https://github.com/octocat</code> URLs in <code>author</code> and <code>contributors</code>. A person with neither is skipped. To list them yourself, pass <code>--maintainer &lt;handle&gt;</code> to <code>init</code> or set <code>maintainers</code>; an explicit list replaces the default.</p>
-<p>A changeset summary can override what the lookup finds, one per line: <code>pr: 123</code>, <code>commit: a1b2c3d</code>, <code>author: @octocat</code>. Bare <code>#123</code> references become links.</p>
+<p>A changeset summary can override what the lookup finds, one per line: <code>pr: 123</code>, <code>commit: a1b2c3d</code>, <code>author: @octocat</code>. These lines are never read from inside fenced code, so a YAML example with <code>user: node</code> stays as written. Bare <code>#123</code> references become links; references in inline code, links, and URLs don't.</p>
 <h3 id="writing-a-changeset" tabindex="-1"><a class="header-anchor" href="#writing-a-changeset">Writing a changeset</a></h3>
-<p>The first line becomes the entry. Everything after it stays inside the entry, so paragraphs, lists, and fenced code blocks render as part of that change. References like <code>#123</code> inside code are left alone. Emoji are kept as written.</p>
+<p>The first line becomes the entry. If it's missing, or starts a code block, the entry reads <em>No summary.</em> and <code>opx release version</code> warns. Everything after it stays inside the entry, so paragraphs, lists, and fenced code blocks render as part of that change. References like <code>#123</code> inside code are left alone. Emoji are kept as written.</p>
 <p>For a breaking change, end the summary with a <code>migration:</code> line (or <code>upgrade:</code>). The rest of the summary becomes a <strong>To upgrade:</strong> paragraph under the entry:</p>
 <pre class="language-md"><code class="language-md"><span class="token front-matter-block"><span class="token punctuation">---</span>
 <span class="token front-matter yaml language-yaml"><span class="token key atrule">"@acme/widgets"</span><span class="token punctuation">:</span> major</span>
@@ -167,9 +167,9 @@ migration: Replace <span class="token code-snippet code keyword">`run`</span> wi
   <span class="token bold"><span class="token punctuation">**</span><span class="token content">To upgrade:</span><span class="token punctuation">**</span></span> Replace <span class="token code-snippet code keyword">`run`</span> with <span class="token code-snippet code keyword">`exec`</span> in your config.</code></pre>
 <p>A dependency bump shows the old and new versions, with a link to the diff between their tags:</p>
 <pre class="language-md"><code class="language-md"><span class="token list punctuation">-</span> Updated <span class="token code-snippet code keyword">`@acme/core`</span> 1.0.0 → 2.0.0 (<span class="token url">[<span class="token content">diff</span>](<span class="token url">https://github.com/acme/widgets/compare/@acme/core@1.0.0...@acme/core@2.0.0</span>)</span>)</code></pre>
-<p>Several dependencies share one bullet, one per line under it. Private packages have no tags, so they get no diff link.</p>
+<p>Several dependencies share one bullet, one per line under it. Private packages have no tags, so they get no diff link. The link also 404s until both tags exist, for example before a package's first tagged release.</p>
 <h3 id="release-dates" tabindex="-1"><a class="header-anchor" href="#release-dates">Release dates</a></h3>
-<p>Changesets never dates a version. With <code>releaseDate: true</code>, <code>opx release version</code> adds a line such as <code>📅 _Released 8 November 2026_</code> under each version it just wrote. The date is in UTC, with the month spelled out, so it reads the same in every locale. It doesn't date older versions or snapshot releases. The date goes on its own line, not in the heading, because <code>changesets/action</code> finds a version's notes by matching the heading text exactly.</p>
+<p>Changesets never dates a version. With <code>releaseDate: true</code>, <code>opx release version</code> adds a line such as <code>📅 _Released 8 November 2026_</code> under each version it just wrote. The date is in UTC, with the month spelled out, so it reads the same in every locale. It doesn't date older versions or snapshot releases. With <code>&quot;commit&quot;: true</code>, changesets commits the version bump first, and opx adds the dates to that same commit. The date goes on its own line, not in the heading, because <code>changesets/action</code> finds a version's notes by matching the heading text exactly.</p>
 <p>The date is the day <code>opx release version</code> runs. In CI, that's when the release pull request was last updated, which is usually the day it merges.</p>
 <p>The generator calls the GitHub API, so <code>opx release version</code> needs <code>GITHUB_TOKEN</code>. In CI, <code>changesets/action</code> provides it. Locally, put it in <code>.env</code>. You don't need <code>@changesets/changelog-github</code>; the plugin ships its own lookup.</p>
 <h2 id="scripts" tabindex="-1"><a class="header-anchor" href="#scripts">Scripts</a></h2>
@@ -227,7 +227,7 @@ migration: Replace <span class="token code-snippet code keyword">`run`</span> wi
           <span class="token key atrule">GITHUB_TOKEN</span><span class="token punctuation">:</span> $<span class="token punctuation">{</span><span class="token punctuation">{</span> secrets.GITHUB_TOKEN <span class="token punctuation">}</span><span class="token punctuation">}</span></code></pre>
 <p>The workflow's token must be allowed to create pull requests (Settings → Actions → General). Or use a GitHub App token, so CI runs on the release pull request; this repository's <a href="https://github.com/allonsy-studio/opx/blob/main/.github/workflows/release.yml">release workflow</a> does that.</p>
 <h3 id="authenticating-to-npm" tabindex="-1"><a class="header-anchor" href="#authenticating-to-npm">Authenticating to npm</a></h3>
-<p>Use <strong>trusted publishing</strong> (OIDC). There is no token to store or rotate, and npm adds provenance to every version:</p>
+<p>Use <strong>trusted publishing</strong> (OIDC). There is no token to store or rotate, and npm adds a provenance attestation to each version when the repository and the package are both public:</p>
 <ol>
 <li>On <a href="http://npmjs.com">npmjs.com</a>, open each package's settings and add a trusted publisher: this repository and the workflow file name (<code>release.yml</code>).</li>
 <li>Give the job <code>id-token: write</code>, as above.</li>
