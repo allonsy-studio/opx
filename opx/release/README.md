@@ -61,7 +61,9 @@ Add these to the root `package.json` so contributors and CI run the same command
 
 ## Publishing a Yarn workspace
 
-Changesets publishes with plain `npm publish`, so `workspace:` dependency ranges would be published as they are and break installs. Use real semver ranges for dependencies between your own packages. Yarn still links the local workspace, and changesets rewrites the ranges when it bumps versions.
+Changesets 2 publishes with plain `npm publish`, so `workspace:` dependency ranges would be published as they are and break installs ([changesets#432](https://github.com/changesets/changesets/issues/432)). Use real semver ranges for dependencies between your own packages. Yarn still links the local workspace, and changesets rewrites the ranges when it bumps versions.
+
+The fix is planned for Changesets 3, which publishes through the repository's own package manager. opx still bundles Changesets 2; when it moves to 3, this advice changes.
 
 ## Pre-releases
 
