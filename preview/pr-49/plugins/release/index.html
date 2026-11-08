@@ -111,7 +111,8 @@
 <span class="token punctuation">}</span></code></pre>
 <p><code>yarn version</code> is Yarn's own command and ignores a script with that name, so run the script as <code>yarn run version</code>. The <code>yarn install</code> step refreshes the lockfile after the version bump, so an immutable install still passes in CI.</p>
 <h2 id="publishing-a-monorepo" tabindex="-1"><a class="header-anchor" href="#publishing-a-monorepo">Publishing a monorepo</a></h2>
-<p>Changesets publishes with plain <code>npm publish</code>, so <code>workspace:</code> dependency ranges would be published as they are and break installs. Use real semver ranges for dependencies between your own packages. Yarn still links the local workspace, and changesets rewrites the ranges when it bumps versions.</p>
+<p>Changesets 2 publishes with plain <code>npm publish</code>, so <code>workspace:</code> dependency ranges would be published as they are and break installs (<a href="https://github.com/changesets/changesets/issues/432">changesets#432</a>). Use real semver ranges for dependencies between your own packages. Yarn still links the local workspace, and changesets rewrites the ranges when it bumps versions.</p>
+<p>The fix is planned for Changesets 3, which publishes through the repository's own package manager. opx still bundles Changesets 2; when it moves to 3, this advice changes.</p>
 <h2 id="pre-releases" tabindex="-1"><a class="header-anchor" href="#pre-releases">Pre-releases</a></h2>
 <p>Pre-release mode publishes every version with a tag such as <code>1.2.0-beta.0</code>, under the matching npm dist-tag, so <code>npm install</code> keeps getting the last stable version:</p>
 <pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx release pre enter beta   <span class="token comment"># start; writes .changeset/pre.json</span>
