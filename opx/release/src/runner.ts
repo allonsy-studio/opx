@@ -1,6 +1,5 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { join } from "node:path";
 
 import { getPackages } from "@manypkg/get-packages";
@@ -9,6 +8,7 @@ import { detectPackageManager } from "@allons-y/opx";
 import type { DetectorContext, PackageManager } from "@allons-y/opx";
 
 import { runAdd } from "./add.js";
+import { runChangeset } from "./changeset-cli.js";
 import { detectBaseBranch } from "./base-branch.js";
 
 /** Read the starter config shipped as `@allons-y/opx-release/config.json`. */
@@ -176,7 +176,7 @@ async function runVersion(ctx: DetectorContext, args: string[]): Promise<number>
 	const stamp = releaseDateEnabled(ctx.cwd) && !isSnapshot(args);
 	const before = stamp ? await packageVersions(ctx.cwd) : new Map<string, string>();
 	const headBefore = stamp ? gitHead(ctx.cwd) : undefined;
-	const code = await runChangeset(ctx, args);
+	const code = await runChangeset(ctx.cwd, args);
 	if (code !== 0 || !stamp) return code;
 	const after = await packageVersions(ctx.cwd);
 	const bumped = [...after].filter(([dir, version]) => before.get(dir) !== version).map(([dir, version]) => ({ dir, version }));
@@ -190,28 +190,6 @@ async function runVersion(ctx: DetectorContext, args: string[]): Promise<number>
 		if (!amended) console.warn("opx: couldn't add the release dates to changesets' commit; commit them yourself.");
 	}
 	return 0;
-}
-
-/** Resolve the bundled `@changesets/cli` executable (exported as `./bin.js`). */
-function resolveChangesetBin(): string {
-	const require = createRequire(import.meta.url);
-	return require.resolve("@changesets/cli/bin.js");
-}
-
-/** Spawn the changesets CLI with the given args, inheriting stdio. */
-function runChangeset(ctx: DetectorContext, args: string[]): Promise<number> {
-	const bin = resolveChangesetBin();
-	return new Promise((resolve) => {
-		const child = spawn(process.execPath, [bin, ...args], {
-			cwd: ctx.cwd,
-			stdio: "inherit",
-		});
-		child.on("close", (code) => resolve(code ?? 0));
-		child.on("error", (err) => {
-			console.error(`opx: failed to run changesets: ${err.message}`);
-			resolve(1);
-		});
-	});
 }
 
 /**
@@ -251,5 +229,5 @@ export async function runRelease(ctx: DetectorContext, args: string[]): Promise<
 	// Every other subcommand is non-interactive; forward it to the changesets CLI.
 	if (sub === "version") return runVersion(ctx, args);
 	const forwarded = args.length > 0 ? args : ["status"];
-	return runChangeset(ctx, forwarded);
+	return runChangeset(ctx.cwd, forwarded);
 }

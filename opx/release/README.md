@@ -28,9 +28,9 @@ The first `opx release` command creates `.changeset/config.json` and a short `.c
 
 ### Recording a change
 
-Interactively, `opx release add` asks which packages changed, the bump for them, and a summary.
+In a terminal, `opx release add` runs changesets' own prompt (`changeset add`), so its options, such as `--open` and `--since`, work as the [changesets docs](https://github.com/changesets/changesets/blob/main/packages/cli/README.md#add) describe.
 
-For scripts and CI, pass flags; giving any flag skips the prompts. Without flags, `opx release add` needs an interactive terminal and exits `1` when `CI` or `OPX_NONINTERACTIVE` is set or stdout isn't a TTY:
+For scripts and CI, pass flags. Changesets has no way to record a change without prompting, so this is opx's own path: it validates the flags against the packages changesets would offer (not `ignore`d, and private only when `privatePackages.version` allows) and writes the file. Without flags, `opx release add` needs an interactive terminal and exits `1` when `CI` or `OPX_NONINTERACTIVE` is set or stdout isn't a TTY:
 
 | Flag | Description |
 |---|---|

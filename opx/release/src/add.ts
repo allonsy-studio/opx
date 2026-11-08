@@ -1,15 +1,18 @@
+import { read as readConfig } from "@changesets/config";
+import { shouldSkipPackage } from "@changesets/should-skip-package";
 import writeChangeset from "@changesets/write";
 import { getPackages } from "@manypkg/get-packages";
-import * as p from "@clack/prompts";
 import type { Changeset, VersionType } from "@changesets/types";
 
 import type { DetectorContext } from "@allons-y/opx";
+
+import { runChangeset } from "./changeset-cli.js";
 
 /** The bump levels opx exposes (changesets' `none` is not user-selectable here). */
 export type Bump = "patch" | "minor" | "major";
 const BUMPS: Bump[] = ["patch", "minor", "major"];
 
-/** A publishable workspace package the user can record a change against. */
+/** A workspace package changesets would let the user record a change against. */
 export type ReleasablePackage = { name: string; version: string };
 
 /** Flags parsed from `opx release add …` for the non-interactive / CI path. */
@@ -109,91 +112,46 @@ export function isInteractive(): boolean {
 	return Boolean(process.stdout.isTTY);
 }
 
-/** Enumerate publishable workspace packages (excludes private packages + root). */
+/**
+ * The packages `changeset add` offers: it skips names in the config's `ignore`,
+ * packages without a version, and private packages unless `privatePackages.version` is on.
+ * Uses changesets' own config reader and rule so opx can't drift from it.
+ */
 export async function listReleasablePackages(cwd: string): Promise<ReleasablePackage[]> {
-	const { packages } = await getPackages(cwd);
-	return packages
-		.filter((pkg) => pkg.packageJson.name && !pkg.packageJson.private)
+	const packages = await getPackages(cwd);
+	const config = await readConfig(cwd, packages);
+	return packages.packages
+		.filter((pkg) => !shouldSkipPackage(pkg, { ignore: config.ignore, allowPrivatePackages: config.privatePackages.version }))
 		.map((pkg) => ({ name: pkg.packageJson.name, version: pkg.packageJson.version }))
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/**
- * Drive the interactive `add` flow (hybrid bump selection): pick packages, then
- * one bump for all or per-package, then a summary. Returns `null` if cancelled.
- */
-export async function collectInteractively(packages: ReleasablePackage[]): Promise<Changeset | null> {
-	p.intro("opx release — record a change");
-
-	const selected = await p.multiselect({
-		message: "Which packages changed?",
-		options: packages.map((pkg) => ({ value: pkg.name, label: pkg.name, hint: pkg.version })),
-		required: true,
-	});
-	if (p.isCancel(selected)) return null;
-	const names = selected as string[];
-
-	const PER_PACKAGE = "__per_package__";
-	const choice = await p.select({
-		message: "Bump type for the selected packages?",
-		options: [
-			{ value: "patch", label: "patch — all selected" },
-			{ value: "minor", label: "minor — all selected" },
-			{ value: "major", label: "major — all selected" },
-			{ value: PER_PACKAGE, label: "choose per package…" },
-		],
-	});
-	if (p.isCancel(choice)) return null;
-
-	const releases: Array<{ name: string; type: Bump }> = [];
-	if (choice === PER_PACKAGE) {
-		for (const name of names) {
-			const type = await p.select({
-				message: `Bump for ${name}?`,
-				options: BUMPS.map((b) => ({ value: b, label: b })),
-			});
-			if (p.isCancel(type)) return null;
-			releases.push({ name, type: type as Bump });
-		}
-	} else {
-		for (const name of names) releases.push({ name, type: choice as Bump });
-	}
-
-	const summary = await p.text({
-		message: "Summary of the change",
-		validate: (value) => (value && value.trim() ? undefined : "A summary is required."),
-	});
-	if (p.isCancel(summary)) return null;
-
-	const changeset = toChangeset(releases, String(summary));
-	p.outro(`Recorded a ${releases.length === 1 ? "change" : "change set"} for ${releases.length} package(s).`);
-	return changeset;
-}
-
 // ---------------------------------------------------------------------------
-// Orchestration — flags → CI path, otherwise prompt; writes the changeset file.
+// Orchestration — flags → opx writes the changeset; a terminal → changesets' own prompt.
 // ---------------------------------------------------------------------------
 
 /** Injectable I/O seams so `runAdd` can be unit-tested without a TTY or fs. */
 export type AddDeps = {
 	isInteractive: () => boolean;
 	listPackages: (cwd: string) => Promise<ReleasablePackage[]>;
-	collect: (packages: ReleasablePackage[]) => Promise<Changeset | null>;
 	write: (changeset: Changeset, cwd: string) => Promise<string>;
+	/** Run `changeset add` with these args and return its exit code. */
+	prompt: (cwd: string, args: string[]) => Promise<number>;
 };
 
 const defaultDeps: AddDeps = {
 	isInteractive,
 	listPackages: listReleasablePackages,
-	collect: collectInteractively,
 	write: (changeset, cwd) => writeChangeset(changeset, cwd),
+	prompt: (cwd, args) => runChangeset(cwd, ["add", ...args]),
 };
 
 /**
- * Record a change: build a changeset (from flags when given, otherwise by
- * prompting) and write it to `.changeset/`. Replaces interactive `changeset add`.
+ * Record a change. With flags, opx validates them and writes the changeset, which
+ * changesets can't do without prompting. In a terminal without flags, it runs
+ * changesets' own `add` prompt, passing every argument through (`--open`, `--since`).
  *
- * @returns `0` on success; `1` on cancellation or invalid/missing input.
+ * @returns `0` on success; otherwise `1`, or the prompt's exit code.
  */
 export async function runAdd(ctx: DetectorContext, addArgs: string[], deps: AddDeps = defaultDeps): Promise<number> {
 	const parsed = parseAddArgs(addArgs);
@@ -214,17 +172,7 @@ export async function runAdd(ctx: DetectorContext, addArgs: string[], deps: AddD
 			return 1;
 		}
 	} else if (deps.isInteractive()) {
-		const packages = await deps.listPackages(ctx.cwd);
-		if (packages.length === 0) {
-			console.error("opx: no publishable packages found.");
-			return 1;
-		}
-		const collected = await deps.collect(packages);
-		if (!collected) {
-			console.log("opx: release add cancelled.");
-			return 1;
-		}
-		changeset = collected;
+		return deps.prompt(ctx.cwd, addArgs);
 	} else {
 		console.error(
 			"opx: `release add` needs an interactive terminal, or pass --type/--pkg/--summary (or --empty).",

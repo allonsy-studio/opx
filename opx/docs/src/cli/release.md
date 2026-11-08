@@ -29,7 +29,7 @@ Any other subcommand is passed to the bundled changesets CLI.
 
 ## Recording a change
 
-Interactively, `opx release add` asks which packages changed, the bump, and a summary.
+In a terminal, `opx release add` runs changesets' own prompt (`changeset add`), so its options, such as `--open` and `--since`, work as the [changesets docs](https://github.com/changesets/changesets/blob/main/packages/cli/README.md#add) describe.
 
 For scripts and CI, pass flags:
 
