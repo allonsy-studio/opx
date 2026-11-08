@@ -29,20 +29,21 @@ describe("parseAddArgs", () => {
 			type: "minor",
 			pkgs: ["@scope/a", "@scope/b", "@scope/c"],
 			summary: "hi",
+			positionals: [],
 		});
-		expect(parseAddArgs(["--empty"])).toEqual({ empty: true, pkgs: [] });
+		expect(parseAddArgs(["--empty"])).toEqual({ empty: true, pkgs: [], positionals: [] });
 	});
 
-	it("ignores unknown tokens", () => {
-		expect(parseAddArgs(["status", "--weird"])).toEqual({ empty: false, pkgs: [] });
+	it("ignores unknown flags and keeps bare words", () => {
+		expect(parseAddArgs(["status", "--weird"])).toEqual({ empty: false, pkgs: [], positionals: ["status"] });
 	});
 });
 
 describe("hasAddFlags", () => {
 	it("is false for an empty parse and true when any flag is present", () => {
-		expect(hasAddFlags({ empty: false, pkgs: [] })).toBe(false);
-		expect(hasAddFlags({ empty: true, pkgs: [] })).toBe(true);
-		expect(hasAddFlags({ empty: false, pkgs: ["x"] })).toBe(true);
+		expect(hasAddFlags({ empty: false, pkgs: [], positionals: [] })).toBe(false);
+		expect(hasAddFlags({ empty: true, pkgs: [], positionals: [] })).toBe(true);
+		expect(hasAddFlags({ empty: false, pkgs: ["x"], positionals: [] })).toBe(true);
 		expect(hasAddFlags({ empty: false, pkgs: [], summary: "s" })).toBe(true);
 	});
 });
@@ -99,6 +100,22 @@ describe("runAdd", () => {
 		err = jest.spyOn(console, "error").mockImplementation(() => {});
 	});
 	afterEach(() => jest.restoreAllMocks());
+
+	it.each(["status", "version", "publish", "pre"])("points `%s` at its own subcommand instead of prompting", async (word) => {
+		const collect = jest.fn(async () => null as Changeset | null);
+		const { deps: d, written } = deps({ collect });
+
+		expect(await runAdd(ctx(), [word], d)).toBe(1);
+		expect(collect).not.toHaveBeenCalled();
+		expect(written).toHaveLength(0);
+		expect(err).toHaveBeenCalledWith(expect.stringContaining(`opx release ${word}`));
+	});
+
+	it("still prompts for bare words that aren't subcommands", async () => {
+		const { deps: d, written } = deps();
+		expect(await runAdd(ctx(), ["something"], d)).toBe(0);
+		expect(written).toHaveLength(1);
+	});
 
 	it("writes the changeset built from flags without prompting", async () => {
 		const collect = jest.fn(async () => null as Changeset | null);

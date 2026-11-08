@@ -43,7 +43,7 @@ jobs:
             - name: Create release pull request or publish
               uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1
               with:
-                  version: yarn version-packages
+                  version: yarn run version
                   publish: yarn release
                   commitMode: github-api
               env:

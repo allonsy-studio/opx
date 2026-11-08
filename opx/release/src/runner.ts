@@ -1,42 +1,38 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
 
-import type { DetectorContext } from "@allons-y/opx";
+import { detectPackageManager } from "@allons-y/opx";
+import type { DetectorContext, PackageManager } from "@allons-y/opx";
 
 import { runAdd } from "./add.js";
 import { detectBaseBranch } from "./base-branch.js";
 
-/**
- * A lightweight, sensible-default changesets config for a host repo. Mirrors a
- * minimal `.changeset/config.json` so a project can start recording changes
- * without hand-authoring the file. `baseBranch` is filled in per repository.
- */
-const DEFAULT_CHANGESET_CONFIG = {
-	$schema: "https://unpkg.com/@changesets/config@3.1.4/schema.json",
-	changelog: "@changesets/cli/changelog",
-	commit: false,
-	fixed: [],
-	linked: [],
-	access: "public",
-	updateInternalDependencies: "patch",
-	ignore: [],
+/** Read the starter config shipped as `@allons-y/opx-release/config.json`. */
+export function starterConfig(): Record<string, unknown> {
+	return JSON.parse(readFileSync(new URL("../config.json", import.meta.url), "utf8")) as Record<string, unknown>;
+}
+
+/** How each package manager runs the `changeset` script. */
+const RUN_CHANGESET: Record<PackageManager, string> = {
+	npm: "npm run changeset",
+	yarn: "yarn changeset",
+	pnpm: "pnpm changeset",
+	bun: "bun run changeset",
 };
 
-const CHANGESET_README = `# Changesets
+/** The `.changeset/README.md` written on first use, with the repo's package manager. */
+export function changesetReadme(pm: PackageManager): string {
+	return `# Changesets
 
-This folder is managed by [changesets](https://github.com/changesets/changesets).
-
-- \`opx release add\` — record a change (choose the bump and write a summary)
-- \`opx release version\` — apply pending changesets (bump versions + changelogs)
-- \`opx release publish\` — publish the updated packages
-- \`opx release status\` — show what would be released
+Add a changeset for any change a consumer would notice: run \`${RUN_CHANGESET[pm]}\` and write the summary for the changelog. Docs, tests, CI, and internal refactors need none. The release workflow versions and publishes the packages; see [\`@allons-y/opx-release\`](https://www.npmjs.com/package/@allons-y/opx-release).
 `;
+}
 
 /**
- * Ensure the host repo has a changesets setup. Writes a lightweight default to
- * `.changeset/config.json` (plus a short README) when none exists.
+ * Ensure the host repo has a changesets setup. Writes the starter `config.json`,
+ * with this repository's `baseBranch`, and a short README when none exists.
  *
  * @returns true if it created the config, false if one was already present.
  */
@@ -46,11 +42,11 @@ export function init(ctx: DetectorContext): boolean {
 	if (existsSync(configFile)) return false;
 
 	mkdirSync(dir, { recursive: true });
-	const config = { ...DEFAULT_CHANGESET_CONFIG, baseBranch: detectBaseBranch(ctx.cwd) };
+	const config = { ...starterConfig(), baseBranch: detectBaseBranch(ctx.cwd) };
 	writeFileSync(configFile, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 
 	const readme = join(dir, "README.md");
-	if (!existsSync(readme)) writeFileSync(readme, CHANGESET_README, "utf8");
+	if (!existsSync(readme)) writeFileSync(readme, changesetReadme(ctx.pkgManager ?? detectPackageManager(ctx.cwd, ctx.hostPkg)), "utf8");
 
 	return true;
 }

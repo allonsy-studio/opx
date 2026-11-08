@@ -26,7 +26,8 @@ jest.unstable_mockModule("node:child_process", () => ({
 	spawn,
 }));
 
-const { init, runRelease } = await import("./runner.js");
+const { changesetReadme, init, runRelease, starterConfig } = await import("./runner.js");
+const { parse } = await import("@changesets/config");
 
 function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-rel-"));
@@ -71,6 +72,70 @@ describe("init", () => {
 			// No git repository here, so it falls back to main.
 			// Second call: config already present → returns false.
 			expect(init(ctx(dir))).toBe(false);
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+});
+
+describe("starter config", () => {
+	it("writes the shipped config.json plus baseBranch", () => {
+		const dir = tmp();
+		try {
+			init(ctx(dir));
+			const written = JSON.parse(readFileSync(join(dir, ".changeset", "config.json"), "utf8"));
+			expect(written).toEqual({ ...starterConfig(), baseBranch: "main" });
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it("passes changesets' own validation", () => {
+		const packages = { tool: "yarn", root: { dir: "/r", packageJson: { name: "root", version: "0.0.0" } }, packages: [] };
+		expect(() => parse({ ...starterConfig(), baseBranch: "main" } as never, packages as never)).not.toThrow();
+	});
+
+	it("only uses keys changesets reads, which its validation doesn't check", () => {
+		const known = ["$schema", "changelog", "commit", "fixed", "linked", "access", "baseBranch", "updateInternalDependencies", "ignore", "privatePackages", "bumpVersionsWithWorkspaceProtocolOnly", "snapshot", "prettier", "changedFilePatterns", "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH"];
+		expect(Object.keys(starterConfig()).filter((key) => !known.includes(key))).toEqual([]);
+	});
+
+	it("writes a README that says when a changeset is needed", () => {
+		const dir = tmp();
+		try {
+			init(ctx(dir));
+			const readme = readFileSync(join(dir, ".changeset", "README.md"), "utf8");
+			expect(readme).toMatch(/need none/);
+			expect(readme).toMatch(/`\w+( run)? changeset`/);
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it.each([
+		["npm", "npm run changeset"],
+		["yarn", "yarn changeset"],
+		["pnpm", "pnpm changeset"],
+		["bun", "bun run changeset"],
+	] as const)("tells %s users to run `%s`", (pm, command) => {
+		expect(changesetReadme(pm)).toContain(`\`${command}\``);
+	});
+
+	it("detects the package manager when the context has none", () => {
+		const dir = tmp();
+		try {
+			init({ ...ctx(dir), hostPkg: { packageManager: "bun@1.2.0" } } as unknown as DetectorContext);
+			expect(readFileSync(join(dir, ".changeset", "README.md"), "utf8")).toContain("`bun run changeset`");
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it("uses the repository's package manager", () => {
+		const dir = tmp();
+		try {
+			init({ ...ctx(dir), pkgManager: "pnpm" });
+			expect(readFileSync(join(dir, ".changeset", "README.md"), "utf8")).toContain("`pnpm changeset`");
 		} finally {
 			rmSync(dir, { recursive: true, force: true });
 		}

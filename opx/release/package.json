@@ -45,6 +45,7 @@
 	},
 	"types": "./bin/index.d.ts",
 	"devDependencies": {
+		"@changesets/config": "3.1.4",
 		"@changesets/types": "6.1.0"
 	},
 	"dependencies": {
