@@ -114,11 +114,15 @@
 </tr>
 <tr>
 <td><code>version</code></td>
-<td>Apply pending changes: bump versions and update changelogs</td>
+<td>Apply pending changes: bump versions and update changelogs. <code>--snapshot &lt;name&gt;</code> makes a <a href="../../plugins/release/#snapshot-releases">snapshot</a> version</td>
 </tr>
 <tr>
 <td><code>publish</code></td>
-<td>Publish packages whose versions aren't on the registry</td>
+<td>Publish packages whose versions aren't on the registry. <code>--tag &lt;name&gt;</code> publishes under a dist-tag; <code>--no-git-tag</code> skips git tags</td>
+</tr>
+<tr>
+<td><code>pre enter &lt;tag&gt;</code> / <code>pre exit</code></td>
+<td>Start or end a <a href="../../plugins/release/#pre-releases">pre-release</a></td>
 </tr>
 </tbody>
 </table>
