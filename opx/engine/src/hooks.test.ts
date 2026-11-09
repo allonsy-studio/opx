@@ -1,6 +1,9 @@
 import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { spawnSync } from "node:child_process";
+
+import { useScratch } from "shared/testing.js";
 
 import { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
 
@@ -140,6 +143,48 @@ describe("ensureOpxIgnored", () => {
 		const dir = tmp();
 		ensureOpxIgnored(dir);
 		expect(ensureOpxIgnored(dir)).toBe(false);
+		rmSync(dir, { recursive: true });
+	});
+
+	describe("in a git repository", () => {
+		const scratch = useScratch();
+
+		/** Whether git ignores a path, per `git check-ignore`. */
+		function ignored(repo: string, file: string): boolean {
+			return spawnSync("git", ["check-ignore", "-q", file], { cwd: repo }).status === 0;
+		}
+
+		it.each([
+			["a bare .opx line left above the pattern", ".opx\n.opx/*\n!.opx/config.json\n"],
+			["the exception before the pattern", "!.opx/config.json\n.opx/*\n"],
+			["a root-anchored /.opx/ line", "/.opx/\n"],
+			["a .opx/** line", "node_modules\n.opx/**\n"],
+		])("keeps the config tracked when .gitignore has %s", (_, gitignore) => {
+			const repo = scratch.repo();
+			writeFileSync(join(repo, ".gitignore"), gitignore);
+			expect(ignored(repo, ".opx/config.json")).toBe(true);
+
+			expect(ensureOpxIgnored(repo)).toBe(true);
+			expect(ignored(repo, ".opx/config.json")).toBe(false);
+			expect(ignored(repo, ".opx/state.json")).toBe(true);
+			expect(ensureOpxIgnored(repo)).toBe(false);
+		});
+	});
+
+	it("leaves correctly ordered entries where they are", () => {
+		const dir = tmp();
+		const gitignore = ".opx/*\n!.opx/config.json\nnode_modules\n";
+		writeFileSync(join(dir, ".gitignore"), gitignore, "utf8");
+		expect(ensureOpxIgnored(dir)).toBe(false);
+		expect(readFileSync(join(dir, ".gitignore"), "utf8")).toBe(gitignore);
+		rmSync(dir, { recursive: true });
+	});
+
+	it("keeps CRLF line endings when it rewrites", () => {
+		const dir = tmp();
+		writeFileSync(join(dir, ".gitignore"), "node_modules\r\n.opx\r\n", "utf8");
+		expect(ensureOpxIgnored(dir)).toBe(true);
+		expect(readFileSync(join(dir, ".gitignore"), "utf8")).toBe("node_modules\r\n.opx/*\r\n!.opx/config.json\r\n");
 		rmSync(dir, { recursive: true });
 	});
 });

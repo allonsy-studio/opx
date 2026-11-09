@@ -63,23 +63,39 @@ export function ensureGitignored(cwd: string, entry: string): boolean {
 	return true;
 }
 
+/** `.gitignore` lines that hide the whole `.opx` folder, config included. */
+const HIDES_OPX = new Set([".opx", ".opx/", ".opx/**"]);
+
+/** Normalize a `.gitignore` line for comparison: trim it and drop a leading `/`. */
+function pattern(line: string): string {
+	return line.trim().replace(/^\/(?!\/)/, "");
+}
+
 /**
  * Ignore opx's local files while keeping `.opx/config.json` committable.
  *
- * Replaces a bare `.opx` / `.opx/` entry, which would also hide the config,
- * with `.opx/*` plus a `!.opx/config.json` exception.
+ * Leaves `.gitignore` alone when `!.opx/config.json` follows the last `.opx/*`
+ * and nothing hides the whole folder. Otherwise drops the opx lines and
+ * appends `.opx/*` then `!.opx/config.json`.
  *
  * @returns true if `.gitignore` was changed.
  */
 export function ensureOpxIgnored(cwd: string): boolean {
 	const path = join(cwd, ".gitignore");
 	const current = existsSync(path) ? readFileSync(path, "utf8") : "";
-	const lines = current.split("\n");
-	if (lines.includes(".opx/*") && lines.includes("!.opx/config.json")) return false;
+	const eol = current.includes("\r\n") ? "\r\n" : "\n";
+	const lines = current.split(/\r?\n/);
+	const patterns = lines.map(pattern);
 
-	const kept = lines.filter((line) => line !== ".opx" && line !== ".opx/" && line !== ".opx/*" && line !== "!.opx/config.json");
-	const base = kept.join("\n").replace(/\n*$/, "");
-	const next = `${base}${base ? "\n" : ""}.opx/*\n!.opx/config.json\n`;
-	writeFileSync(path, next, "utf8");
+	const ignoreAt = patterns.lastIndexOf(".opx/*");
+	const keepAt = patterns.lastIndexOf("!.opx/config.json");
+	if (ignoreAt !== -1 && keepAt > ignoreAt && !patterns.some((p) => HIDES_OPX.has(p))) return false;
+
+	const kept = lines.filter((line) => {
+		const p = pattern(line);
+		return !HIDES_OPX.has(p) && p !== ".opx/*" && p !== "!.opx/config.json";
+	});
+	const base = kept.join(eol).replace(/(\r?\n)*$/, "");
+	writeFileSync(path, [...(base ? [base] : []), ".opx/*", "!.opx/config.json", ""].join(eol), "utf8");
 	return true;
 }
