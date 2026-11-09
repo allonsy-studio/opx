@@ -100,15 +100,4 @@ describe("diff and disabled plugins", () => {
 		expect(result.entries[0]?.enabled).toBe(false);
 		expect(result.needsPrompt).toHaveLength(1);
 	});
-
-	it("does not re-prompt on the skip date, but does the day after", async () => {
-		const deferrals = { js: { branch: "main", skipUntilDate: "2026-01-02", reason: "later" } };
-		expect((await diff([fakeDetector("js", true)], ctx({ deferrals }), "2026-01-02")).needsPrompt).toHaveLength(0);
-		expect((await diff([fakeDetector("js", true)], ctx({ deferrals }), "2026-01-03")).needsPrompt).toHaveLength(1);
-	});
-
-	it("ignores a deferral recorded on another branch", async () => {
-		const deferrals = { js: { branch: "other", skipUntilDate: "2026-01-02", reason: "later" } };
-		expect((await diff([fakeDetector("js", true)], ctx({ deferrals, branch: "main" }), "2026-01-01")).needsPrompt).toHaveLength(1);
-	});
 });

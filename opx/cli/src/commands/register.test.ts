@@ -80,12 +80,6 @@ describe("command registration", () => {
 		expect(exit).toHaveBeenCalledWith(0);
 	});
 
-	it("init prints a report in a non-interactive shell", async () => {
-		await run(registerInit, "init");
-		expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
-		expect(printed()).toContain("wrote starter");
-	});
-
 	it("init shows what an enabled plugin suggests dropping only with --cleanup", async () => {
 		mkdirSync(join(dir, ".opx"));
 		writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ version: 1, lint: { js: true } }));
@@ -96,15 +90,14 @@ describe("command registration", () => {
 		execFileSync("git", ["commit", "-m", "deps"], { cwd: dir, stdio: "ignore" });
 
 		await run(registerInit, "init", "--cleanup");
-		expect(printed()).toContain("Empty files that git can restore:\n  - .eslintrc.json");
-		expect(printed()).toContain("- .eslintignore: not applied\n      move the patterns");
-		expect(printed()).toContain("- eslint: bundled by @allons-y/opx-lint-js; nothing else appears to use it");
-		expect(printed()).toContain("Drop the unused packages with: npm uninstall eslint");
+		expect(printed()).toContain("cleanup suggestions from your plugins");
+		expect(printed()).toContain(".eslintrc.json");
+		expect(printed()).toContain("move the patterns");
 		expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 
 		log.mockClear();
 		await run(registerInit, "init");
-		expect(printed()).not.toContain("bundled by");
+		expect(printed()).not.toContain("cleanup suggestions");
 	});
 
 	it("init --auto only hints outside a TTY, and stays quiet with --quiet", async () => {

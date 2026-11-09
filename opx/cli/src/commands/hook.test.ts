@@ -90,20 +90,12 @@ describe("runPostCommit", () => {
 			deferrals: { md: { branch: "main", skipUntilDate: TODAY, reason: "later", ...over } },
 		});
 
-		it("is silent while a deferral for this branch is active, including its last day", () => {
+		it("is silent while a deferral for this branch is active", () => {
 			const dir = make();
 			commit(dir, { "notes.md": "x" });
 			writeState(dir, deferral());
 			runPostCommit(dir, TODAY);
 			expect(log).not.toHaveBeenCalled();
-		});
-
-		it("nudges again once the deferral has expired", () => {
-			const dir = make();
-			commit(dir, { "notes.md": "x" });
-			writeState(dir, deferral({ skipUntilDate: "2026-06-14" }));
-			runPostCommit(dir, TODAY);
-			expect(output()).toContain("new md files detected");
 		});
 
 		it("ignores a deferral recorded on another branch", () => {

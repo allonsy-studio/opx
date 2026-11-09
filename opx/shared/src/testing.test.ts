@@ -8,19 +8,24 @@ const scratch = useScratch();
 const git = (cwd: string, ...args: string[]): string => execFileSync("git", args, { cwd, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
 
 describe("useScratch", () => {
-	let leftover: string[] = [];
-
 	it("makes empty directories with a prefix", () => {
 		const dir = scratch.dir("opx-prefix-");
 		expect(existsSync(dir)).toBe(true);
 		expect(dir).toContain("opx-prefix-");
-		leftover = [dir, scratch.repo({ "a.txt": "x" })];
 	});
 
-	// Runs after the test above, which Jest guarantees within a file.
-	it("removes everything a finished test made", () => {
-		expect(leftover).toHaveLength(2);
-		for (const path of leftover) expect(existsSync(path)).toBe(false);
+	describe("cleanup", () => {
+		const made: string[] = [];
+
+		it("keeps what a test made until the test finishes", () => {
+			made.push(scratch.dir(), scratch.repo({ "a.txt": "x" }));
+			for (const path of made) expect(existsSync(path)).toBe(true);
+		});
+
+		/** Runs after the file-level afterEach, so it sees the cleanup whichever tests ran. */
+		afterAll(() => {
+			for (const path of made) expect(existsSync(path)).toBe(false);
+		});
 	});
 
 	it("makes a repository with no commits when given no files", () => {

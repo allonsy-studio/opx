@@ -32,10 +32,12 @@ describe("composeEslintConfig", () => {
 });
 
 describe("scaffoldEslintConfig", () => {
-	it("returns null and writes nothing when eslint.config.js already exists", () => {
+	it("returns null and leaves an existing eslint.config.js untouched", () => {
 		const dir = tmp();
+		mkdirSync(join(dir, "node_modules", "@allons-y", "opx-lint-js"), { recursive: true });
 		writeFileSync(join(dir, "eslint.config.js"), "export default [];", "utf8");
 		expect(scaffoldEslintConfig(dir, ["js"])).toBeNull();
+		expect(readFileSync(join(dir, "eslint.config.js"), "utf8")).toBe("export default [];");
 		rmSync(dir, { recursive: true });
 	});
 

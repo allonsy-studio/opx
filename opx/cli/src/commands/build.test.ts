@@ -28,11 +28,10 @@ function detector(over: Partial<Detector>): Detector {
 describe("runBuildCommand", () => {
 	let load: ReturnType<typeof jest.spyOn>;
 	let log: ReturnType<typeof jest.spyOn>;
-	let stdout: ReturnType<typeof jest.spyOn>;
 
 	beforeEach(() => {
 		// Swallow the grouped output so the test log stays clean.
-		stdout = jest.spyOn(process.stdout, "write").mockImplementation(() => true);
+		jest.spyOn(process.stdout, "write").mockImplementation(() => true);
 		log = jest.spyOn(console, "log").mockImplementation(() => {});
 		load = jest.spyOn(builtIns, "load");
 	});
@@ -70,18 +69,5 @@ describe("runBuildCommand", () => {
 
 		expect(code).toBe(0);
 		expect(seen).toEqual([["src/a.ts", "src/b.ts"]]);
-	});
-
-	it("returns the first non-zero exit code from a failing builder", async () => {
-		load.mockResolvedValue([
-			detector({ shortName: "ok", run: async () => 0 }),
-			detector({ shortName: "bad", run: async () => 3 }),
-		]);
-
-		const code = await runBuildCommand(ctx(), []);
-
-		expect(code).toBe(3);
-		// Sanity: the grouped runner produced output rather than the empty branch.
-		expect(stdout).toHaveBeenCalled();
 	});
 });

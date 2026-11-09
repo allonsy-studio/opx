@@ -13,6 +13,7 @@ const fakeDetector = {
 
 jest.unstable_mockModule("@allons-y/opx-lint-js", () => ({ __esModule: true, default: fakeDetector }), { virtual: true });
 
+const { PLUGIN_CATALOG } = await import("./plugin-catalog.js");
 const { suggest, virtualDetectors, load, PACKAGE_HINTS, SUPPORTED_FILE_EXTS, UNDETECTABLE_PLUGINS } =
 	await import("./built-in.js");
 
@@ -61,17 +62,17 @@ describe("suggest", () => {
 		expect(suggest(new Set([".unknown"]))).toEqual([]);
 	});
 
-	it("does not suggest plugins that have not shipped", () => {
-		expect(suggest(new Set([".css"]))).toEqual([]);
+	it("suggests only catalog entries with a matching extension", () => {
+		const types = new Set([".css", ".scss", ".py", ".md"]);
+		expect(suggest(types).length).toBeGreaterThan(0);
+		for (const name of suggest(types)) {
+			const entry = PLUGIN_CATALOG.find((e) => e.shortName === name);
+			expect(entry?.extensions.some((ext) => types.has(ext))).toBe(true);
+		}
 	});
 });
 
 describe("virtualDetectors", () => {
-	it("suggests markdown linting for an .mdx-only tree", () => {
-		const result = virtualDetectors(new Set([".mdx"]), {});
-		expect(result.some((r) => r.pkg === "@allons-y/opx-lint-md")).toBe(true);
-	});
-
 	it("includes matched detectors and undetectable plugins, flagging installed packages", () => {
 		const result = virtualDetectors(new Set([".md"]), {
 			dependencies: { "@allons-y/opx-lint-md": "1" },

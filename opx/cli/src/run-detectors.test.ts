@@ -65,6 +65,23 @@ describe("runDetectorsGrouped", () => {
 		expect(out).toContain("boom");
 	});
 
+	it("prints each detector's output in detector order, not finish order", async () => {
+		const slow = detector({
+			shortName: "slow",
+			run: async (c) => {
+				await new Promise((resolve) => setTimeout(resolve, 20));
+				c.write("slow output");
+				return 0;
+			},
+		});
+		const fast = detector({ shortName: "fast", run: async (c) => { c.write("fast output"); return 0; } });
+		await runDetectorsGrouped(ctx(), [slow, fast], []);
+		const out = spy.mock.calls.map((c: unknown[]) => String(c[0])).join("");
+		expect(out.indexOf("fast output")).toBeGreaterThan(-1);
+		expect(out.indexOf("slow")).toBeLessThan(out.indexOf("slow output"));
+		expect(out.indexOf("slow output")).toBeLessThan(out.indexOf("fast"));
+	});
+
 	it("treats a detector without a run function as passing (code 0)", async () => {
 		const code = await runDetectorsGrouped(ctx(), [detector({ shortName: "noop" })], []);
 		expect(code).toBe(0);
