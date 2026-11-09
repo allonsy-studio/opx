@@ -33,6 +33,11 @@ describe("scanCommittedTree", () => {
 		expect(scan.fileCount).toBeGreaterThanOrEqual(3);
 	});
 
+	it("reports a known filename that has an extension under both its name and its extension", () => {
+		const scan = scanCommittedTree(scratch.repo({ ".yarnrc.yml": "x" }));
+		expect([...scan.fileTypes].sort()).toEqual([".yml", "yarnrc"]);
+	});
+
 	it("returns an empty result for a non-git directory", () => {
 		const scan = scanCommittedTree(scratch.dir("opx-nogit-"));
 		expect(scan.fileTypes.size).toBe(0);

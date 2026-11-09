@@ -4,11 +4,10 @@ import { extname, basename } from "node:path";
 /**
  * @todo use a more robust scanner that can handle symlinks and other edge cases.
  *
- * Map of well-known extensionless filenames to a synthetic "type" token.
- * Lets detectors match Dockerfiles, Makefiles, etc. without inventing fake
- * extensions.
+ * Map of well-known filenames to a synthetic "type" token, so detectors can
+ * match Dockerfiles, Makefiles, `.yarnrc.yml`, etc. by name.
  */
-const EXTENSIONLESS_TYPES: Record<string, string> = {
+const NAMED_TYPES: Record<string, string> = {
 	Dockerfile: "dockerfile",
 	"dockerfile": "dockerfile",
 	Makefile: "makefile",
@@ -50,13 +49,10 @@ export function scanCommittedTree(cwd: string): ScanResult {
 	const files = text.split("\0").filter((p) => p.length > 0);
 	for (const file of files) {
 		const name = basename(file);
+		const named = NAMED_TYPES[name];
+		if (named) fileTypes.add(named);
 		const ext = extname(name);
-		if (ext) {
-			fileTypes.add(ext.toLowerCase());
-			continue;
-		}
-		const known = EXTENSIONLESS_TYPES[name];
-		if (known) fileTypes.add(known);
+		if (ext) fileTypes.add(ext.toLowerCase());
 	}
 
 	return { fileTypes, fileCount: files.length };
