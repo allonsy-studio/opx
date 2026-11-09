@@ -128,7 +128,7 @@
 </table>
 <p>Any other subcommand is passed to the bundled changesets CLI.</p>
 <h2 id="recording-a-change" tabindex="-1"><a class="header-anchor" href="#recording-a-change">Recording a change</a></h2>
-<p>Interactively, <code>opx release add</code> asks which packages changed, the bump, and a summary.</p>
+<p>In a terminal, <code>opx release add</code> runs changesets' own prompt (<code>changeset add</code>), so its options, such as <code>--open</code> and <code>--since</code>, work as the <a href="https://github.com/changesets/changesets/blob/main/packages/cli/README.md#add">changesets docs</a> describe.</p>
 <p>For scripts and CI, pass flags:</p>
 <table>
 <thead>
