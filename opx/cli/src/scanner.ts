@@ -70,7 +70,7 @@ export function listFilesInHeadCommit(cwd: string): string[] {
 	try {
 		const stdout = execFileSync(
 			"git",
-			["diff-tree", "--no-commit-id", "--name-only", "-r", "-z", "HEAD"],
+			["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-z", "HEAD"],
 			{ cwd, stdio: ["ignore", "pipe", "ignore"] },
 		);
 		return stdout.toString("utf8").split("\0").filter((p) => p.length > 0);
