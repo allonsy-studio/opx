@@ -101,7 +101,7 @@
 <span class="token function">yarn</span> opx release status       <span class="token comment"># see what would be released</span></code></pre>
 <p>The first <code>opx release</code> command creates <code>.changeset/config.json</code> and a short README if you don't have them. The config is the plugin's starter <code>config.json</code> with your default branch as <code>baseBranch</code>; after that, edit it only to <code>ignore</code> private packages or to opt in to the <a href="#changelog-format">custom changelog</a>. Every subcommand is described in the <a href="../../cli/release/"><code>opx release</code> reference</a>.</p>
 <h2 id="changelog-format" tabindex="-1"><a class="header-anchor" href="#changelog-format">Changelog format</a></h2>
-<p>The starter config uses <code>@changesets/cli/changelog</code>. To opt in to the Allons-y format instead, run:</p>
+<p>The starter config uses <code>@changesets/cli/changelog</code>. To opt in to a more readable format, which reads cleanly as plain text and in print and renders cleanly as Markdown, run:</p>
 <pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx release init <span class="token parameter variable">--changelog</span></code></pre>
 <p>This sets <code>changelog</code> in <code>.changeset/config.json</code> and leaves every other field alone. It reads <code>repo</code> from the <code>repository</code> field in your root <code>package.json</code>. Or set it by hand:</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
