@@ -120,7 +120,7 @@ Change a command, flag, config key, or plugin behavior, and update its docs in t
 - One change per pull request. Fill in the sections of `.github/PULL_REQUEST_TEMPLATE.md`.
 - When a pull request is ready for review, squash its commits into one, with the pull request's title as the commit message. A stacked pull request sits on its squashed parent.
 - Pull request titles follow Conventional Commits too, including the release pull request, which `.github/workflows/release.yml` titles `chore(release): version packages`.
-- CI must pass: lint, build, typecheck, tests on Node 24 and 26, Windows and macOS, coverage, the smoke test, and the docs build.
+- CI must pass. `.github/workflows/ci.yml` runs every check, each named for what it validates and where (`Test | Node 24 | windows-latest`): build, typecheck, and tests on Node 24 and 26, Ubuntu, macOS, and Windows, and TypeScript 5; lint and coverage on the Node 26 Ubuntu leg; and the smoke test. The branch ruleset requires only `All checks passed`, so add or rename checks without touching it. The docs build runs in `docs.yml`.
 - The org-wide rules live in the [`.github` repository](https://github.com/allonsy-studio/.github/blob/main/docs/repository-standards.md); this file covers only what's specific to opx.
 
 ## Decisions
