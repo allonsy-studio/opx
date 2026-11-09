@@ -141,7 +141,7 @@
 <p>The first line becomes the entry. If it's missing, or starts a code block, the entry reads <em>No summary.</em> and <code>opx release version</code> warns. Everything after it stays inside the entry, so paragraphs, lists, and fenced code blocks render as part of that change. References like <code>#123</code> inside code are left alone. Emoji are kept as written.</p>
 <p>For a breaking change, end the summary with a <code>migration:</code> line (or <code>upgrade:</code>). The rest of the summary becomes a <strong>To upgrade:</strong> paragraph under the entry:</p>
 <pre class="language-md"><code class="language-md"><span class="token front-matter-block"><span class="token punctuation">---</span>
-<span class="token front-matter yaml language-yaml"><span class="token key atrule">"@acme/widgets"</span><span class="token punctuation">:</span> major</span>
+<span class="token front-matter yaml language-yaml">"@acme/widgets": major</span>
 <span class="token punctuation">---</span></span>
 
 ✨ Rename the <span class="token code-snippet code keyword">`run`</span> option to <span class="token code-snippet code keyword">`exec`</span>. Closes #4.
