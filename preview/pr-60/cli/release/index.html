@@ -106,7 +106,7 @@
 </tr>
 <tr>
 <td><code>init</code></td>
-<td>Write a starter <code>.changeset/config.json</code> and stop</td>
+<td>Write a starter <code>.changeset/config.json</code> and stop. <code>--changelog</code> opts in to the <a href="../../plugins/release/#changelog-format">custom changelog format</a></td>
 </tr>
 <tr>
 <td><code>add</code></td>
@@ -157,6 +157,30 @@
 </tbody>
 </table>
 <pre class="language-sh"><code class="language-sh">opx release <span class="token function">add</span> <span class="token parameter variable">--type</span> patch <span class="token parameter variable">--pkg</span> @acme/cli <span class="token parameter variable">--summary</span> <span class="token string">"Fix crash on empty config"</span></code></pre>
+<h2 id="opting-in-to-the-custom-changelog" tabindex="-1"><a class="header-anchor" href="#opting-in-to-the-custom-changelog">Opting in to the custom changelog</a></h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--changelog</code></td>
+<td>Set <code>changelog</code> to <code>@allons-y/opx-release/changelog</code>, with <code>repo</code> from <code>package.json</code></td>
+</tr>
+<tr>
+<td><code>--date</code></td>
+<td>Also set <code>releaseDate</code>, so <code>version</code> dates each new version</td>
+</tr>
+<tr>
+<td><code>--maintainer</code></td>
+<td>GitHub handle that is never thanked. Repeat or comma-separate. Replaces the default, which reads <code>author</code> and <code>contributors</code> from <code>package.json</code>.</td>
+</tr>
+</tbody>
+</table>
+<pre class="language-sh"><code class="language-sh">opx release init <span class="token parameter variable">--changelog</span></code></pre>
 <p><code>opx release</code> requires <code>release</code> to be enabled: <code>opx enable release</code>.</p>
 
 	</main>
