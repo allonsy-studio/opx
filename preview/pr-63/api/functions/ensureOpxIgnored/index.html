@@ -91,10 +91,11 @@
 		
 		<h1 id="function%3A-ensureopxignored()" tabindex="-1"><a class="header-anchor" href="#function%3A-ensureopxignored()">Function: ensureOpxIgnored()</a></h1>
 <pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">ensureOpxIgnored</span><span class="token punctuation">(</span>cwd<span class="token punctuation">)</span><span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/cf00e1ded8141194af3c53bc771e8507c223370d/opx/engine/src/hooks.ts#L74">hooks.ts:74</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/94a168d1d33ffc36553714d44a01746ed722a5f5/opx/engine/src/hooks.ts#L83">hooks.ts:83</a></p>
 <p>Ignore opx's local files while keeping <code>.opx/config.json</code> committable.</p>
-<p>Replaces a bare <code>.opx</code> / <code>.opx/</code> entry, which would also hide the config,
-with <code>.opx/*</code> plus a <code>!.opx/config.json</code> exception.</p>
+<p>Leaves <code>.gitignore</code> alone when <code>!.opx/config.json</code> follows the last <code>.opx/*</code>
+and nothing hides the whole folder. Otherwise drops the opx lines and
+appends <code>.opx/*</code> then <code>!.opx/config.json</code>.</p>
 <h2 id="parameters" tabindex="-1"><a class="header-anchor" href="#parameters">Parameters</a></h2>
 <table>
 <thead>
