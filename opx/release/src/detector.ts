@@ -17,9 +17,10 @@ export const opxReleaseDetector: Detector = {
 			summary: "Changesets-based release flow for @allons-y/opx",
 			bundledDeps: [
 				"@changesets/cli",
+				"@changesets/config",
 				"@changesets/get-github-info",
+				"@changesets/should-skip-package",
 				"@changesets/write",
-				"@clack/prompts",
 				"@manypkg/get-packages",
 			],
 		};
