@@ -20,11 +20,11 @@ opx release add        # record a change
 opx release version    # bump versions and write changelogs
 opx release publish    # publish packages that aren't on the registry yet
 opx release status     # show pending changes (also the default with no subcommand)
-opx release init       # write a starter .changeset/config.json and stop
+opx release init       # write a starter .changeset/config.json and stop (--changelog opts in to the custom format)
 opx release pre enter beta  # start a pre-release (see below)
 ```
 
-The first `opx release` command creates `.changeset/config.json` and a short `.changeset/README.md` if you don't have them. The config is the package's [`config.json`](./config.json) with your default branch as `baseBranch`; after that, edit it only to `ignore` private packages. Any other subcommand, such as `pre` or `tag`, is forwarded to the bundled changesets CLI.
+The first `opx release` command creates `.changeset/config.json` and a short `.changeset/README.md` if you don't have them. The config is the package's [`config.json`](./config.json) with your default branch as `baseBranch`; after that, edit it only to `ignore` private packages or to opt in to the [custom changelog](#changelog-format). Any other subcommand, such as `pre` or `tag`, is forwarded to the bundled changesets CLI.
 
 ### Recording a change
 
@@ -42,6 +42,93 @@ For scripts and CI, pass flags; giving any flag skips the prompts. Without flags
 ```sh
 opx release add --type patch --pkg @acme/cli --summary "Fix crash on empty config"
 ```
+
+## Changelog format
+
+The starter config uses `@changesets/cli/changelog`. To opt in to a more readable format, which reads cleanly as plain text and in print and renders cleanly as Markdown, run:
+
+```sh
+opx release init --changelog
+```
+
+This sets `changelog` in `.changeset/config.json` and leaves every other field alone. It reads `repo` from the `repository` field in your root `package.json`. Or set it by hand:
+
+```json
+{
+  "changelog": ["@allons-y/opx-release/changelog", { "repo": "acme/widgets" }]
+}
+```
+
+Each entry reads like a sentence, with the PR (or commit) link and any thanks after it. 📝 marks the link:
+
+```md
+- Fix crash on empty config. (📝 [#12](https://github.com/acme/widgets/pull/12)) — thanks [@alice](https://github.com/alice)!
+```
+
+| Option | Description |
+|---|---|
+| `repo` | `owner/repo` the links point at. Defaults to `GITHUB_REPOSITORY`. |
+| `maintainers` | Handles that are never thanked (case-insensitive). Everyone else is, except bots such as Renovate and Dependabot. Defaults to the `author` and `contributors` in your workspace root's `package.json`. |
+| `disableThanks` | `true` drops the thanks for everyone. |
+| `releaseDate` | `true` adds a `📅 _Released 8 November 2026_` line under each new version heading. `init --date` sets it. |
+
+Maintainers come from GitHub noreply emails (`1234+octocat@users.noreply.github.com`) or `https://github.com/octocat` URLs in `author` and `contributors`. A person with neither is skipped. To list them yourself, pass `--maintainer <handle>` to `init` or set `maintainers`; an explicit list replaces the default.
+
+A changeset summary can override what the lookup finds, one per line: `pr: 123`, `commit: a1b2c3d`, `author: @octocat`. These lines are never read from inside fenced code, so a YAML example with `user: node` stays as written. Bare `#123` references become links; references in inline code, links, and URLs don't.
+
+### Writing a changeset
+
+The first line becomes the entry. If it's missing, or starts a code block, the entry reads _No summary._ and `opx release version` warns. Everything after it stays inside the entry, so paragraphs, lists, and fenced code blocks render as part of that change. References like `#123` inside code are left alone. Emoji are kept as written.
+
+For a breaking change, end the summary with a `migration:` line (or `upgrade:`). The rest of the summary becomes a **To upgrade:** paragraph under the entry:
+
+````md
+---
+"@acme/widgets": major
+---
+
+✨ Rename the `run` option to `exec`. Closes #4.
+
+```js
+widgets({ exec: true });
+```
+
+migration: Replace `run` with `exec` in your config.
+````
+
+renders as:
+
+````md
+## 2.0.0
+
+📅 _Released 8 November 2026_
+
+### Major Changes
+
+- ✨ Rename the `run` option to `exec`. Closes [#4](https://github.com/acme/widgets/issues/4). (📝 [#7](https://github.com/acme/widgets/pull/7))
+
+  ```js
+  widgets({ exec: true });
+  ```
+
+  **To upgrade:** Replace `run` with `exec` in your config.
+````
+
+A dependency bump shows the old and new versions, with a link to the diff between their tags:
+
+```md
+- Updated `@acme/core` 1.0.0 → 2.0.0 ([diff](https://github.com/acme/widgets/compare/@acme/core@1.0.0...@acme/core@2.0.0))
+```
+
+Several dependencies share one bullet, one per line under it. Private packages have no tags, so they get no diff link. The link also 404s until both tags exist, for example before a package's first tagged release.
+
+### Release dates
+
+Changesets never dates a version. With `releaseDate: true`, `opx release version` adds a line such as `📅 _Released 8 November 2026_` under each version it just wrote. The date is in UTC, with the month spelled out, so it reads the same in every locale. It doesn't date older versions or snapshot releases. With `"commit": true`, changesets commits the version bump first, and opx adds the dates to that same commit. The date goes on its own line, not in the heading, because `changesets/action` finds a version's notes by matching the heading text exactly.
+
+The date is the day `opx release version` runs. In CI, that's when the release pull request was last updated, which is usually the day it merges.
+
+The generator calls the GitHub API, so `opx release version` needs `GITHUB_TOKEN`. In CI, `changesets/action` provides it. Locally, put it in `.env`. You don't need `@changesets/changelog-github`; the plugin ships its own lookup.
 
 ## Scripts
 

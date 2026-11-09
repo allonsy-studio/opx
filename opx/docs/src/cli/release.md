@@ -19,7 +19,7 @@ opx release [subcommand] [args...]
 | Subcommand | What it does |
 | --- | --- |
 | *(none)* / `status` | Show pending changes and the versions they'd produce |
-| `init` | Write a starter `.changeset/config.json` and stop |
+| `init` | Write a starter `.changeset/config.json` and stop. `--changelog` opts in to the [custom changelog format](../../plugins/release/#changelog-format) |
 | `add` | Record a change (see below) |
 | `version` | Apply pending changes: bump versions and update changelogs. `--snapshot <name>` makes a [snapshot](../../plugins/release/#snapshot-releases) version |
 | `publish` | Publish packages whose versions aren't on the registry. `--tag <name>` publishes under a dist-tag; `--no-git-tag` skips git tags |
@@ -42,6 +42,18 @@ For scripts and CI, pass flags:
 
 ```sh
 opx release add --type patch --pkg @acme/cli --summary "Fix crash on empty config"
+```
+
+## Opting in to the custom changelog
+
+| Flag | Description |
+| --- | --- |
+| `--changelog` | Set `changelog` to `@allons-y/opx-release/changelog`, with `repo` from `package.json` |
+| `--date` | Also set `releaseDate`, so `version` dates each new version |
+| `--maintainer` | GitHub handle that is never thanked. Repeat or comma-separate. Replaces the default, which reads `author` and `contributors` from `package.json`. |
+
+```sh
+opx release init --changelog
 ```
 
 `opx release` requires `release` to be enabled: `opx enable release`.
