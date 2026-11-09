@@ -22,8 +22,8 @@
   <a href="https://www.npmjs.com/package/@allons-y/opx">
     <img src="https://img.shields.io/npm/dw/@allons-y/opx.svg" alt="NPM downloads" height="20" />
   </a>
-  <a href="https://github.com/allonsy-studio/opx/actions/workflows/testing.yml">
-    <img src="https://github.com/allonsy-studio/opx/actions/workflows/testing.yml/badge.svg?branch=main" alt="Tests" height="20" />
+  <a href="https://github.com/allonsy-studio/opx/actions/workflows/ci.yml">
+    <img src="https://github.com/allonsy-studio/opx/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" height="20" />
   </a>
   <a href="https://github.com/allonsy-studio/opx/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/allonsy-studio/opx.svg" alt="License" height="20" />
