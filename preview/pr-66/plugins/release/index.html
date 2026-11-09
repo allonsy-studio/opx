@@ -99,7 +99,79 @@
 <span class="token function">yarn</span> opx release version      <span class="token comment"># bump versions and write changelogs</span>
 <span class="token function">yarn</span> opx release publish      <span class="token comment"># publish what isn't on the registry yet</span>
 <span class="token function">yarn</span> opx release status       <span class="token comment"># see what would be released</span></code></pre>
-<p>The first <code>opx release</code> command creates <code>.changeset/config.json</code> and a short README if you don't have them. The config is the plugin's starter <code>config.json</code> with your default branch as <code>baseBranch</code>; after that, edit it only to <code>ignore</code> private packages. Every subcommand is described in the <a href="../../cli/release/"><code>opx release</code> reference</a>.</p>
+<p>The first <code>opx release</code> command creates <code>.changeset/config.json</code> and a short README if you don't have them. The config is the plugin's starter <code>config.json</code> with your default branch as <code>baseBranch</code>; after that, edit it only to <code>ignore</code> private packages or to opt in to the <a href="#changelog-format">custom changelog</a>. Every subcommand is described in the <a href="../../cli/release/"><code>opx release</code> reference</a>.</p>
+<h2 id="changelog-format" tabindex="-1"><a class="header-anchor" href="#changelog-format">Changelog format</a></h2>
+<p>The starter config uses <code>@changesets/cli/changelog</code>. To opt in to a more readable format, which reads cleanly as plain text and in print and renders cleanly as Markdown, run:</p>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx release init <span class="token parameter variable">--changelog</span></code></pre>
+<p>This sets <code>changelog</code> in <code>.changeset/config.json</code> and leaves every other field alone. It reads <code>repo</code> from the <code>repository</code> field in your root <code>package.json</code>. Or set it by hand:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"changelog"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"@allons-y/opx-release/changelog"</span><span class="token punctuation">,</span> <span class="token punctuation">{</span> <span class="token property">"repo"</span><span class="token operator">:</span> <span class="token string">"acme/widgets"</span> <span class="token punctuation">}</span><span class="token punctuation">]</span>
+<span class="token punctuation">}</span></code></pre>
+<p>Each entry reads like a sentence, with the PR (or commit) link and any thanks after it. 📝 marks the link:</p>
+<pre class="language-md"><code class="language-md"><span class="token list punctuation">-</span> Fix crash on empty config. (📝 <span class="token url">[<span class="token content">#12</span>](<span class="token url">https://github.com/acme/widgets/pull/12</span>)</span>) — thanks <span class="token url">[<span class="token content">@alice</span>](<span class="token url">https://github.com/alice</span>)</span>!</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>repo</code></td>
+<td><code>owner/repo</code> the links point at. Defaults to <code>GITHUB_REPOSITORY</code>.</td>
+</tr>
+<tr>
+<td><code>maintainers</code></td>
+<td>Handles that are never thanked (case-insensitive). Everyone else is, except bots such as Renovate and Dependabot. Defaults to the <code>author</code> and <code>contributors</code> in your workspace root's <code>package.json</code>.</td>
+</tr>
+<tr>
+<td><code>disableThanks</code></td>
+<td><code>true</code> drops the thanks for everyone.</td>
+</tr>
+<tr>
+<td><code>releaseDate</code></td>
+<td><code>true</code> adds a <code>📅 _Released 8 November 2026_</code> line under each new version heading. <code>init --date</code> sets it.</td>
+</tr>
+</tbody>
+</table>
+<p>Maintainers come from GitHub noreply emails (<code>1234+octocat@users.noreply.github.com</code>) or <code>https://github.com/octocat</code> URLs in <code>author</code> and <code>contributors</code>. A person with neither is skipped. To list them yourself, pass <code>--maintainer &lt;handle&gt;</code> to <code>init</code> or set <code>maintainers</code>; an explicit list replaces the default.</p>
+<p>A changeset summary can override what the lookup finds, one per line: <code>pr: 123</code>, <code>commit: a1b2c3d</code>, <code>author: @octocat</code>. These lines are never read from inside fenced code, so a YAML example with <code>user: node</code> stays as written. Bare <code>#123</code> references become links; references in inline code, links, and URLs don't.</p>
+<h3 id="writing-a-changeset" tabindex="-1"><a class="header-anchor" href="#writing-a-changeset">Writing a changeset</a></h3>
+<p>The first line becomes the entry. If it's missing, or starts a code block, the entry reads <em>No summary.</em> and <code>opx release version</code> warns. Everything after it stays inside the entry, so paragraphs, lists, and fenced code blocks render as part of that change. References like <code>#123</code> inside code are left alone. Emoji are kept as written.</p>
+<p>For a breaking change, end the summary with a <code>migration:</code> line (or <code>upgrade:</code>). The rest of the summary becomes a <strong>To upgrade:</strong> paragraph under the entry:</p>
+<pre class="language-md"><code class="language-md"><span class="token front-matter-block"><span class="token punctuation">---</span>
+<span class="token front-matter yaml language-yaml"><span class="token key atrule">"@acme/widgets"</span><span class="token punctuation">:</span> major</span>
+<span class="token punctuation">---</span></span>
+
+✨ Rename the <span class="token code-snippet code keyword">`run`</span> option to <span class="token code-snippet code keyword">`exec`</span>. Closes #4.
+
+<span class="token code"><span class="token punctuation">```</span><span class="token code-language">js</span>
+<span class="token code-block language-js"><span class="token function">widgets</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">exec</span><span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></span>
+<span class="token punctuation">```</span></span>
+
+migration: Replace <span class="token code-snippet code keyword">`run`</span> with <span class="token code-snippet code keyword">`exec`</span> in your config.</code></pre>
+<p>renders as:</p>
+<pre class="language-md"><code class="language-md"><span class="token title important"><span class="token punctuation">##</span> 2.0.0</span>
+
+📅 <span class="token italic"><span class="token punctuation">_</span><span class="token content">Released 8 November 2026</span><span class="token punctuation">_</span></span>
+
+<span class="token title important"><span class="token punctuation">###</span> Major Changes</span>
+
+<span class="token list punctuation">-</span> ✨ Rename the <span class="token code-snippet code keyword">`run`</span> option to <span class="token code-snippet code keyword">`exec`</span>. Closes <span class="token url">[<span class="token content">#4</span>](<span class="token url">https://github.com/acme/widgets/issues/4</span>)</span>. (📝 <span class="token url">[<span class="token content">#7</span>](<span class="token url">https://github.com/acme/widgets/pull/7</span>)</span>)
+
+  ```js
+  widgets({ exec: true });
+  ```
+
+  <span class="token bold"><span class="token punctuation">**</span><span class="token content">To upgrade:</span><span class="token punctuation">**</span></span> Replace <span class="token code-snippet code keyword">`run`</span> with <span class="token code-snippet code keyword">`exec`</span> in your config.</code></pre>
+<p>A dependency bump shows the old and new versions, with a link to the diff between their tags:</p>
+<pre class="language-md"><code class="language-md"><span class="token list punctuation">-</span> Updated <span class="token code-snippet code keyword">`@acme/core`</span> 1.0.0 → 2.0.0 (<span class="token url">[<span class="token content">diff</span>](<span class="token url">https://github.com/acme/widgets/compare/@acme/core@1.0.0...@acme/core@2.0.0</span>)</span>)</code></pre>
+<p>Several dependencies share one bullet, one per line under it. Private packages have no tags, so they get no diff link. The link also 404s until both tags exist, for example before a package's first tagged release.</p>
+<h3 id="release-dates" tabindex="-1"><a class="header-anchor" href="#release-dates">Release dates</a></h3>
+<p>Changesets never dates a version. With <code>releaseDate: true</code>, <code>opx release version</code> adds a line such as <code>📅 _Released 8 November 2026_</code> under each version it just wrote. The date is in UTC, with the month spelled out, so it reads the same in every locale. It doesn't date older versions or snapshot releases. With <code>&quot;commit&quot;: true</code>, changesets commits the version bump first, and opx adds the dates to that same commit. The date goes on its own line, not in the heading, because <code>changesets/action</code> finds a version's notes by matching the heading text exactly.</p>
+<p>The date is the day <code>opx release version</code> runs. In CI, that's when the release pull request was last updated, which is usually the day it merges.</p>
+<p>The generator calls the GitHub API, so <code>opx release version</code> needs <code>GITHUB_TOKEN</code>. In CI, <code>changesets/action</code> provides it. Locally, put it in <code>.env</code>. You don't need <code>@changesets/changelog-github</code>; the plugin ships its own lookup.</p>
 <h2 id="scripts" tabindex="-1"><a class="header-anchor" href="#scripts">Scripts</a></h2>
 <p>Add these to the root <code>package.json</code> so contributors and CI run the same commands:</p>
 <pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
