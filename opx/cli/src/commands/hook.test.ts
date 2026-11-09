@@ -53,6 +53,11 @@ describe("runPostCommit", () => {
 		expect(output()).toContain("@allons-y/opx-lint-md");
 	});
 
+	it("nudges about the files in a repository's first commit", () => {
+		runPostCommit(scratch.repo({ "notes.md": "# hi" }), TODAY);
+		expect(output()).toContain("new md files detected");
+	});
+
 	it("nudges once per detected type", () => {
 		const dir = make();
 		commit(dir, { "a.js": "x", "b.md": "x" });

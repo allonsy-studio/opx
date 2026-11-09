@@ -67,6 +67,10 @@ describe("listFilesInHeadCommit", () => {
 		expect(listFilesInHeadCommit(dir)).not.toContain("a.ts");
 	});
 
+	it("lists the files in a repository's first commit", () => {
+		expect(listFilesInHeadCommit(scratch.repo({ "a.ts": "x" }))).toEqual(["a.ts"]);
+	});
+
 	it("returns [] for a non-git directory", () => {
 		expect(listFilesInHeadCommit(scratch.dir("opx-nogit-"))).toEqual([]);
 	});
