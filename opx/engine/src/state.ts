@@ -99,14 +99,18 @@ export function readConfig(cwd: string): OpxConfig {
 	};
 }
 
+/** The top-level keys `writeConfig` keeps; the schema allows no others. */
+export const CONFIG_KEYS = ["$schema", "version", "lint", "build", "release", "test"] as const;
+
 /**
  * Write `.opx/config.json`, creating the folder if needed. Empty task maps are
- * left out.
+ * left out, and so are top-level keys outside {@link CONFIG_KEYS}.
  *
  * @param cwd - The repository root.
  * @param config - The config to save.
+ * @returns The top-level keys that were left out because opx doesn't know them, sorted.
  */
-export function writeConfig(cwd: string, config: OpxConfig): void {
+export function writeConfig(cwd: string, config: OpxConfig): string[] {
 	const path = configPath(cwd);
 	const normalized: OpxConfig = {
 		$schema: config.$schema ?? SCHEMA_URL,
@@ -118,6 +122,8 @@ export function writeConfig(cwd: string, config: OpxConfig): void {
 	};
 	mkdirSync(dirname(path), { recursive: true });
 	writeFileSync(path, `${JSON.stringify(normalized, null, 2)}\n`, "utf8");
+	const known: readonly string[] = CONFIG_KEYS;
+	return Object.keys(config).filter((key) => !known.includes(key)).sort();
 }
 
 /**

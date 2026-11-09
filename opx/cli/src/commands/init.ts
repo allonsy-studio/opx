@@ -26,6 +26,7 @@ import { applyCleanup, describePlan, planCleanup } from "../cleanup.js";
 import { buildContext, readHostPackage } from "../context.js";
 import { load as loadDetectors, virtualDetectors } from "../built-in.js";
 import { scaffoldEslintConfig } from "../eslint-scaffold.js";
+import { saveConfig } from "../save-config.js";
 import { defaultSkipUntilDate } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
 
@@ -177,7 +178,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		release: config.release === true || accepted.some((s) => s.shortName === "release"),
 		test: config.test === true,
 	} as OpxConfig;
-	writeConfig(cwd, nextConfig);
+	saveConfig(cwd, nextConfig, (message) => p.log.warn(message));
 
 	let nextState = state;
 	for (const shortName of deferred) {

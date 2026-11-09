@@ -1,7 +1,8 @@
-import { readConfig, writeConfig } from "@allons-y/opx";
+import { readConfig } from "@allons-y/opx";
 
 import { readHostPackage } from "./context.js";
 import { CLI_NAME } from "./plugin-kit.js";
+import { saveConfig } from "./save-config.js";
 import type { TaskKind } from "./plugin-catalog.js";
 import { toggle } from "./toggle.js";
 
@@ -24,7 +25,7 @@ export function runToggleCommand(cwd: string, name: string, enable: boolean, tas
 		console.error(`${CLI_NAME}: ${result.error}`);
 		return 1;
 	}
-	if (result.config !== config) writeConfig(cwd, result.config);
+	if (result.config !== config) saveConfig(cwd, result.config);
 	console.log(`${CLI_NAME}: ${result.message}`);
 	return 0;
 }
