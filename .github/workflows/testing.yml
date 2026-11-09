@@ -80,7 +80,6 @@ jobs:
                   github.event.pull_request.head.repo.full_name == github.repository
               uses: marocchino/sticky-pull-request-comment@78a72662e4e5d4233fa5f28f436806292cc66b65 # v2.6.0
               with:
-                  recreate: true
                   path: code-coverage-results.md
 
             - name: Write to job summary
