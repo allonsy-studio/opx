@@ -189,11 +189,11 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-60/api/type-aliases/StaticTask/">StaticTask</a></td>
-<td>A task with no plugin choice, so config turns it on or off with a boolean.</td>
+<td>A task with no plugin choice: config turns it on with <code>true</code> or with its settings.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-60/api/type-aliases/StaticTaskConfig/">StaticTaskConfig</a></td>
-<td>The config keys for static tasks, each a boolean.</td>
+<td>The config keys for static tasks: <code>true</code>, <code>false</code>, or the task's settings, which also turn it on.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-60/api/type-aliases/SuggestionCommand/">SuggestionCommand</a></td>
@@ -273,6 +273,10 @@
 <tr>
 <td><a href="/opx/preview/pr-60/api/functions/isDeferred/">isDeferred</a></td>
 <td>Whether a plugin's suggestion is currently deferred: a &quot;later&quot; answer recorded for this branch that has not yet expired. A deferral stays active through <code>skipUntilDate</code> inclusive, and never applies on another branch.</td>
+</tr>
+<tr>
+<td><a href="/opx/preview/pr-60/api/functions/isTaskEnabled/">isTaskEnabled</a></td>
+<td>Whether a static task such as <code>release</code> is on: <code>true</code>, or a settings object.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-60/api/functions/isValidPluginName/">isValidPluginName</a></td>
