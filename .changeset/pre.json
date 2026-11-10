@@ -15,15 +15,24 @@
   "changesets": [
     "add-lint-ts",
     "apache-2-license",
+    "custom-changelog-opt-in",
     "detect-package-manager",
     "exports-types-first",
+    "full-release-workflow",
+    "hook-first-commit",
     "init-cleanup",
     "initial-opx-release",
     "js-only-lint-js",
     "lighter-startup-shared-runner",
     "modern-syntax-rules",
     "new-shared-workspace",
+    "opx-gitignore-order",
     "pin-release-tools",
-    "self-contained-types"
+    "readable-changelog-entries",
+    "release-settings-object",
+    "scanner-named-types",
+    "self-contained-types",
+    "slim-release-add",
+    "starter-config-and-docs"
   ]
 }
