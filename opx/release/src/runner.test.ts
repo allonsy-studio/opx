@@ -36,8 +36,14 @@ function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-rel-"));
 }
 
+/** A host that prints the way the CLI does, so console spies see plugin output. */
+const host = {
+	write: (chunk: string) => console.log(chunk.replace(/\n$/, "")),
+	logger: { info: (m: string) => console.log(m), warn: (m: string) => console.warn(m), error: (m: string) => console.error(m), debug: () => {} },
+};
+
 function ctx(cwd: string): DetectorContext {
-	return { cwd, config: { version: 1, release: true } } as unknown as DetectorContext;
+	return { cwd, config: { version: 1, release: true }, ...host } as unknown as DetectorContext;
 }
 
 beforeEach(() => {
@@ -299,6 +305,19 @@ describe("custom changelog opt-in", () => {
 		}
 	});
 
+	it("says when changesets is already set up", async () => {
+		const dir = tmp();
+		const log = jest.spyOn(console, "log").mockImplementation(() => {});
+		try {
+			await runRelease(ctx(dir), ["init"]);
+			await runRelease(ctx(dir), ["init"]);
+			expect(log).toHaveBeenLastCalledWith(expect.stringContaining("Changesets is already set up"));
+		} finally {
+			log.mockRestore();
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
 	it("keeps the default generator without the flag", async () => {
 		const dir = tmp();
 		try {
@@ -326,14 +345,16 @@ describe("custom changelog opt-in", () => {
 	it("updates an existing config without touching other fields", async () => {
 		const dir = tmp();
 		const log = jest.spyOn(console, "log").mockImplementation(() => {});
+		const err = jest.spyOn(console, "error").mockImplementation(() => {});
 		try {
 			mkdirSync(join(dir, ".changeset"));
 			writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ baseBranch: "trunk", ignore: ["docs"], changelog: "x" }));
 			await runRelease(ctx(dir), ["init", "--changelog"]);
 			expect(readConfig(dir)).toEqual({ baseBranch: "trunk", ignore: ["docs"], changelog: [CUSTOM_CHANGELOG, {}] });
-			expect(log).toHaveBeenCalledWith(expect.stringContaining("no GitHub repository"));
+			expect(err).toHaveBeenCalledWith(expect.stringContaining("No GitHub repository"));
 		} finally {
 			log.mockRestore();
+			err.mockRestore();
 			rmSync(dir, { recursive: true, force: true });
 		}
 	});

@@ -95,6 +95,14 @@ describe("init", () => {
 			expect(logSuccess).toHaveBeenCalledWith(expect.stringContaining("Updated .gitignore"));
 		});
 
+		it("keeps release settings already in the config", async () => {
+			const settings = { githubReleases: false };
+			const dir = make({ "a.js": "x", "package.json": PKG, ".opx/config.json": JSON.stringify({ version: 1, release: settings }) });
+			answers({}, "yes");
+			await runInteractive(dir, install);
+			expect((json(dir, ".opx/config.json") as Parsed & { release?: unknown }).release).toEqual(settings);
+		});
+
 		it("records a one-branch deferral for 'later' and leaves the plugin off", async () => {
 			const dir = make({ "a.js": "x", "package.json": PKG });
 			answers({ js: "later" });

@@ -5,6 +5,7 @@ import { getInfo, getInfoFromPullRequest } from "@changesets/get-github-info";
 import type { ChangelogFunctions } from "@changesets/types";
 
 import { loadLocalEnv } from "./env.js";
+import { ui } from "./ui.js";
 
 loadLocalEnv();
 
@@ -211,7 +212,7 @@ const changelogFunctions: ChangelogFunctions = {
 		let [headline = "", ...rest] = lines;
 		// Keep code, or an empty summary, out of the bullet line.
 		if (!headline || codeLines([headline])[0]) {
-			console.warn(`opx: changeset "${changeset.id}" has no summary line; its changelog entry says "No summary."`);
+			ui.warn(`Changeset "${changeset.id}" has no summary line`, 'its entry reads "No summary."');
 			rest = headline ? ["", ...lines] : [];
 			headline = "_No summary._";
 		}

@@ -18,7 +18,7 @@ opx enable release
 ```sh
 opx release add        # record a change
 opx release version    # bump versions and write changelogs
-opx release publish    # publish packages that aren't on the registry yet
+opx release publish    # publish, tag, push, and create GitHub releases
 opx release status     # show pending changes (also the default with no subcommand)
 opx release init       # write a starter .changeset/config.json and stop (--changelog opts in to the custom format)
 opx release pre enter beta  # start a pre-release (see below)
@@ -176,9 +176,74 @@ opx release publish --tag canary --no-git-tag  # never under `latest`, no git ta
 
 Run snapshots on a branch or in CI, and don't commit the version bump. Set `"snapshot": { "useCalculatedVersion": true }` in `.changeset/config.json` to get `1.2.1-canary-…` instead of `0.0.0-canary-…`. Changesets refuses a snapshot while the repository is in pre-release mode.
 
+## Releasing
+
+`opx release publish` runs the whole release, and is safe to run again if a step fails:
+
+1. **Publish** every package version that isn't on the registry yet, with changesets.
+2. **Tag** each version that has no tag: `v1.2.3` for a single package, `name@1.2.3` in a monorepo, as changesets names them.
+3. **Push** the tags `origin` doesn't have.
+4. **Create a GitHub release** for each tag that has none, with that version's changelog notes. Versions with a prerelease tag, such as `2.0.0-beta.1`, become GitHub prereleases.
+
+Each step skips what's already done, so after a failure, run it again and it finishes the rest. A run ends with a summary:
+
+```text
+  opx release · publish
+
+  ● Publishing with changesets
+  ✔ Published to the registry
+  ✔ Tagged 2 versions  @acme/cli@1.3.0, @acme/core@1.3.0
+  ✔ Pushed 2 tags to origin  @acme/cli@1.3.0, @acme/core@1.3.0
+  ✔ Created 2 GitHub releases
+
+  Package      Version   Tag     GitHub release
+  @acme/cli    1.3.0     ✔ new   ✔ https://github.com/acme/tools/releases/tag/…
+  @acme/core   1.3.0     ✔ new   ✔ https://github.com/acme/tools/releases/tag/…
+```
+
+GitHub releases need `GITHUB_TOKEN` with `contents: write`, and the repository from `GITHUB_REPOSITORY` or the `repository` field in `package.json`. Without a token, opx says so and skips that step.
+
+The first run in a repository tags each package's current version at the current commit, as `changeset tag` does, and creates releases for those tags.
+
+### Settings
+
+Every step is on by default. Turn steps off in `.opx/config.json`, where `release` takes settings instead of `true`:
+
+```json
+{
+  "release": { "githubReleases": false }
+}
+```
+
+| Setting | Flag | Default | What it does |
+|---|---|---|---|
+| `push` | `--no-push` | `true` | Push new tags to `origin`. Without it, no GitHub release is made, because a release needs its tag on GitHub. |
+| `githubReleases` | `--no-github-release` | `true` | Create a GitHub release for each new tag. |
+| `action` | `--action`, `--no-action` | on when `action.yml` exists | Release a GitHub Action (below). |
+
+A flag wins over the setting for that run. Changesets' own publish flags, such as `--tag`, `--otp`, and `--no-git-tag`, pass through; `--no-git-tag` publishes and stops.
+
+### GitHub Actions
+
+A repository with an `action.yml` (or `action.yaml`) at its root is released as a GitHub Action, so `uses: owner/repo@v1` gets a build that runs:
+
+1. opx commits the build output (`dist/` by default) onto a release-only commit whose parent is the current commit. It doesn't touch your branch, working tree, or staged files, and the build can stay in `.gitignore`.
+2. The version tag, such as `v1.4.0`, points at that commit.
+3. The major tag, such as `v1`, moves to it too, except for prereleases.
+
+Build before publishing; the `release` script under [Scripts](#scripts) does. Other build folders, or keeping the major tag still, are settings:
+
+```json
+{
+  "release": { "action": { "dist": "build", "majorTag": false } }
+}
+```
+
+An Action repository has one package. When git has no identity, as in a fresh CI checkout, the release commit is made as `github-actions[bot]`.
+
 ## Continuous delivery
 
-[`changesets/action`](https://github.com/changesets/action) opens a release pull request when changesets land on `main`, and publishes when that pull request merges:
+[`changesets/action`](https://github.com/changesets/action) opens a release pull request when changesets land on `main`. When that pull request merges, it runs `yarn release`, and `opx release publish` does the rest. Set `createGithubReleases: false`: opx creates the releases, and the action would otherwise try to create them a second time and fail.
 
 ```yaml
 name: Release
@@ -205,12 +270,15 @@ jobs:
         with:
           version: yarn run version
           publish: yarn release
+          title: "chore(release): version packages"
+          commit: "chore(release): version packages"
           commitMode: github-api
+          createGithubReleases: false  # opx release publish makes them
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-The workflow's token must be allowed to create pull requests (Settings → Actions → General). Or use a GitHub App token, so CI runs on the release pull request; this repository's [release workflow](https://github.com/allonsy-studio/opx/blob/main/.github/workflows/release.yml) does that.
+`title` and `commit` give the release pull request and its commit a Conventional Commits message instead of the action's default, "Version Packages". The workflow's token must be allowed to create pull requests (Settings → Actions → General). Or use a GitHub App token, so CI runs on the release pull request; this repository's [release workflow](https://github.com/allonsy-studio/opx/blob/main/.github/workflows/release.yml) does that.
 
 ### Authenticating to npm
 

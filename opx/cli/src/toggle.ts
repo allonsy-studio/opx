@@ -1,5 +1,5 @@
 import type { OpxConfig, PackageJson } from "@allons-y/opx";
-import { isValidPluginName, normalizeDetectorId } from "@allons-y/opx";
+import { isTaskEnabled, isValidPluginName, normalizeDetectorId } from "@allons-y/opx";
 
 import { isShipped, isStaticTask, tasksFor, type TaskKind } from "./plugin-catalog.js";
 
@@ -28,7 +28,8 @@ function isKnown(name: string, hostPkg: PackageJson): boolean {
 export function toggle(config: OpxConfig, name: string, enable: boolean, hostPkg: PackageJson, requested?: TaskKind[]): ToggleResult {
 	if (isStaticTask(name)) {
 		if (enable && !isShipped(name)) return { error: `"${name}" is not available yet.` };
-		if (config[name] === enable) return { config, message: `"${name}" is already ${enable ? "enabled" : "disabled"}.` };
+		// Settings count as on, so enabling never replaces them.
+		if (isTaskEnabled(config[name]) === enable) return { config, message: `"${name}" is already ${enable ? "enabled" : "disabled"}.` };
 		return { config: { ...config, [name]: enable }, message: `${enable ? "enabled" : "disabled"} "${name}".` };
 	}
 

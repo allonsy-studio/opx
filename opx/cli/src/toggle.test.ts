@@ -10,6 +10,11 @@ describe("toggle", () => {
 		expect(result).toMatchObject({ config: { lint: { js: true }, build: {} } });
 	});
 
+	it("keeps release settings when enabling, since they already turn it on", () => {
+		const config = { ...base(), release: { githubReleases: false } };
+		expect(toggle(config, "release", true, {})).toMatchObject({ config, message: expect.stringContaining("already enabled") });
+	});
+
 	it("sets the boolean for the release task", () => {
 		const result = toggle(base(), "release", true, {});
 		expect(result).toMatchObject({ config: { release: true, lint: {}, build: {} } });

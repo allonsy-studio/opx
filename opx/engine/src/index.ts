@@ -24,6 +24,7 @@ export {
 	defaultConfig,
 	defaultState,
 	enabledNames,
+	isTaskEnabled,
 	readConfig,
 	readState,
 	statePath,

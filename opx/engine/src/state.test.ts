@@ -7,6 +7,7 @@ import {
 	defaultConfig,
 	defaultState,
 	enabledNames,
+	isTaskEnabled,
 	readConfig,
 	readState,
 	statePath,
@@ -107,6 +108,30 @@ describe("corrupt files", () => {
 		writeFileSync(configPath(dir), "[]");
 		expect(() => readConfig(dir)).toThrow("expected a JSON object");
 		rmSync(dir, { recursive: true });
+	});
+});
+
+describe("isTaskEnabled", () => {
+	it.each([
+		[true, true],
+		[{ githubReleases: false }, true],
+		[{}, true],
+		[false, false],
+		[undefined, false],
+		[[], false],
+		["path.json", false],
+	])("treats %j as %s", (setting, expected) => {
+		expect(isTaskEnabled(setting)).toBe(expected);
+	});
+
+	it("keeps release settings through a write and read", () => {
+		const dir = tmp();
+		try {
+			writeConfig(dir, { ...defaultConfig(), release: { githubReleases: false } });
+			expect(readConfig(dir).release).toEqual({ githubReleases: false });
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
 	});
 });
 

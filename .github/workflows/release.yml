@@ -45,6 +45,11 @@ jobs:
               with:
                   version: yarn run version
                   publish: yarn release
+                  # Conventional Commits, like every other pull request.
+                  title: "chore(release): version packages"
+                  commit: "chore(release): version packages"
                   commitMode: github-api
+                  # opx release publish creates the GitHub releases.
+                  createGithubReleases: false
               env:
                   GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

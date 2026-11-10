@@ -24,8 +24,14 @@ const PACKAGES: ReleasablePackage[] = [
 	{ name: "@scope/b", version: "2.0.0" },
 ];
 
+/** A host that prints the way the CLI does, so console spies see plugin output. */
+const host = {
+	write: (chunk: string) => console.log(chunk.replace(/\n$/, "")),
+	logger: { info: (m: string) => console.log(m), warn: (m: string) => console.warn(m), error: (m: string) => console.error(m), debug: () => {} },
+};
+
 function ctx(): DetectorContext {
-	return { cwd: "/repo" } as unknown as DetectorContext;
+	return { cwd: "/repo", ...host } as unknown as DetectorContext;
 }
 
 describe("parseAddArgs", () => {
@@ -114,7 +120,8 @@ describe("runAdd", () => {
 		expect(await runAdd(ctx(), [word], d)).toBe(1);
 		expect(prompt).not.toHaveBeenCalled();
 		expect(written).toHaveLength(0);
-		expect(err).toHaveBeenCalledWith(expect.stringContaining(`opx release ${word}`));
+		expect(err).toHaveBeenCalledWith(expect.stringContaining("isn't an option"));
+		expect(log).toHaveBeenCalledWith(expect.stringContaining(`opx release ${word}`));
 	});
 
 	it("writes the changeset built from flags without prompting", async () => {
@@ -143,7 +150,8 @@ describe("runAdd", () => {
 		expect(await runAdd(ctx(), [], d)).toBe(1);
 		expect(prompt).not.toHaveBeenCalled();
 		expect(written).toHaveLength(0);
-		expect(err.mock.calls.flat().join(" ")).toMatch(/interactive terminal|--type/);
+		expect(err.mock.calls.flat().join(" ")).toMatch(/without a terminal/);
+		expect(log.mock.calls.flat().join(" ")).toMatch(/--type/);
 	});
 
 	it("returns 1 with a message on invalid flags", async () => {

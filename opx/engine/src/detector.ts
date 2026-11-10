@@ -46,12 +46,12 @@ export type DynamicTaskConfig<PluginName extends string = string, PluginConfig =
 	}
 };
 
-/** A task with no plugin choice, so config turns it on or off with a boolean. */
+/** A task with no plugin choice: config turns it on with `true` or with its settings. */
 export type StaticTask = "release" | "test";
 
-/** The config keys for static tasks, each a boolean. */
+/** The config keys for static tasks: `true`, `false`, or the task's settings, which also turn it on. */
 export type StaticTaskConfig = {
-	[key in StaticTask]?: boolean;
+	[key in StaticTask]?: boolean | Record<string, unknown>;
 };
 
 /**
