@@ -90,9 +90,9 @@
 	<main id="main" class="docs-content" data-pagefind-body="">
 		
 		<h1 id="type-alias%3A-statictaskconfig" tabindex="-1"><a class="header-anchor" href="#type-alias%3A-statictaskconfig">Type Alias: StaticTaskConfig</a></h1>
-<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">StaticTaskConfig</span> <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token punctuation">[</span>key <span class="token keyword">in</span> StaticTask<span class="token punctuation">]</span><span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">boolean</span> <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/e567b39e0de17643830df8e46b3a8fc99ca8a7ab/opx/engine/src/detector.ts#L53">detector.ts:53</a></p>
-<p>The config keys for static tasks, each a boolean.</p>
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">StaticTaskConfig</span> <span class="token operator">=</span> <span class="token punctuation">{</span> <span class="token punctuation">[</span>key <span class="token keyword">in</span> StaticTask<span class="token punctuation">]</span><span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">boolean</span> <span class="token operator">|</span> Record<span class="token operator">&lt;</span><span class="token builtin">string</span><span class="token punctuation">,</span> <span class="token builtin">unknown</span><span class="token operator">></span> <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/504a1ad74e66fa5d65f442e0851232fbd3ed43a6/opx/engine/src/detector.ts#L53">detector.ts:53</a></p>
+<p>The config keys for static tasks: <code>true</code>, <code>false</code>, or the task's settings, which also turn it on.</p>
 
 	</main>
 </div>

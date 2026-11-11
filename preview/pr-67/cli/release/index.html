@@ -118,7 +118,7 @@
 </tr>
 <tr>
 <td><code>publish</code></td>
-<td>Publish packages whose versions aren't on the registry. <code>--tag &lt;name&gt;</code> publishes under a dist-tag; <code>--no-git-tag</code> skips git tags</td>
+<td>Publish, tag, push tags, and create GitHub releases (<a href="../../plugins/release/#releasing">details</a>). <code>--no-push</code>, <code>--no-github-release</code>, and <code>--action</code>/<code>--no-action</code> change the steps; <code>--tag &lt;name&gt;</code> publishes under a dist-tag; <code>--no-git-tag</code> publishes and stops</td>
 </tr>
 <tr>
 <td><code>pre enter &lt;tag&gt;</code> / <code>pre exit</code></td>
@@ -128,7 +128,7 @@
 </table>
 <p>Any other subcommand is passed to the bundled changesets CLI.</p>
 <h2 id="recording-a-change" tabindex="-1"><a class="header-anchor" href="#recording-a-change">Recording a change</a></h2>
-<p>Interactively, <code>opx release add</code> asks which packages changed, the bump, and a summary.</p>
+<p>In a terminal, <code>opx release add</code> runs changesets' own prompt (<code>changeset add</code>), so its options, such as <code>--open</code> and <code>--since</code>, work as the <a href="https://github.com/changesets/changesets/blob/main/packages/cli/README.md#add">changesets docs</a> describe.</p>
 <p>For scripts and CI, pass flags:</p>
 <table>
 <thead>

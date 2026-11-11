@@ -97,7 +97,7 @@
 <h2 id="the-flow" tabindex="-1"><a class="header-anchor" href="#the-flow">The flow</a></h2>
 <pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx release <span class="token function">add</span>          <span class="token comment"># record a change (interactive, or pass flags)</span>
 <span class="token function">yarn</span> opx release version      <span class="token comment"># bump versions and write changelogs</span>
-<span class="token function">yarn</span> opx release publish      <span class="token comment"># publish what isn't on the registry yet</span>
+<span class="token function">yarn</span> opx release publish      <span class="token comment"># publish, tag, push, and create GitHub releases</span>
 <span class="token function">yarn</span> opx release status       <span class="token comment"># see what would be released</span></code></pre>
 <p>The first <code>opx release</code> command creates <code>.changeset/config.json</code> and a short README if you don't have them. The config is the plugin's starter <code>config.json</code> with your default branch as <code>baseBranch</code>; after that, edit it only to <code>ignore</code> private packages or to opt in to the <a href="#changelog-format">custom changelog</a>. Every subcommand is described in the <a href="../../cli/release/"><code>opx release</code> reference</a>.</p>
 <h2 id="changelog-format" tabindex="-1"><a class="header-anchor" href="#changelog-format">Changelog format</a></h2>
@@ -197,8 +197,78 @@ migration: Replace <span class="token code-snippet code keyword">`run`</span> wi
 <pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> opx release version <span class="token parameter variable">--snapshot</span> canary          <span class="token comment"># 0.0.0-canary-20261108120000</span>
 <span class="token function">yarn</span> opx release publish <span class="token parameter variable">--tag</span> canary --no-git-tag  <span class="token comment"># never under `latest`, no git tags</span></code></pre>
 <p>Run snapshots on a branch or in CI, and don't commit the version bump. Set <code>&quot;snapshot&quot;: { &quot;useCalculatedVersion&quot;: true }</code> in <code>.changeset/config.json</code> to get <code>1.2.1-canary-…</code> instead of <code>0.0.0-canary-…</code>. Changesets refuses a snapshot while the repository is in pre-release mode.</p>
+<h2 id="releasing" tabindex="-1"><a class="header-anchor" href="#releasing">Releasing</a></h2>
+<p><code>opx release publish</code> runs the whole release, and is safe to run again if a step fails:</p>
+<ol>
+<li><strong>Publish</strong> every package version that isn't on the registry yet, with changesets.</li>
+<li><strong>Tag</strong> each version that has no tag: <code>v1.2.3</code> for a single package, <code>name@1.2.3</code> in a monorepo, as changesets names them.</li>
+<li><strong>Push</strong> the tags <code>origin</code> doesn't have.</li>
+<li><strong>Create a GitHub release</strong> for each tag that has none, with that version's changelog notes. Versions with a prerelease tag, such as <code>2.0.0-beta.1</code>, become GitHub prereleases.</li>
+</ol>
+<p>Each step skips what's already done, so after a failure, run it again and it finishes the rest. A run ends with a summary:</p>
+<pre class="language-text"><code class="language-text">  opx release · publish
+
+  ● Publishing with changesets
+  ✔ Published to the registry
+  ✔ Tagged 2 versions  @acme/cli@1.3.0, @acme/core@1.3.0
+  ✔ Pushed 2 tags to origin  @acme/cli@1.3.0, @acme/core@1.3.0
+  ✔ Created 2 GitHub releases
+
+  Package      Version   Tag     GitHub release
+  @acme/cli    1.3.0     ✔ new   ✔ https://github.com/acme/tools/releases/tag/…
+  @acme/core   1.3.0     ✔ new   ✔ https://github.com/acme/tools/releases/tag/…</code></pre>
+<p>GitHub releases need <code>GITHUB_TOKEN</code> with <code>contents: write</code>, and the repository from <code>GITHUB_REPOSITORY</code> or the <code>repository</code> field in <code>package.json</code>. Without a token, opx says so and skips that step.</p>
+<p>The first run in a repository tags each package's current version at the current commit, as <code>changeset tag</code> does, and creates releases for those tags.</p>
+<h3 id="settings" tabindex="-1"><a class="header-anchor" href="#settings">Settings</a></h3>
+<p>Every step is on by default. Turn steps off in <code>.opx/config.json</code>, where <code>release</code> takes settings instead of <code>true</code>:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"release"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"githubReleases"</span><span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Flag</th>
+<th>Default</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>push</code></td>
+<td><code>--no-push</code></td>
+<td><code>true</code></td>
+<td>Push new tags to <code>origin</code>. Without it, no GitHub release is made, because a release needs its tag on GitHub.</td>
+</tr>
+<tr>
+<td><code>githubReleases</code></td>
+<td><code>--no-github-release</code></td>
+<td><code>true</code></td>
+<td>Create a GitHub release for each new tag.</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td><code>--action</code>, <code>--no-action</code></td>
+<td>on when <code>action.yml</code> exists</td>
+<td>Release a GitHub Action (below).</td>
+</tr>
+</tbody>
+</table>
+<p>A flag wins over the setting for that run. Changesets' own publish flags, such as <code>--tag</code>, <code>--otp</code>, and <code>--no-git-tag</code>, pass through; <code>--no-git-tag</code> publishes and stops.</p>
+<h3 id="github-actions" tabindex="-1"><a class="header-anchor" href="#github-actions">GitHub Actions</a></h3>
+<p>A repository with an <code>action.yml</code> (or <code>action.yaml</code>) at its root is released as a GitHub Action, so <code>uses: owner/repo@v1</code> gets a build that runs:</p>
+<ol>
+<li>opx commits the build output (<code>dist/</code> by default) onto a release-only commit whose parent is the current commit. It doesn't touch your branch, working tree, or staged files, and the build can stay in <code>.gitignore</code>.</li>
+<li>The version tag, such as <code>v1.4.0</code>, points at that commit.</li>
+<li>The major tag, such as <code>v1</code>, moves to it too, except for prereleases.</li>
+</ol>
+<p>Build before publishing; the <code>release</code> script under <a href="#scripts">Scripts</a> does. Other build folders, or keeping the major tag still, are settings:</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"release"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"action"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"dist"</span><span class="token operator">:</span> <span class="token string">"build"</span><span class="token punctuation">,</span> <span class="token property">"majorTag"</span><span class="token operator">:</span> <span class="token boolean">false</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<p>An Action repository has one package. When git has no identity, as in a fresh CI checkout, the release commit is made as <code>github-actions[bot]</code>.</p>
 <h2 id="continuous-delivery" tabindex="-1"><a class="header-anchor" href="#continuous-delivery">Continuous delivery</a></h2>
-<p><a href="https://github.com/changesets/action"><code>changesets/action</code></a> opens a release pull request when changesets land on <code>main</code>, and publishes when that pull request merges:</p>
+<p><a href="https://github.com/changesets/action"><code>changesets/action</code></a> opens a release pull request when changesets land on <code>main</code>. When that pull request merges, it runs <code>yarn release</code>, and <code>opx release publish</code> does the rest. Set <code>createGithubReleases: false</code>: opx creates the releases, and the action would otherwise try to create them a second time and fail.</p>
 <pre class="language-yaml"><code class="language-yaml"><span class="token key atrule">name</span><span class="token punctuation">:</span> Release
 <span class="token key atrule">on</span><span class="token punctuation">:</span>
   <span class="token key atrule">push</span><span class="token punctuation">:</span>
@@ -223,10 +293,13 @@ migration: Replace <span class="token code-snippet code keyword">`run`</span> wi
         <span class="token key atrule">with</span><span class="token punctuation">:</span>
           <span class="token key atrule">version</span><span class="token punctuation">:</span> yarn run version
           <span class="token key atrule">publish</span><span class="token punctuation">:</span> yarn release
+          <span class="token key atrule">title</span><span class="token punctuation">:</span> <span class="token string">"chore(release): version packages"</span>
+          <span class="token key atrule">commit</span><span class="token punctuation">:</span> <span class="token string">"chore(release): version packages"</span>
           <span class="token key atrule">commitMode</span><span class="token punctuation">:</span> github<span class="token punctuation">-</span>api
+          <span class="token key atrule">createGithubReleases</span><span class="token punctuation">:</span> <span class="token boolean important">false</span>  <span class="token comment"># opx release publish makes them</span>
         <span class="token key atrule">env</span><span class="token punctuation">:</span>
           <span class="token key atrule">GITHUB_TOKEN</span><span class="token punctuation">:</span> $<span class="token punctuation">{</span><span class="token punctuation">{</span> secrets.GITHUB_TOKEN <span class="token punctuation">}</span><span class="token punctuation">}</span></code></pre>
-<p>The workflow's token must be allowed to create pull requests (Settings → Actions → General). Or use a GitHub App token, so CI runs on the release pull request; this repository's <a href="https://github.com/allonsy-studio/opx/blob/main/.github/workflows/release.yml">release workflow</a> does that.</p>
+<p><code>title</code> and <code>commit</code> give the release pull request and its commit a Conventional Commits message instead of the action's default, &quot;Version Packages&quot;. The workflow's token must be allowed to create pull requests (Settings → Actions → General). Or use a GitHub App token, so CI runs on the release pull request; this repository's <a href="https://github.com/allonsy-studio/opx/blob/main/.github/workflows/release.yml">release workflow</a> does that.</p>
 <h3 id="authenticating-to-npm" tabindex="-1"><a class="header-anchor" href="#authenticating-to-npm">Authenticating to npm</a></h3>
 <p>Use <strong>trusted publishing</strong> (OIDC). There is no token to store or rotate, and npm adds a provenance attestation to each version when the repository and the package are both public:</p>
 <ol>
