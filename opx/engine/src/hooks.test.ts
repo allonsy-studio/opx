@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
@@ -53,7 +53,7 @@ describe("installPostCommitHook", () => {
 		installPostCommitHook(dir);
 		const twice = readFileSync(join(dir, ".husky", "post-commit"), "utf8");
 		expect(twice).toBe(once);
-		expect(twice.match(/opx hook post-commit/g)).toHaveLength(1);
+		expect(twice.split("\n").filter((line) => line.includes("opx hook post-commit"))).toHaveLength(1);
 		rmSync(dir, { recursive: true });
 	});
 
@@ -91,6 +91,55 @@ describe("installPostCommitHook", () => {
 		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", { encoding: "utf8", mode: 0o644 });
 		expect(mode(installPostCommitHook(dir).path)).toBe(0o755);
 		rmSync(dir, { recursive: true });
+	});
+});
+
+describe("the post-commit hook", () => {
+	const scratch = useScratch();
+	const tmpDir = () => scratch.dir("opx-hook-run-");
+
+	/**
+	 * Run the installed hook in `dir` with fake `opx` and `yarn` commands that
+	 * record how they were called, and return what was recorded.
+	 */
+	async function runHook(dir: string): Promise<string> {
+		const fake = join(dir, "fake-bin");
+		const record = join(dir, "called");
+		mkdirSync(fake);
+		mkdirSync(join(dir, "node_modules", ".bin"), { recursive: true });
+		const fakes: [string, string][] = [[join(fake, "yarn"), "yarn"], [join(dir, "node_modules", ".bin", "opx"), "opx"]];
+		for (const [path, name] of fakes) {
+			writeFileSync(path, `#!/bin/sh\necho "${name} $*" > "${record}"\n`);
+			chmodSync(path, 0o755);
+		}
+		const hook = installPostCommitHook(dir).path;
+		expect(spawnSync("sh", [hook], { cwd: dir, env: { ...process.env, PATH: `${fake}:${process.env.PATH}` } }).status).toBe(0);
+		// The hook runs opx in the background; wait for it.
+		for (let i = 0; i < 50 && !existsSync(record); i++) await new Promise((r) => setTimeout(r, 100));
+		return readFileSync(record, "utf8").trim();
+	}
+
+	itPosix("runs the project's own opx from node_modules/.bin", async () => {
+		expect(await runHook(tmpDir())).toBe("opx hook post-commit");
+	});
+
+	itPosix("runs opx through yarn in a Yarn Plug'n'Play project, which has no node_modules/.bin", async () => {
+		const dir = tmpDir();
+		writeFileSync(join(dir, ".pnp.cjs"), "");
+		expect(await runHook(dir)).toBe("yarn opx hook post-commit");
+	});
+
+	it("upgrades the line an earlier version wrote, in place", () => {
+		const dir = tmpDir();
+		mkdirSync(join(dir, ".husky"));
+		const legacy = '( PATH="node_modules/.bin:$PATH" opx hook post-commit >/dev/null 2>&1 & ) || true';
+		writeFileSync(join(dir, ".husky", "post-commit"), `#!/usr/bin/env sh\necho mine\n${legacy}\nexit 0\n`);
+		expect(installPostCommitHook(dir).created).toBe(false);
+		const contents = readFileSync(join(dir, ".husky", "post-commit"), "utf8");
+		expect(contents).not.toContain(legacy);
+		expect(contents).toContain("yarn opx hook post-commit");
+		expect(contents.startsWith("#!/usr/bin/env sh\necho mine\n")).toBe(true);
+		expect(contents.endsWith("exit 0\n")).toBe(true);
 	});
 });
 

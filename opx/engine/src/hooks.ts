@@ -1,8 +1,15 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-/** The hook command. Runs the local binary directly, since starting through `npx` adds about a second. */
-const POST_COMMIT_LINE = '( PATH="node_modules/.bin:$PATH" opx hook post-commit >/dev/null 2>&1 & ) || true';
+/**
+ * The hook command. Runs the local binary directly, since starting through `npx`
+ * adds about a second. Yarn Plug'n'Play has no `node_modules/.bin`, so there it
+ * runs through `yarn`.
+ */
+const POST_COMMIT_LINE = '( if [ -f .pnp.cjs ]; then yarn opx hook post-commit; else PATH="node_modules/.bin:$PATH" opx hook post-commit; fi >/dev/null 2>&1 & ) || true';
+
+/** The line earlier versions wrote, upgraded in place. */
+const LEGACY_POST_COMMIT_LINE = '( PATH="node_modules/.bin:$PATH" opx hook post-commit >/dev/null 2>&1 & ) || true';
 
 const POST_COMMIT = `#!/usr/bin/env sh
 ${POST_COMMIT_LINE}
@@ -29,6 +36,10 @@ export function installPostCommitHook(cwd: string): HookInstallResult {
 
 	if (existsSync(path)) {
 		const existing = readFileSync(path, "utf8");
+		if (existing.includes(LEGACY_POST_COMMIT_LINE)) {
+			writeFileSync(path, existing.replace(LEGACY_POST_COMMIT_LINE, POST_COMMIT_LINE), "utf8");
+			return { created: false, path };
+		}
 		if (existing.includes("opx hook post-commit")) {
 			return { created: false, path };
 		}

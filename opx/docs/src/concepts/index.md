@@ -67,4 +67,4 @@ Treat an untrusted repository like any other untrusted code: review it first, or
 
 ## The post-commit hook
 
-`opx init` installs a husky `post-commit` hook that runs `opx hook post-commit` in the background. When a commit introduces file types that an uninstalled plugin could handle, it prints a one-line suggestion. It always exits `0` and never blocks a commit.
+`opx init` installs a husky `post-commit` hook that runs `opx hook post-commit` in the background, from `node_modules/.bin`, or through `yarn` in a Yarn Plug'n'Play project. When a commit introduces file types that an uninstalled plugin could handle, it prints a one-line suggestion. It always exits `0` and never blocks a commit. Running `opx init` again upgrades a hook an earlier version installed.
