@@ -108,7 +108,7 @@ opx is built to be driven by an agent with no human in the loop. It never prompt
 4. Run `opx lint`. Exit `0` is clean and `1` means problems; `opx lint --fix` applies fixes.
 5. Commit `.opx/config.json`, `eslint.config.js`, `package.json`, the lockfile, and `.husky/`.
 
-Don't hand-edit `.opx/state.json`. Use `opx enable <name>` and `opx disable <name>` to change plugins afterwards. The docs site publishes an [`llms.txt`](https://projects.allons-y.studio/opx/llms.txt) index, and the full guide is [Use opx with an AI agent](https://projects.allons-y.studio/opx/guides/agents/).
+Don't hand-edit `.opx/state.json`. Use `opx enable <name>` and `opx disable <name>` to change plugins afterwards. The docs site also publishes an `llms.txt` index, and the full guide is [Use opx with an AI agent](opx/docs/src/guides/agents.md).
 
 ## Configuration
 
