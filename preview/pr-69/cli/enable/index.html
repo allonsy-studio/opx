@@ -90,7 +90,7 @@
 	</aside>
 	<main id="main" class="docs-content" data-pagefind-body="">
 		<h1 data-pagefind-meta="title">opx enable</h1>
-		<p>Enable a plugin by short name (<code>js</code>, <code>json</code>, <code>md</code>, <code>release</code>) or by package id.</p>
+		<p>Enable a plugin by short name (<code>js</code>, <code>ts</code>, <code>json</code>, <code>md</code>, <code>release</code>) or by package id.</p>
 <h2 id="synopsis" tabindex="-1"><a class="header-anchor" href="#synopsis">Synopsis</a></h2>
 <pre class="language-sh"><code class="language-sh">opx <span class="token builtin class-name">enable</span> <span class="token operator">&lt;</span>name<span class="token operator">></span> <span class="token punctuation">[</span>--task <span class="token operator">&lt;</span>tasks<span class="token punctuation">..</span>.<span class="token operator">></span><span class="token punctuation">]</span></code></pre>
 <h2 id="options" tabindex="-1"><a class="header-anchor" href="#options">Options</a></h2>
@@ -106,19 +106,23 @@
 <tr>
 <td><code>--task &lt;tasks...&gt;</code></td>
 <td>every task the plugin provides</td>
-<td>One or more of <code>lint</code>, <code>build</code></td>
+<td>One or more of <code>lint</code>, <code>build</code>. Required when opx can't load a third-party plugin to read its tasks</td>
 </tr>
 </tbody>
 </table>
 <h2 id="behavior" tabindex="-1"><a class="header-anchor" href="#behavior">Behavior</a></h2>
 <ul>
 <li>Plugins are written only to the tasks they provide. <code>opx enable js</code> touches <code>lint</code> only, because the official JS plugin is a linter.</li>
+<li>A first-party package id resolves to its short name: <code>opx enable @allons-y/opx-lint-ts</code> is the same as <code>opx enable ts</code>, and writes <code>ts</code> under <code>lint</code>.</li>
+<li>A third-party package id (<code>opx-plugin-foo</code>, <code>@scope/opx-plugin-foo</code>) is written under the tasks its detectors declare. opx loads the installed package to read them. If it can't, pass <code>--task</code>; opx never writes a plugin to every task.</li>
 <li><code>release</code> is a static task: it sets the top-level <code>release</code> boolean and ignores <code>--task</code>.</li>
 <li>Unknown names, and <code>--task</code> values a plugin doesn't provide, print an error and exit <code>1</code>.</li>
 <li>Running it when nothing would change prints a message and exits <code>0</code>.</li>
 </ul>
 <h2 id="examples" tabindex="-1"><a class="header-anchor" href="#examples">Examples</a></h2>
 <pre class="language-sh"><code class="language-sh">opx <span class="token builtin class-name">enable</span> js
+opx <span class="token builtin class-name">enable</span> ts
+opx <span class="token builtin class-name">enable</span> @allons-y/opx-lint-ts
 opx <span class="token builtin class-name">enable</span> release
 opx <span class="token builtin class-name">enable</span> @acme/opx-plugin-foo <span class="token parameter variable">--task</span> lint</code></pre>
 
