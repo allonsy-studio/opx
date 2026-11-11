@@ -262,6 +262,17 @@ describe("runPublish", () => {
 		expect(github.created).toEqual([]);
 	});
 
+	it("exits 1 when a tag can't be created, and still tags and releases the rest", async () => {
+		const { dir } = repo(MONOREPO);
+		// A ref can't be both a file and a folder, so this blocks `@s/a@1.2.0`.
+		git(dir, "tag", "@s/a@1.2.0/x");
+		const github = fakeGithub();
+		const d = deps(github);
+		expect(await runPublish(dir, [], true, d)).toBe(1);
+		expect(d.err).toContain("  ✖ Couldn't tag @s/a@1.2.0");
+		expect(github.created.map((r) => r.tag)).toEqual(["@s/b@2.0.0-beta.1"]);
+	});
+
 	it("still creates releases when listing them fails", async () => {
 		const { dir } = repo(MONOREPO);
 		const github = { ...fakeGithub(), releasedTags: async () => Promise.reject(new Error("Listing failed: 502")) };
@@ -330,6 +341,16 @@ describe("runPublish for a GitHub Action", () => {
 		const d = deps(fakeGithub(["v1.4.0"]));
 		expect(await runPublish(dir, [], true, d)).toBe(0);
 		expect(d.out).toContain("  – v1.4.0 is already on origin  the Action build was committed before");
+	});
+
+	it("exits 1 and names git's error when the build can't be committed", async () => {
+		const { dir, origin } = actionRepo();
+		// git won't add a nested repository that has no commit checked out.
+		git(join(dir, "dist"), "init", "-q");
+		const d = deps(fakeGithub());
+		expect(await runPublish(dir, [], true, d)).toBe(1);
+		expect(d.err.join("\n")).toMatch(/✖ Couldn't commit dist\/ for v1\.4\.0 {2}git add failed: /);
+		expect(originTags(origin)).toEqual([]);
 	});
 
 	it("fails clearly without a build", async () => {
