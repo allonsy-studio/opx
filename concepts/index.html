@@ -185,7 +185,7 @@
 <p>This is the same as running ESLint, a build, or <code>npm test</code> in a cloned repository, and it is by design. <code>opx scan</code> only reads the file list from git and runs nothing, and opx never installs a package during <code>lint</code> or <code>build</code>.</p>
 <p>Treat an untrusted repository like any other untrusted code: review it first, or run opx inside a sandbox or CI job that has no secrets. For pull requests from forks, see <a href="../guides/ci/#pull-requests-from-forks">Use opx in CI</a>.</p>
 <h2 id="the-post-commit-hook" tabindex="-1"><a class="header-anchor" href="#the-post-commit-hook">The post-commit hook</a></h2>
-<p><code>opx init</code> installs a husky <code>post-commit</code> hook that runs <code>opx hook post-commit</code> in the background. When a commit introduces file types that an uninstalled plugin could handle, it prints a one-line suggestion. It always exits <code>0</code> and never blocks a commit.</p>
+<p><code>opx init</code> installs a husky <code>post-commit</code> hook that runs <code>opx hook post-commit</code> in the background, from <code>node_modules/.bin</code>, or through <code>yarn</code> in a Yarn Plug'n'Play project. When a commit introduces file types that an uninstalled plugin could handle, it prints a one-line suggestion. It always exits <code>0</code> and never blocks a commit. Running <code>opx init</code> again upgrades a hook an earlier version installed.</p>
 
 	</main>
 </div>
