@@ -4,7 +4,9 @@
  * unit tests can't: missing files in the tarball, unresolved `workspace:`
  * ranges, a broken bin, or a plugin that can't be loaded from node_modules.
  *
- * Run `yarn build` first (the `yarn smoke` script does).
+ * Run `yarn build` first (the `yarn smoke` script does). Set `SMOKE_PM` to
+ * `pnpm`, `yarn-pnp`, or `global` to install that way instead and run a
+ * shorter check that opx loads and runs a plugin.
  */
 import { spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
@@ -18,6 +20,10 @@ import * as pty from "@lydell/node-pty";
 const GIT_ISOLATION = { GIT_CONFIG_GLOBAL: resolve(import.meta.dirname, "..", "configs", "empty.gitconfig"), GIT_CONFIG_NOSYSTEM: "1" };
 
 const root = resolve(import.meta.dirname, "..");
+/** How the packages are installed: `npm` runs every check; the others check that opx loads and runs a plugin. */
+const PM = process.env.SMOKE_PM ?? "npm";
+/** The pnpm release the pnpm check installs with. */
+const PNPM = "pnpm@10.34.9";
 const work = mkdtempSync(join(tmpdir(), "opx-smoke-"));
 const failures = [];
 
@@ -26,10 +32,11 @@ const failures = [];
  * @param {string} cmd - Executable to run.
  * @param {string[]} args - Arguments.
  * @param {string} cwd - Working directory.
+ * @param {Record<string, string>} [env] - Extra environment variables.
  * @returns {{ status: number, stdout: string, stderr: string }}
  */
-function run(cmd, args, cwd) {
-	const result = spawnSync(cmd, args, { cwd, encoding: "utf8", env: { ...process.env, ...GIT_ISOLATION, CI: "1" } });
+function run(cmd, args, cwd, env = {}) {
+	const result = spawnSync(cmd, args, { cwd, encoding: "utf8", env: { ...process.env, ...GIT_ISOLATION, CI: "1", ...env } });
 	return { status: result.status ?? 1, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
 }
 
@@ -119,6 +126,59 @@ function drive(cmd, args, cwd, steps, timeout = 90_000) {
 	});
 }
 
+/**
+ * Install the packed CLI and lint-js with another package manager, or opx
+ * globally, and check that opx finds the plugin in the project, fails on a
+ * style error, and passes once it's fixed.
+ * @param {string} pm - `pnpm`, `yarn-pnp`, or `global`.
+ * @param {string[]} tarballs - The packed packages.
+ */
+function smokeWith(pm, tarballs) {
+	const tarball = (name) => tarballs.find((path) => new RegExp(`/allons-y-${name}-\\d`).test(path));
+	const local = Object.fromEntries(["opx", "opx-cli", "opx-lint-js"].map((name) => [`@allons-y/${name}`, `file:${tarball(name)}`]));
+	const app = join(work, `app-${pm}`);
+	mkdirSync(join(app, "src"), { recursive: true });
+	mkdirSync(join(app, ".opx"));
+	writeFileSync(join(app, ".opx", "config.json"), `${JSON.stringify({ version: 1, lint: { js: true } })}\n`);
+	writeFileSync(join(app, "src", "a.js"), "export const a = 1\n");
+	run("git", ["init", "--quiet"], app);
+
+	const manifest = { name: `smoke-${pm}`, private: true, type: "module", devDependencies: { "@allons-y/opx-lint-js": local["@allons-y/opx-lint-js"] } };
+	let installed;
+	let opx;
+	if (pm === "pnpm") {
+		writeFileSync(join(app, "package.json"), JSON.stringify({ ...manifest, devDependencies: { ...manifest.devDependencies, "@allons-y/opx-cli": local["@allons-y/opx-cli"] }, pnpm: { overrides: local } }));
+		installed = run("npx", ["--yes", PNPM, "install"], app);
+		opx = (...args) => run("npx", ["--yes", PNPM, "exec", "opx", ...args], app);
+	} else if (pm === "yarn-pnp") {
+		const yarn = join(root, ".yarn", "releases", readdirSync(join(root, ".yarn", "releases")).find((file) => file.endsWith(".cjs")));
+		writeFileSync(join(app, "package.json"), JSON.stringify({ ...manifest, devDependencies: { ...manifest.devDependencies, "@allons-y/opx-cli": local["@allons-y/opx-cli"] }, resolutions: local }));
+		writeFileSync(join(app, ".yarnrc.yml"), "nodeLinker: pnp\nenableGlobalCache: false\n");
+		writeFileSync(join(app, "yarn.lock"), "");
+		const env = { YARN_ENABLE_IMMUTABLE_INSTALLS: "false" };
+		installed = run(process.execPath, [yarn, "install"], app, env);
+		opx = (...args) => run(process.execPath, [yarn, "opx", ...args], app, env);
+	} else if (pm === "global") {
+		const prefix = join(work, "global");
+		const cli = run("npm", ["install", "--prefix", prefix, "--no-audit", "--no-fund", tarball("opx"), tarball("opx-cli")], work);
+		check("install opx globally", cli.status === 0, cli.stderr);
+		writeFileSync(join(app, "package.json"), JSON.stringify({ ...manifest, devDependencies: {} }));
+		installed = run("npm", ["install", "--save-dev", "--no-audit", "--no-fund", tarball("opx"), tarball("opx-lint-js")], app);
+		opx = (...args) => run(join(prefix, "node_modules", ".bin", "opx"), args, app);
+	} else {
+		throw new Error(`unknown SMOKE_PM: ${pm}`);
+	}
+	check(`install the packed tarballs with ${pm}`, installed.status === 0, installed.stdout + installed.stderr);
+	if (installed.status !== 0) return;
+
+	const failing = opx("lint");
+	check(`opx lint loads the plugin and fails on a style error (${pm})`, failing.status === 1 && /semi/.test(failing.stdout), failing.stdout + failing.stderr);
+	if (pm === "yarn-pnp") check("opx lint leaves Yarn's .pnp.cjs alone", !failing.stdout.includes(".pnp.cjs"), failing.stdout);
+	writeFileSync(join(app, "src", "a.js"), "export const a = 1;\n");
+	const clean = opx("lint");
+	check(`opx lint passes once it's fixed (${pm})`, clean.status === 0, clean.stdout + clean.stderr);
+}
+
 try {
 	// 1. Pack each package and make sure the manifest is installable.
 	const tarballs = [];
@@ -145,6 +205,11 @@ try {
 		check(`publint ${name}`, publint.status === 0, publint.stdout + publint.stderr);
 		const attw = run(join(root, "node_modules", ".bin", "attw"), [out, "--profile", "esm-only", ...(subpaths.length > 0 ? ["--exclude-entrypoints", ...subpaths] : []), "--format", "ascii"], work);
 		check(`attw ${name}`, attw.status === 0, attw.stdout + attw.stderr);
+	}
+
+	if (PM !== "npm") {
+		smokeWith(PM, tarballs);
+		throw new Error("done");
 	}
 
 	// 2. Install the tarballs into a scratch repository.
@@ -265,7 +330,7 @@ try {
 		init.stdout,
 	);
 } catch (error) {
-	if (error.message !== "install failed") failures.push(String(error));
+	if (error.message !== "install failed" && error.message !== "done") failures.push(String(error));
 } finally {
 	rmSync(work, { recursive: true, force: true });
 }

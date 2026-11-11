@@ -113,7 +113,8 @@ jobs:
               if: ${{ !cancelled() && steps.coverage.outputs.found == 'true' }}
               run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
 
-    # Packs the packages, installs the tarballs, and runs the real CLI. Windows is
+    # Packs the packages, installs the tarballs, and runs the real CLI: every check
+    # with npm, and a shorter one with pnpm, Yarn Plug'n'Play, and a global opx. Windows is
     # not covered yet: the script runs npm and the opx binary directly, and on
     # Windows those are .cmd shims.
     smoke:
@@ -125,6 +126,10 @@ jobs:
                 include:
                     - { os: ubuntu-latest, node: 26, pm: npm }
                     - { os: macos-latest, node: 26, pm: npm }
+                    # Shorter checks that opx loads and runs a plugin for each install layout.
+                    - { os: ubuntu-latest, node: 26, pm: pnpm }
+                    - { os: ubuntu-latest, node: 26, pm: yarn-pnp }
+                    - { os: ubuntu-latest, node: 26, pm: global }
         steps:
             - *checkout
             - *setup-node
@@ -132,6 +137,8 @@ jobs:
 
             - name: Pack, install, and run the CLI
               run: yarn smoke
+              env:
+                  SMOKE_PM: ${{ matrix.pm }}
 
     # The one check the branch ruleset requires.
     gate:

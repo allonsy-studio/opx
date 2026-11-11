@@ -11,7 +11,7 @@ import stylistic from "@stylistic/eslint-plugin";
  */
 export default defineConfig([
 	{
-		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.opx/**", "**/bin/**", "**/dist/**"],
+		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.pnp.*", "**/.opx/**", "**/bin/**", "**/dist/**"],
 	},
 	{
 		files: ["**/*.{js,mjs,cjs}"],

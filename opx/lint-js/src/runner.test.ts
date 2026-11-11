@@ -53,6 +53,13 @@ describe("default paths and .gitignore", () => {
 		expect(await runEslint(makeCtx(dir), [])).toBe(1);
 	});
 
+	it("skips the loader files Yarn Plug'n'Play generates", async () => {
+		const dir = makeDir();
+		writeFileSync(join(dir, ".pnp.cjs"), "const x = 'a'\n");
+		writeFileSync(join(dir, ".pnp.loader.mjs"), "const x = 'a'\n");
+		expect(await runEslint(makeCtx(dir), [])).toBe(0);
+	});
+
 	it("skips files the project's .gitignore lists", async () => {
 		const dir = makeDir();
 		writeFileSync(join(dir, "bad.js"), "const x = 'a'\n");

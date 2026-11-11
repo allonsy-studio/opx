@@ -10,7 +10,7 @@ import ts from "typescript-eslint";
  */
 export default defineConfig([
 	{
-		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.opx/**", "**/bin/**", "**/dist/**"],
+		ignores: ["**/node_modules/**", "**/.yarn/**", "**/.pnp.*", "**/.opx/**", "**/bin/**", "**/dist/**"],
 	},
 	{
 		files: ["**/*.{ts,tsx,mts,cts}"],
