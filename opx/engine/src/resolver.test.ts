@@ -2,7 +2,9 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "nod
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { resolveTool } from "./resolver.js";
+import { pathToFileURL } from "node:url";
+
+import { packageEntry, resolvePackageEntry, resolveTool } from "./resolver.js";
 
 const dirs: string[] = [];
 
@@ -45,5 +47,37 @@ describe("resolveTool", () => {
 	it("throws when neither the host nor the bundle has the tool", () => {
 		const missing = { resolve: (request: string): string => { throw new Error(`Cannot find module '${request}'`); } };
 		expect(() => resolveTool("some-tool", host(), missing)).toThrow("Cannot find module 'some-tool/package.json'");
+	});
+});
+
+describe("packageEntry", () => {
+	it("picks the import target of the package root from exports", () => {
+		expect(packageEntry({ exports: "./a.js" })).toBe("./a.js");
+		expect(packageEntry({ exports: { ".": "./a.js", "./other": "./b.js" } })).toBe("./a.js");
+		expect(packageEntry({ exports: { ".": { types: "./a.d.ts", import: "./a.js" } }, main: "./main.cjs" })).toBe("./a.js");
+		expect(packageEntry({ exports: { import: "./a.js", require: "./a.cjs" } })).toBe("./a.js");
+		expect(packageEntry({ exports: { ".": { node: { import: "./node.js" }, default: "./any.js" } } })).toBe("./node.js");
+		expect(packageEntry({ exports: { ".": [{ require: "./a.cjs" }, "./fallback.js"] } })).toBe("./fallback.js");
+	});
+
+	it("falls back to main, then index.js, when exports has no import target", () => {
+		expect(packageEntry({ exports: { ".": { require: "./a.cjs" } }, main: "./main.js" })).toBe("./main.js");
+		expect(packageEntry({ exports: { ".": [{ require: "./a.cjs" }] }, main: "./main.js" })).toBe("./main.js");
+		expect(packageEntry({ main: "./main.js" })).toBe("./main.js");
+		expect(packageEntry({})).toBe("index.js");
+	});
+});
+
+describe("resolvePackageEntry", () => {
+	it("returns the entry's file URL from the nearest node_modules, searching upward", () => {
+		const dir = host("pkg");
+		writeFileSync(join(dir, "node_modules", "pkg", "package.json"), JSON.stringify({ name: "pkg", exports: { ".": { import: "./bin/index.js" } } }));
+		const nested = join(dir, "packages", "app");
+		mkdirSync(nested, { recursive: true });
+		expect(resolvePackageEntry("pkg", nested)).toBe(pathToFileURL(join(dir, "node_modules", "pkg", "bin", "index.js")).href);
+	});
+
+	it("returns undefined when no node_modules copy exists", () => {
+		expect(resolvePackageEntry("not-installed-xyz", host())).toBeUndefined();
 	});
 });

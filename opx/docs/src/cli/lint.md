@@ -28,10 +28,11 @@ opx lint [--fix] [paths...]
 - Paths are forwarded to every plugin. A plugin skips paths it doesn't handle, so `opx lint README.md` only lints that file with the Markdown plugin.
 - Files ignored by your `.gitignore` are ignored by the linters as well.
 - If no linters are enabled, it prints a hint to run `opx init` and exits `0`.
+- If a linter is enabled but can't be loaded (not installed, or its package fails to import), it says why on stderr, runs the linters that did load, and exits `1`.
 
 ## Exit codes
 
 | Code | Meaning |
 | --- | --- |
 | `0` | Clean, or nothing to lint |
-| `1` | At least one plugin reported errors |
+| `1` | At least one plugin reported errors, or an enabled plugin couldn't be loaded |

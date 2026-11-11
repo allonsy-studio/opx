@@ -3,7 +3,7 @@ import type { Command } from "commander";
 import type { DetectorContext } from "@allons-y/opx";
 
 import { buildContext } from "../context.js";
-import builtIns from "../built-in.js";
+import builtIns, { reportLoadFailures } from "../built-in.js";
 import { runDetectorsGrouped } from "../run-detectors.js";
 import { CLI_NAME } from "../plugin-kit.js";
 
@@ -16,17 +16,19 @@ import { CLI_NAME } from "../plugin-kit.js";
  *
  * @param ctx - The detector context for the host repo (`ctx.fix` enables auto-fix).
  * @param args - Paths and other arguments forwarded to each detector's runner.
- * @returns The first non-zero detector exit code, or `0` if all pass.
+ * @returns The first non-zero detector exit code, `1` if an enabled plugin couldn't be loaded, or `0` if all pass.
  */
 export async function runLintCommand(ctx: DetectorContext, args: string[]): Promise<number> {
-	const detectors = (await builtIns.load(ctx)).filter((d) => d.concern === "lint");
+	const { detectors, failures } = await builtIns.loadTask(ctx, "lint");
+	reportLoadFailures(failures);
 
 	if (detectors.length === 0) {
-		console.log(`${CLI_NAME}: no linters are detected. Run \`${CLI_NAME} init\` to set them up.`);
-		return 0;
+		if (failures.length === 0) console.log(`${CLI_NAME}: no linters are detected. Run \`${CLI_NAME} init\` to set them up.`);
+		return failures.length > 0 ? 1 : 0;
 	}
 
-	return runDetectorsGrouped(ctx, detectors, args);
+	const code = await runDetectorsGrouped(ctx, detectors, args);
+	return code !== 0 ? code : failures.length > 0 ? 1 : 0;
 }
 
 export default function register(program: Command): void {

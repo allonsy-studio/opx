@@ -16,4 +16,4 @@ Run every enabled build plugin.
 opx build [paths...]
 ```
 
-Works like [`opx lint`](../lint/) for the `build` task. There are no official build plugins yet, so with none enabled it prints a hint and exits `0`. Third-party plugins can provide one by exporting a detector with `concern: "build"`; see [Writing a detector](../../guides/writing-a-detector/).
+Works like [`opx lint`](../lint/) for the `build` task. There are no official build plugins yet, so with none enabled it prints a hint and exits `0`. An enabled builder that can't be loaded makes it exit `1`, as with `opx lint`. Third-party plugins can provide one by exporting a detector with `concern: "build"`; see [Writing a detector](../../guides/writing-a-detector/).
