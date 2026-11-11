@@ -78,6 +78,7 @@
 				<li><a href="/opx/preview/pr-67/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/preview/pr-67/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/preview/pr-67/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/preview/pr-67/guides/agents/">Use opx with an AI agent</a></li>
 			</ul>
 		</li>
 		<li>
@@ -91,7 +92,7 @@
 		
 		<h1 id="function%3A-installpostcommithook()" tabindex="-1"><a class="header-anchor" href="#function%3A-installpostcommithook()">Function: installPostCommitHook()</a></h1>
 <pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">installPostCommitHook</span><span class="token punctuation">(</span>cwd<span class="token punctuation">)</span><span class="token operator">:</span> HookInstallResult<span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/5049b57f92b188b52dc413357cad68474a4f767c/opx/engine/src/hooks.ts#L25">hooks.ts:25</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/51098dacd61391b44592a8eb0a2157d86fde2623/opx/engine/src/hooks.ts#L25">hooks.ts:25</a></p>
 <p>Install the husky post-commit hook that nudges the user about new file types
 after each commit. Runs in a backgrounded subshell and always exits 0, so it
 never blocks the commit.</p>

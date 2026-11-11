@@ -78,6 +78,7 @@
 				<li><a href="/opx/preview/pr-67/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/preview/pr-67/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/preview/pr-67/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/preview/pr-67/guides/agents/">Use opx with an AI agent</a></li>
 			</ul>
 		</li>
 		<li>
@@ -94,7 +95,7 @@
   description<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
   run<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/5049b57f92b188b52dc413357cad68474a4f767c/opx/engine/src/detector.ts#L130">detector.ts:130</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/51098dacd61391b44592a8eb0a2157d86fde2623/opx/engine/src/detector.ts#L130">detector.ts:130</a></p>
 <p>A command a person can run to act on a suggestion. opx prints it and never runs it.</p>
 <h2 id="properties" tabindex="-1"><a class="header-anchor" href="#properties">Properties</a></h2>
 <table>
@@ -111,13 +112,13 @@
 <td><a id="description"></a> <code>description?</code></td>
 <td><code>string</code></td>
 <td>What the command does, when its name does not say.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/5049b57f92b188b52dc413357cad68474a4f767c/opx/engine/src/detector.ts#L134">detector.ts:134</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/51098dacd61391b44592a8eb0a2157d86fde2623/opx/engine/src/detector.ts#L134">detector.ts:134</a></td>
 </tr>
 <tr>
 <td><a id="run"></a> <code>run</code></td>
 <td><code>string</code>[]</td>
 <td>The program and its arguments, such as <code>[&quot;npx&quot;, &quot;@eslint/migrate-config&quot;, &quot;.eslintrc.json&quot;]</code>.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/5049b57f92b188b52dc413357cad68474a4f767c/opx/engine/src/detector.ts#L132">detector.ts:132</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/51098dacd61391b44592a8eb0a2157d86fde2623/opx/engine/src/detector.ts#L132">detector.ts:132</a></td>
 </tr>
 </tbody>
 </table>
