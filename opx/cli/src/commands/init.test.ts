@@ -365,6 +365,19 @@ describe("init", () => {
 			expect(prompt?.options?.map((o) => o.value)).toEqual(["yes", "no", "later"]);
 		});
 
+		it("asks for typescript along with the ts plugin unless the project has it", async () => {
+			const dir = make({ "a.ts": "x", "package.json": PKG, "yarn.lock": "" });
+			answers({ ts: "yes" });
+			await runInteractive(dir, install);
+			expect(select.mock.calls.find(([o]) => o.message.startsWith("Enable ts "))?.[0].message).toContain("Requires typescript.");
+			expect(confirm.mock.calls.some(([o]) => o.message.includes("yarn add -D @allons-y/opx-lint-ts typescript"))).toBe(true);
+
+			confirm.mockClear();
+			const withTs = make({ "a.ts": "x", "package.json": JSON.stringify({ name: "h", devDependencies: { typescript: "^5" } }), "yarn.lock": "" });
+			await runInteractive(withTs, install);
+			expect(confirm.mock.calls.some(([o]) => o.message.endsWith("yarn add -D @allons-y/opx-lint-ts"))).toBe(true);
+		});
+
 		it("shows the command the install prompt would run", async () => {
 			const dir = make({ "a.js": "x", "package.json": PKG, "yarn.lock": "" });
 			answers({ js: "yes" });
@@ -545,6 +558,15 @@ describe("init", () => {
 			expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
 			expect(printed()).toContain("wrote starter .opx/config.json");
 			expect(printed()).toContain("opx enable js");
+		});
+
+		it("lists typescript in the install command for ts, unless the project has it", async () => {
+			await runReport(make({ "a.ts": "x", "package.json": PKG }));
+			expect(printed()).toContain("install @allons-y/opx-lint-ts typescript, then run `opx enable ts`");
+
+			log.mockClear();
+			await runReport(make({ "a.ts": "x", "package.json": JSON.stringify({ name: "h", devDependencies: { typescript: "^5" } }) }));
+			expect(printed()).toContain("install @allons-y/opx-lint-ts, then run `opx enable ts`");
 		});
 
 		it("lists the plugins' cleanup suggestions without changing anything, only when asked", async () => {
