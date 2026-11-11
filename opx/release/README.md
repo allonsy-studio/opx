@@ -2,6 +2,25 @@
 
 opx release plugin. Wraps [changesets](https://github.com/changesets/changesets) behind `opx release`, with a starter config on first use and a prompt-free path for CI.
 
+## opx release and changesets
+
+`opx release` is a thin layer over the changesets CLI that ships with the plugin. Your `.changeset/` files, config, and changelogs are plain changesets, so a repository can stop using opx and keep working with `changeset` directly. The one exception is the [readable changelog format](#changelog-format) if you opted in, which needs this package installed.
+
+**The same as changesets:**
+
+- `opx release add` in a terminal runs changesets' own prompt, so `--open` and `--since` work.
+- `opx release version` runs `changeset version`.
+- `status`, `pre`, `tag`, and every other subcommand go straight to the bundled changesets CLI.
+
+**What opx adds:**
+
+- A prompt-free `add` for CI, scripts, and agents: `--type`, `--pkg`, `--summary`, `--empty`. Changesets has no way to record a change without prompting.
+- A starter `.changeset/config.json` and README on first use, with your default branch as `baseBranch`.
+- An opt-in, [readable changelog format](#changelog-format) with PR links, thanks, and diff links, and no need for `@changesets/changelog-github`.
+- Opt-in [release dates](#release-dates) under each new version.
+- A `publish` that finishes the release: it tags each version that has no tag, pushes the tags, and creates GitHub releases with the changelog notes. Changesets tags locally and leaves pushing and releases to `changesets/action` or your own script. See [Releasing](#releasing).
+- One bundled changesets version, so you don't install or pin it yourself.
+
 ## Install
 
 Install via `opx init` (recommended), or manually:
