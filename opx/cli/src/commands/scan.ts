@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 
-import { enabledNames, type DetectorContext } from "@allons-y/opx";
+import { enabledNames, isTaskEnabled, type DetectorContext } from "@allons-y/opx";
 
 import { buildContext } from "../context.js";
 import { UNDETECTABLE_PLUGINS, virtualDetectors } from "../built-in.js";
@@ -27,7 +27,7 @@ export type ScanOptions = {
 export function runScan(ctx: DetectorContext, opts: ScanOptions): number {
 	const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
 
-	const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(ctx.config.release === true ? ["release"] : [])]);
+	const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(isTaskEnabled(ctx.config.release) ? ["release"] : [])]);
 	// Plugins like release can't be inferred from files, so they never count as missing.
 	const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName) && !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName));
 

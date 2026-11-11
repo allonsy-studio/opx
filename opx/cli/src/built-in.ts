@@ -1,5 +1,5 @@
 import type { Detector, DetectorContext, PackageJson } from "@allons-y/opx";
-import { enabledNames, loadPlugins, normalizeDetectorId } from "@allons-y/opx";
+import { enabledNames, isTaskEnabled, loadPlugins, normalizeDetectorId } from "@allons-y/opx";
 
 import { PLUGIN_CATALOG, type BuiltInShortName } from "./plugin-catalog.js";
 
@@ -60,7 +60,7 @@ export async function load(ctx: DetectorContext): Promise<Detector[]> {
 	const installedBuilders = enabledNames(ctx.config.build)
 		.map((shortName) => `build-${shortName}`)
 		.filter((entry) => normalizeDetectorId(entry, ctx.hostPkg) !== null);
-	const installedRelease = ctx.config.release === true ? ["release"] : [];
+	const installedRelease = isTaskEnabled(ctx.config.release) ? ["release"] : [];
 	const installedTesting = ctx.config.test === true ? ["test"] : [];
 
 	const installed = [...installedLinters, ...installedBuilders, ...installedRelease, ...installedTesting];

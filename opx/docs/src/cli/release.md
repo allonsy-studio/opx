@@ -22,14 +22,14 @@ opx release [subcommand] [args...]
 | `init` | Write a starter `.changeset/config.json` and stop. `--changelog` opts in to the [custom changelog format](../../plugins/release/#changelog-format) |
 | `add` | Record a change (see below) |
 | `version` | Apply pending changes: bump versions and update changelogs. `--snapshot <name>` makes a [snapshot](../../plugins/release/#snapshot-releases) version |
-| `publish` | Publish packages whose versions aren't on the registry. `--tag <name>` publishes under a dist-tag; `--no-git-tag` skips git tags |
+| `publish` | Publish, tag, push tags, and create GitHub releases ([details](../../plugins/release/#releasing)). `--no-push`, `--no-github-release`, and `--action`/`--no-action` change the steps; `--tag <name>` publishes under a dist-tag; `--no-git-tag` publishes and stops |
 | `pre enter <tag>` / `pre exit` | Start or end a [pre-release](../../plugins/release/#pre-releases) |
 
 Any other subcommand is passed to the bundled changesets CLI.
 
 ## Recording a change
 
-Interactively, `opx release add` asks which packages changed, the bump, and a summary.
+In a terminal, `opx release add` runs changesets' own prompt (`changeset add`), so its options, such as `--open` and `--since`, work as the [changesets docs](https://github.com/changesets/changesets/blob/main/packages/cli/README.md#add) describe.
 
 For scripts and CI, pass flags:
 

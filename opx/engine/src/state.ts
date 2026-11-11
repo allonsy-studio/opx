@@ -65,6 +65,14 @@ function parseJsonFile<T extends object>(path: string): T {
 }
 
 /**
+ * Whether a static task such as `release` is on: `true`, or a settings object.
+ * @param setting - The task's value in `.opx/config.json`.
+ */
+export function isTaskEnabled(setting: unknown): boolean {
+	return setting === true || (typeof setting === "object" && setting !== null && !Array.isArray(setting));
+}
+
+/**
  * Names of the plugins switched on in a task map. A plugin set to `false` is
  * present in the config but disabled, so it is excluded.
  *

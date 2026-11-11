@@ -40,16 +40,13 @@ describe("opxReleaseDetector", () => {
 	});
 
 	describe("describe", () => {
-		it("returns a summary and the bundled deps", () => {
+		it("lists exactly the third-party packages it ships", async () => {
+			const { readFileSync } = await import("node:fs");
+			const { fileURLToPath } = await import("node:url");
+			const pkg = JSON.parse(readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8")) as { dependencies: Record<string, string> };
 			const d = opxReleaseDetector.describe!(ctx(true));
 			expect(d.summary).toMatch(/changesets/i);
-			expect(d.bundledDeps).toEqual([
-				"@changesets/cli",
-				"@changesets/get-github-info",
-				"@changesets/write",
-				"@clack/prompts",
-				"@manypkg/get-packages",
-			]);
+			expect(d.bundledDeps).toEqual(Object.keys(pkg.dependencies).filter((name) => !name.startsWith("@allons-y/")));
 		});
 	});
 

@@ -27,7 +27,7 @@ import { buildContext, readHostPackage } from "../context.js";
 import { load as loadDetectors, virtualDetectors } from "../built-in.js";
 import { scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { saveConfig } from "../save-config.js";
-import { defaultSkipUntilDate } from "@allons-y/opx";
+import { defaultSkipUntilDate, isTaskEnabled } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
 
 export type InitOptions = {
@@ -114,7 +114,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 
 	// A suggestion is already covered if its concern is enabled for that short name.
 	const remaining = suggestions.filter((s) => {
-		if (s.shortName === "release") return config.release !== true;
+		if (s.shortName === "release") return !isTaskEnabled(config.release);
 		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);
 		return !enabledLinters.has(s.shortName);
 	});
@@ -175,7 +175,8 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 			...(config.build ?? {}),
 			...Object.fromEntries(acceptedBuild.map((shortName) => [shortName, true])),
 		},
-		release: config.release === true || accepted.some((s) => s.shortName === "release"),
+		// Keep release settings; `true` only turns it on.
+		release: isTaskEnabled(config.release) ? config.release : accepted.some((s) => s.shortName === "release"),
 		test: config.test === true,
 	} as OpxConfig;
 	saveConfig(cwd, nextConfig, (message) => p.log.warn(message));
@@ -303,7 +304,7 @@ export async function runReport(cwd: string, options: CleanupOptions = {}): Prom
 	const enabledLinters = new Set(enabledNames(ctx.config.lint));
 	const enabledBuilders = new Set(enabledNames(ctx.config.build));
 	const remaining = suggestions.filter((s) => {
-		if (s.shortName === "release") return ctx.config.release !== true;
+		if (s.shortName === "release") return !isTaskEnabled(ctx.config.release);
 		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);
 		return !enabledLinters.has(s.shortName);
 	});

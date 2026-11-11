@@ -3,11 +3,17 @@ import { jest } from "@jest/globals";
 import type { Changeset } from "@changesets/types";
 import type { DetectorContext } from "@allons-y/opx";
 
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+import { useScratch } from "shared/testing.js";
+
 import {
 	parseAddArgs,
 	hasAddFlags,
 	toChangeset,
 	changesetFromFlags,
+	listReleasablePackages,
 	runAdd,
 	type AddDeps,
 	type ReleasablePackage,
@@ -18,8 +24,14 @@ const PACKAGES: ReleasablePackage[] = [
 	{ name: "@scope/b", version: "2.0.0" },
 ];
 
+/** A host that prints the way the CLI does, so console spies see plugin output. */
+const host = {
+	write: (chunk: string) => console.log(chunk.replace(/\n$/, "")),
+	logger: { info: (m: string) => console.log(m), warn: (m: string) => console.warn(m), error: (m: string) => console.error(m), debug: () => {} },
+};
+
 function ctx(): DetectorContext {
-	return { cwd: "/repo" } as unknown as DetectorContext;
+	return { cwd: "/repo", ...host } as unknown as DetectorContext;
 }
 
 describe("parseAddArgs", () => {
@@ -77,19 +89,20 @@ describe("changesetFromFlags", () => {
 });
 
 describe("runAdd", () => {
-	function deps(over: Partial<AddDeps> = {}): { deps: AddDeps; written: Changeset[] } {
+	function deps(over: Partial<AddDeps> = {}): { deps: AddDeps; written: Changeset[]; prompt: jest.Mock<AddDeps["prompt"]> } {
 		const written: Changeset[] = [];
+		const prompt = jest.fn<AddDeps["prompt"]>(async () => 0);
 		const base: AddDeps = {
 			isInteractive: () => true,
 			listPackages: async () => PACKAGES,
-			collect: async () => toChangeset([{ name: "@scope/a", type: "patch" }], "interactive"),
 			write: async (cs) => {
 				written.push(cs);
 				return "abc-123";
 			},
+			prompt,
 			...over,
 		};
-		return { deps: base, written };
+		return { deps: base, written, prompt };
 	}
 
 	let log: ReturnType<typeof jest.spyOn>;
@@ -102,76 +115,85 @@ describe("runAdd", () => {
 	afterEach(() => jest.restoreAllMocks());
 
 	it.each(["status", "version", "publish", "pre"])("points `%s` at its own subcommand instead of prompting", async (word) => {
-		const collect = jest.fn(async () => null as Changeset | null);
-		const { deps: d, written } = deps({ collect });
+		const { deps: d, written, prompt } = deps();
 
 		expect(await runAdd(ctx(), [word], d)).toBe(1);
-		expect(collect).not.toHaveBeenCalled();
+		expect(prompt).not.toHaveBeenCalled();
 		expect(written).toHaveLength(0);
-		expect(err).toHaveBeenCalledWith(expect.stringContaining(`opx release ${word}`));
-	});
-
-	it("still prompts for bare words that aren't subcommands", async () => {
-		const { deps: d, written } = deps();
-		expect(await runAdd(ctx(), ["something"], d)).toBe(0);
-		expect(written).toHaveLength(1);
+		expect(err).toHaveBeenCalledWith(expect.stringContaining("isn't an option"));
+		expect(log).toHaveBeenCalledWith(expect.stringContaining(`opx release ${word}`));
 	});
 
 	it("writes the changeset built from flags without prompting", async () => {
-		const collect = jest.fn(async () => null as Changeset | null);
-		const { deps: d, written } = deps({ collect });
+		const { deps: d, written, prompt } = deps();
 
 		const code = await runAdd(ctx(), ["--type", "minor", "--pkg", "@scope/b", "--summary", "via flags"], d);
 
 		expect(code).toBe(0);
-		expect(collect).not.toHaveBeenCalled();
+		expect(prompt).not.toHaveBeenCalled();
 		expect(written).toEqual([{ summary: "via flags", releases: [{ name: "@scope/b", type: "minor" }] }]);
 		expect(log.mock.calls.flat().join(" ")).toContain(".changeset/abc-123.md");
 	});
 
-	it("prompts when interactive and no flags are given", async () => {
-		const { deps: d, written } = deps();
+	it("hands a terminal session to changesets' own prompt, passing every argument through", async () => {
+		const { deps: d, written, prompt } = deps();
+		prompt.mockResolvedValueOnce(3);
 
-		const code = await runAdd(ctx(), [], d);
-
-		expect(code).toBe(0);
-		expect(written).toEqual([toChangeset([{ name: "@scope/a", type: "patch" }], "interactive")]);
-	});
-
-	it("returns 1 when interactive but the workspace has nothing to release", async () => {
-		const { deps: d } = deps({ listPackages: async () => [] });
-		expect(await runAdd(ctx(), [], d)).toBe(1);
-		expect(err).toHaveBeenCalledWith("opx: no publishable packages found.");
+		expect(await runAdd(ctx(), ["--open", "--since", "main"], d)).toBe(3);
+		expect(prompt).toHaveBeenCalledWith("/repo", ["--open", "--since", "main"]);
+		expect(written).toHaveLength(0);
 	});
 
 	it("returns 1 and refuses to prompt in a non-interactive shell with no flags", async () => {
-		const write = jest.fn(async () => "x");
-		const { deps: d } = deps({ isInteractive: () => false, write });
+		const { deps: d, written, prompt } = deps({ isInteractive: () => false });
 
-		const code = await runAdd(ctx(), [], d);
-
-		expect(code).toBe(1);
-		expect(write).not.toHaveBeenCalled();
-		expect(err.mock.calls.flat().join(" ")).toMatch(/interactive terminal|--type/);
-	});
-
-	it("returns 1 when the interactive flow is cancelled", async () => {
-		const { deps: d, written } = deps({ collect: async () => null });
-
-		const code = await runAdd(ctx(), [], d);
-
-		expect(code).toBe(1);
-		expect(written).toEqual([]);
+		expect(await runAdd(ctx(), [], d)).toBe(1);
+		expect(prompt).not.toHaveBeenCalled();
+		expect(written).toHaveLength(0);
+		expect(err.mock.calls.flat().join(" ")).toMatch(/without a terminal/);
+		expect(log.mock.calls.flat().join(" ")).toMatch(/--type/);
 	});
 
 	it("returns 1 with a message on invalid flags", async () => {
-		const write = jest.fn(async () => "x");
-		const { deps: d } = deps({ write });
+		const { deps: d, written } = deps();
 
 		const code = await runAdd(ctx(), ["--type", "nope", "--pkg", "@scope/a", "--summary", "x"], d);
 
 		expect(code).toBe(1);
-		expect(write).not.toHaveBeenCalled();
+		expect(written).toHaveLength(0);
 		expect(err.mock.calls.flat().join(" ")).toContain("invalid --type");
+	});
+});
+
+describe("listReleasablePackages", () => {
+	const scratch = useScratch();
+
+	/** A workspace with a public, a private, an ignored, and an unversioned package. */
+	function workspace(config: Record<string, unknown>): string {
+		const dir = scratch.dir("opx-add-");
+		writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "root", private: true, workspaces: ["packages/*"] }));
+		const pkgs = { pub: { version: "1.0.0" }, priv: { version: "1.0.0", private: true }, skipped: { version: "1.0.0" }, nover: {} };
+		for (const [name, extra] of Object.entries(pkgs)) {
+			mkdirSync(join(dir, "packages", name), { recursive: true });
+			writeFileSync(join(dir, "packages", name, "package.json"), JSON.stringify({ name, ...extra }));
+		}
+		mkdirSync(join(dir, ".changeset"));
+		writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ baseBranch: "main", ignore: ["skipped"], ...config }));
+		return dir;
+	}
+
+	it("offers what `changeset add` offers: no ignored or unversioned packages", async () => {
+		const names = (await listReleasablePackages(workspace({}))).map((pkg) => pkg.name);
+		expect(names).toEqual(["priv", "pub"]);
+	});
+
+	it("leaves out private packages when `privatePackages.version` is off", async () => {
+		const names = (await listReleasablePackages(workspace({ privatePackages: { version: false, tag: false } }))).map((pkg) => pkg.name);
+		expect(names).toEqual(["pub"]);
+	});
+
+	it("rejects an ignored package passed as a flag", async () => {
+		const available = await listReleasablePackages(workspace({}));
+		expect(() => changesetFromFlags({ empty: false, type: "patch", pkgs: ["skipped"], summary: "x" }, available)).toThrow(/unknown package\(s\): skipped/);
 	});
 });
