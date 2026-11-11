@@ -23,7 +23,8 @@ describe("PLUGIN_CATALOG", () => {
 describe("task helpers", () => {
 	it("derives the tasks a plugin provides", () => {
 		expect(tasksFor("js")).toEqual(["lint"]);
-		expect(tasksFor("somethingElse")).toEqual(["lint", "build"]);
+		expect(tasksFor("ts")).toEqual(["lint"]);
+		expect(tasksFor("somethingElse")).toEqual([]);
 	});
 
 	it("identifies static tasks and shipped plugins", () => {

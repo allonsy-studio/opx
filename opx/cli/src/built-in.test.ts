@@ -83,8 +83,18 @@ describe("virtualDetectors", () => {
 
 		const release = result.find((r) => r.shortName === "release");
 		expect(release).toBeDefined();
-		expect(release?.reason).toContain("Plugin release");
+		expect(release?.reason).toBe("Not detectable from files; enable it if you publish packages.");
 		expect(release?.installed).toBe(false);
+	});
+
+	it("suggests ts for TypeScript files and says it needs typescript", () => {
+		const result = virtualDetectors(new Set([".ts", ".js"]), {});
+		expect(result.find((r) => r.shortName === "ts")).toMatchObject({ pkg: "@allons-y/opx-lint-ts", requires: ["typescript"] });
+		expect(virtualDetectors(new Set([".js"]), {}).some((r) => r.shortName === "ts")).toBe(false);
+	});
+
+	it("matches every extension the lint-ts detector owns", () => {
+		for (const ext of [".ts", ".tsx", ".mts", ".cts"]) expect(suggest(new Set([ext]))).toEqual(["ts"]);
 	});
 
 	it("works with no deps and no matches (still lists undetectable plugins)", () => {
@@ -119,6 +129,16 @@ describe("load", () => {
 			}),
 		);
 		expect(loaded.map((d) => d.shortName)).toEqual(["release"]);
+	});
+
+	it("loads an installed plugin enabled by package id, once, even under two tasks", async () => {
+		const loaded = await load(
+			ctx({
+				hostPkg: { dependencies: { "@allons-y/opx-lint-js": "1" } },
+				config: { version: 1, lint: { "@allons-y/opx-lint-js": true }, build: { "@allons-y/opx-lint-js": true, js: true }, release: false, test: false },
+			}),
+		);
+		expect(loaded).toHaveLength(1);
 	});
 
 	it("ignores configured detectors that are not installed", async () => {

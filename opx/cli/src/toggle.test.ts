@@ -28,9 +28,43 @@ describe("toggle", () => {
 		expect(toggle(base(), "css", true, {})).toMatchObject({ error: expect.stringContaining("unknown plugin") });
 	});
 
-	it("accepts full package ids and installed short names for both tasks", () => {
-		expect(toggle(base(), "@acme/opx-plugin-x", true, {})).toMatchObject({ config: { lint: { "@acme/opx-plugin-x": true }, build: { "@acme/opx-plugin-x": true } } });
-		expect(toggle(base(), "foo", true, { devDependencies: { "opx-plugin-foo": "1" } })).toMatchObject({ config: { lint: { foo: true } } });
+	it("resolves a first-party package id to its short name and task", () => {
+		const result = toggle(base(), "@allons-y/opx-lint-ts", true, {});
+		expect(result).toMatchObject({ config: { lint: { ts: true }, build: {} }, message: 'enabled "ts" in lint.' });
+		expect(toggle(base(), "ts", true, {})).toMatchObject({ config: { lint: { ts: true } } });
+	});
+
+	it("writes a third-party id only to the tasks its detectors declare", () => {
+		const result = toggle(base(), "@acme/opx-plugin-x", true, {}, undefined, ["build"]);
+		expect(result).toMatchObject({ config: { lint: {}, build: { "@acme/opx-plugin-x": true } } });
+	});
+
+	it("refuses a third-party id whose task is unknown rather than writing to every task", () => {
+		const result = toggle(base(), "@acme/opx-plugin-x", true, {});
+		expect(result).toMatchObject({ error: expect.stringContaining("--task") });
+	});
+
+	it("errors when a loaded plugin declares no lint or build concern", () => {
+		expect(toggle(base(), "@acme/opx-plugin-x", true, {}, undefined, [])).toMatchObject({ error: expect.stringContaining("no lint or build") });
+	});
+
+	it("writes an installed short name under its package id", () => {
+		const hostPkg = { devDependencies: { "opx-plugin-foo": "1" } };
+		expect(toggle(base(), "foo", true, hostPkg, ["lint"])).toMatchObject({ config: { lint: { "opx-plugin-foo": true } } });
+	});
+
+	it("disables a third-party id wherever it is set", () => {
+		const config = { ...base(), lint: { "@acme/opx-plugin-x": true, js: true }, build: { "@acme/opx-plugin-x": true } };
+		expect(toggle(config, "@acme/opx-plugin-x", false, {})).toMatchObject({ config: { lint: { js: true }, build: {} }, message: 'disabled "@acme/opx-plugin-x" in lint, build.' });
+	});
+
+	it("clears a package-id entry left by an earlier enable when disabling by id", () => {
+		const config = { ...base(), lint: { "@allons-y/opx-lint-ts": true }, build: { "@allons-y/opx-lint-ts": true } };
+		expect(toggle(config, "@allons-y/opx-lint-ts", false, {})).toMatchObject({ config: { lint: {}, build: {} } });
+	});
+
+	it("reports disabling an unset third-party id as a no-op", () => {
+		expect(toggle(base(), "@acme/opx-plugin-x", false, {})).toMatchObject({ message: expect.stringContaining("already disabled") });
 	});
 
 	it("rejects a requested task the plugin does not provide", () => {
