@@ -1,5 +1,16 @@
 # @allons-y/opx-cli
 
+## 0.1.0-beta.3
+
+### Patch Changes
+
+- 9d3a210: The post-commit hook now suggests plugins for the files in a repository's first commit. Before, it found no files in a commit with no parent and stayed quiet.
+- 5f69b0b: `release` and `test` in `.opx/config.json` can hold settings instead of `true`; settings turn the task on. `opx init`, `opx scan`, and `opx enable` keep the settings, and the new `isTaskEnabled` export tells whether a task is on.
+- d005dcb: Scans now report a `.yarnrc.yml` file as the `yarnrc` type as well as `.yml`. Before, the extension check ran first and the `yarnrc` mapping never matched.
+- Updated dependencies [b65e160]
+- Updated dependencies [5f69b0b]
+  - @allons-y/opx@0.1.0-beta.3
+
 ## 0.1.0-beta.2
 
 ### Minor Changes

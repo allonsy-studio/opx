@@ -1,10 +1,17 @@
-import { execFileSync } from "node:child_process";
+import { jest } from "@jest/globals";
+import * as childProcess from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { useScratch } from "shared/testing.js";
 
-import { fileTypeOf, getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } from "./scanner.js";
+const { execFileSync } = childProcess;
+
+/** Runs the real git unless a test queues its own output. */
+const mockedExec = jest.fn(childProcess.execFileSync);
+jest.unstable_mockModule("node:child_process", () => ({ ...childProcess, execFileSync: mockedExec }));
+
+const { fileTypesOf, getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } = await import("./scanner.js");
 
 const scratch = useScratch();
 
@@ -15,15 +22,19 @@ function commit(dir: string, name: string, content = "x"): void {
 	execFileSync("git", ["commit", "-m", "msg"], { cwd: dir, stdio: "ignore" });
 }
 
-describe("fileTypeOf", () => {
+describe("fileTypesOf", () => {
 	it("gives declaration files their own type", () => {
-		expect(fileTypeOf("eleventy.d.ts")).toBe(".d.ts");
-		expect(fileTypeOf("index.d.mts")).toBe(".d.ts");
-		expect(fileTypeOf("index.D.CTS")).toBe(".d.ts");
-		expect(fileTypeOf("cli.ts")).toBe(".ts");
-		expect(fileTypeOf("Styles.CSS")).toBe(".css");
-		expect(fileTypeOf("Makefile")).toBe("makefile");
-		expect(fileTypeOf("README")).toBeNull();
+		expect(fileTypesOf("eleventy.d.ts")).toEqual([".d.ts"]);
+		expect(fileTypesOf("index.d.mts")).toEqual([".d.ts"]);
+		expect(fileTypesOf("index.D.CTS")).toEqual([".d.ts"]);
+		expect(fileTypesOf("cli.ts")).toEqual([".ts"]);
+	});
+
+	it("returns a known name's token beside its extension", () => {
+		expect(fileTypesOf(".yarnrc.yml")).toEqual(["yarnrc", ".yml"]);
+		expect(fileTypesOf("Makefile")).toEqual(["makefile"]);
+		expect(fileTypesOf("Styles.CSS")).toEqual([".css"]);
+		expect(fileTypesOf("README")).toEqual([]);
 	});
 });
 
@@ -39,6 +50,11 @@ describe("scanCommittedTree", () => {
 		expect(scan.fileCount).toBeGreaterThanOrEqual(3);
 	});
 
+	it("reports a known filename that has an extension under both its name and its extension", () => {
+		const scan = scanCommittedTree(scratch.repo({ ".yarnrc.yml": "x" }));
+		expect([...scan.fileTypes].sort()).toEqual([".yml", "yarnrc"]);
+	});
+
 	it("returns an empty result for a non-git directory", () => {
 		const scan = scanCommittedTree(scratch.dir("opx-nogit-"));
 		expect(scan.fileTypes.size).toBe(0);
@@ -51,8 +67,13 @@ describe("scanCommittedTree", () => {
 });
 
 describe("getCurrentBranch", () => {
-	it("returns the branch name of a committed repo", () => {
-		expect(getCurrentBranch(scratch.repo({ "a.ts": "x" }))).toBe("main");
+	it("asks git for the abbreviated ref, trims it, and falls back to HEAD when it prints nothing", () => {
+		mockedExec.mockReturnValueOnce(Buffer.from("feature\n"));
+		expect(getCurrentBranch("/repo")).toBe("feature");
+		expect(mockedExec).toHaveBeenCalledWith("git", ["rev-parse", "--abbrev-ref", "HEAD"], expect.objectContaining({ cwd: "/repo" }));
+
+		mockedExec.mockReturnValueOnce(Buffer.from(""));
+		expect(getCurrentBranch("/repo")).toBe("HEAD");
 	});
 
 	it("returns HEAD for a non-git directory", () => {
@@ -68,14 +89,21 @@ describe("listFilesInHeadCommit", () => {
 		expect(listFilesInHeadCommit(dir)).not.toContain("a.ts");
 	});
 
+	it("lists the files in a repository's first commit", () => {
+		expect(listFilesInHeadCommit(scratch.repo({ "a.ts": "x" }))).toEqual(["a.ts"]);
+	});
+
 	it("returns [] for a non-git directory", () => {
 		expect(listFilesInHeadCommit(scratch.dir("opx-nogit-"))).toEqual([]);
 	});
 });
 
 describe("getHeadCommit", () => {
-	it("returns the HEAD sha after a commit", () => {
-		expect(getHeadCommit(scratch.repo({ "a.ts": "x" }))).toMatch(/^[0-9a-f]{40}$/);
+	it("returns the commit just made, without a trailing newline", () => {
+		const dir = scratch.repo({ "a.ts": "x" });
+		commit(dir, "b.js");
+		const made = execFileSync("git", ["rev-parse", "HEAD"], { cwd: dir }).toString("utf8").trim();
+		expect(getHeadCommit(dir)).toBe(made);
 	});
 
 	it("returns undefined for a non-git directory", () => {

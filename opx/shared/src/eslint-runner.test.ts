@@ -120,6 +120,16 @@ describe("runEslint", () => {
 		expect(ignored.options.baseConfig).toEqual([{ ignores: [join(withIgnore, ".gitignore")] }]);
 	});
 
+	it("passes the repo root, caching, the fix flag, and unmatched-pattern tolerance to ESLint", async () => {
+		const on = makeSpec(0);
+		await runEslint(makeCtx(dir, { fix: true }), [], on.spec);
+		expect(on.options).toMatchObject({ cwd: dir, cache: true, fix: true, errorOnUnmatchedPattern: false });
+
+		const off = makeSpec(0);
+		await runEslint(makeCtx(dir), [], off.spec);
+		expect(off.options.fix).toBe(false);
+	});
+
 	it("writes fixes only when fix is on", async () => {
 		const off = makeSpec(0);
 		await runEslint(makeCtx(dir), [], off.spec);

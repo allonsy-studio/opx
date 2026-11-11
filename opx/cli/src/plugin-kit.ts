@@ -54,3 +54,19 @@ export function toAction(handler: CommandHandler): (args?: string[]) => Promise<
 		process.exit(await handler(ctx, args ?? []));
 	};
 }
+
+/**
+ * The npm dist-tag a prerelease publishes under, such as `beta` for `1.0.0-beta.3`.
+ *
+ * @param version - A semver version.
+ * @returns The tag, or `undefined` for a stable version.
+ */
+export function prereleaseTag(version: string | undefined): string | undefined {
+	return version?.match(/-([a-z]+)(?:\.|$)/i)?.[1]?.toLowerCase();
+}
+
+/** Pin packages to a dist-tag, since npm can't resolve a bare name that only has prereleases. */
+export function withTag(packages: string[], tag: string | undefined): string[] {
+	// A spec that already names a version or range, such as `pkg@^1.0.0`, keeps it.
+	return tag ? packages.map((pkg) => (pkg.lastIndexOf("@") > 0 ? pkg : `${pkg}@${tag}`)) : packages;
+}

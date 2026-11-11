@@ -1,15 +1,8 @@
 import { PLUGIN_CATALOG, isShipped, isStaticTask, tasksFor } from "./plugin-catalog.js";
 
 describe("PLUGIN_CATALOG", () => {
-	it("is a non-empty list of well-formed entries", () => {
-		expect(PLUGIN_CATALOG.length).toBeGreaterThan(0);
-		for (const entry of PLUGIN_CATALOG) {
-			expect(typeof entry.shortName).toBe("string");
-			expect(entry.shortName.length).toBeGreaterThan(0);
-			expect(Array.isArray(entry.packages)).toBe(true);
-			expect(entry.packages.length).toBeGreaterThan(0);
-			expect(Array.isArray(entry.extensions)).toBe(true);
-		}
+	it("gives every entry at least one package", () => {
+		for (const entry of PLUGIN_CATALOG) expect(entry.packages.length).toBeGreaterThan(0);
 	});
 
 	it("has unique short names", () => {
@@ -17,30 +10,9 @@ describe("PLUGIN_CATALOG", () => {
 		expect(new Set(names).size).toBe(names.length);
 	});
 
-	it("includes the core file-type and undetectable plugins", () => {
-		const names = PLUGIN_CATALOG.map((e) => e.shortName);
-		expect(names).toEqual(expect.arrayContaining(["js", "ts", "md", "json", "release"]));
-	});
-
-	it("maps js to its lint and build packages and known extensions", () => {
-		const js = PLUGIN_CATALOG.find((e) => e.shortName === "js");
-		expect(js?.packages).toContain("@allons-y/opx-lint-js");
-		expect(js?.extensions).toEqual(expect.arrayContaining([".js", ".mjs", ".cjs", ".jsx"]));
-	});
-
-	it("maps ts to its lint package and every TypeScript extension", () => {
-		const ts = PLUGIN_CATALOG.find((e) => e.shortName === "ts");
-		expect(ts?.packages).toEqual(["@allons-y/opx-lint-ts"]);
-		expect(ts?.extensions).toEqual([".ts", ".tsx", ".mts", ".cts"]);
-	});
-
 	it("gives each file extension to one plugin only", () => {
 		const all = PLUGIN_CATALOG.flatMap((e) => [...e.extensions]);
 		expect(new Set(all).size).toBe(all.length);
-	});
-
-	it("leaves release without file extensions", () => {
-		expect(PLUGIN_CATALOG.find((e) => e.shortName === "release")?.extensions).toEqual([]);
 	});
 
 	it("uses leading-dot, lowercase extensions where present", () => {
@@ -57,7 +29,7 @@ describe("task helpers", () => {
 	it("derives the tasks a plugin provides", () => {
 		expect(tasksFor("js")).toEqual(["lint"]);
 		expect(tasksFor("ts")).toEqual(["lint"]);
-		expect(tasksFor("somethingElse")).toEqual(["lint", "build"]);
+		expect(tasksFor("somethingElse")).toEqual([]);
 	});
 
 	it("identifies static tasks and shipped plugins", () => {

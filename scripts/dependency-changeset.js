@@ -105,6 +105,7 @@ export function updateChangeset(cwd, base, branch) {
 	return `Wrote .changeset/${slug}.md for ${packages.map(({ name }) => name).join(", ")}.`;
 }
 
+/* node:coverage ignore next 8 */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	const [base, branch] = process.argv.slice(2);
 	if (!base || !branch) {

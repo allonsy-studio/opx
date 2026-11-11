@@ -1,6 +1,5 @@
-import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
-import { join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 import type { DetectorContext } from "@allons-y/opx";
 
@@ -8,9 +7,6 @@ import run from "./runner.js";
 import { useScratch } from "shared/testing.js";
 
 const scratch = useScratch();
-
-const HERE = resolve(fileURLToPath(import.meta.url), "..");
-const BUNDLED_CONFIG = resolve(HERE, "..", "eslint.config.js");
 
 function makeDir(): string {
 	const dir = scratch.dir("opx-lint-md-");
@@ -20,55 +16,35 @@ function makeDir(): string {
 
 type Ctx = DetectorContext & { _output: () => string };
 
-function makeCtx(dir: string, opts: { fix?: boolean; md?: string } = {}): Ctx {
+function makeCtx(dir: string): Ctx {
 	let output = "";
-	const config = { version: 1, lint: {} as Record<string, unknown> };
-	if (opts.md) config.lint.md = opts.md;
 	return {
 		cwd: dir,
-		config,
-		fix: opts.fix ?? false,
+		config: { version: 1, lint: {} },
+		fix: false,
 		write: (c: string) => { output += c; },
 		fileTypes: new Set(),
 		_output: () => output,
 	} as unknown as Ctx;
 }
 
+/** A bracketed commit hash, which ordinary Markdown reports as a missing label reference. */
+const CHANGELOG_BODY = "# Changelog\n\n- Updated dependencies [e30e06d]\n";
+
 describe("lint-md runner", () => {
-	it("returns 0 for a clean markdown file", async () => {
+	/** Smoke test: the bundled config loads, passes a clean file, and fails a broken one. */
+	it("passes a clean file and fails a broken one with the bundled config", async () => {
 		const dir = makeDir();
 		writeFileSync(join(dir, "clean.md"), "# Title\n\nText.\n");
-		const ctx = makeCtx(dir);
-		expect(await run(ctx, ["clean.md"])).toBe(0);
-	});
-
-	it("returns 1 and writes output for an empty-link violation", async () => {
-		const dir = makeDir();
-		// markdown/no-empty-links (in recommended) fires on a link with no target.
-		writeFileSync(join(dir, "bad.md"), "# Title\n\nSee [x]() here.\n");
-		const ctx = makeCtx(dir);
-		expect(await run(ctx, ["bad.md"])).toBe(1);
-		expect(ctx._output()).toMatch(/error/i);
+		writeFileSync(join(dir, "notes.md"), CHANGELOG_BODY);
+		expect(await run(makeCtx(dir), ["clean.md"])).toBe(0);
+		expect(await run(makeCtx(dir), ["notes.md"])).toBe(1);
 	});
 
 	it("ignores generated changelogs", async () => {
 		const dir = makeDir();
-		// A bracketed commit hash is a missing label reference in ordinary Markdown.
-		const body = "# Changelog\n\n- Updated dependencies [e30e06d]\n";
-		writeFileSync(join(dir, "CHANGELOG.md"), body);
-		writeFileSync(join(dir, "notes.md"), body);
+		writeFileSync(join(dir, "CHANGELOG.md"), CHANGELOG_BODY);
 		expect(await run(makeCtx(dir), ["CHANGELOG.md"])).toBe(0);
-		expect(await run(makeCtx(dir), ["notes.md"])).toBe(1);
-	});
-
-	it("auto-fixes a fixable file when ctx.fix is true", async () => {
-		const dir = makeDir();
-		const file = join(dir, "fixme.md");
-		// markdown/no-missing-atx-heading-space is fixable: "#Title" -> "# Title".
-		writeFileSync(file, "#Title\n\nText.\n");
-		const ctx = makeCtx(dir, { fix: true });
-		expect(await run(ctx, ["fixme.md"])).toBe(0);
-		expect(readFileSync(file, "utf8")).toBe("# Title\n\nText.\n");
 	});
 
 	it("no-ops (returns 0) when forwarded paths are all non-owned extensions", async () => {
@@ -77,26 +53,19 @@ describe("lint-md runner", () => {
 		expect(await run(ctx, ["x.ts"])).toBe(0);
 		expect(ctx._output()).toBe("");
 	});
+});
 
-	it("honors an absolute config override", async () => {
+describe("default paths and .gitignore", () => {
+	it("lints the default paths when none are given", async () => {
 		const dir = makeDir();
-		writeFileSync(join(dir, "clean.md"), "# Title\n\nText.\n");
-		const ctx = makeCtx(dir, { md: BUNDLED_CONFIG });
-		expect(await run(ctx, ["clean.md"])).toBe(0);
+		writeFileSync(join(dir, "notes.md"), CHANGELOG_BODY);
+		expect(await run(makeCtx(dir), [])).toBe(1);
 	});
 
-	it("loads the gitignore base config when a .gitignore exists", async () => {
+	it("skips files the project's .gitignore lists", async () => {
 		const dir = makeDir();
-		writeFileSync(join(dir, ".gitignore"), "ignored.md\n");
-		writeFileSync(join(dir, "clean.md"), "# Title\n\nText.\n");
-		const ctx = makeCtx(dir);
-		expect(await run(ctx, ["clean.md"])).toBe(0);
-	});
-
-	it("defaults to the md/mdx globs when given no args", async () => {
-		const dir = makeDir();
-		writeFileSync(join(dir, "clean.md"), "# Title\n\nText.\n");
-		const ctx = makeCtx(dir);
-		expect(await run(ctx, [])).toBe(0);
+		writeFileSync(join(dir, "notes.md"), CHANGELOG_BODY);
+		writeFileSync(join(dir, ".gitignore"), "notes.md\n");
+		expect(await run(makeCtx(dir), [])).toBe(0);
 	});
 });

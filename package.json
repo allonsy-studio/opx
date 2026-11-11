@@ -22,8 +22,9 @@
 		"build": "yarn workspaces foreach --all --parallel --interlaced --topological-dev --no-private run build",
 		"ci": "run-s clean build typecheck",
 		"test": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run test",
-		"test:scripts": "node --test scripts/*.test.js",
-		"coverage": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run coverage",
+		"test:root": "node --test '!(opx|node_modules)/**/*.test.js'",
+		"coverage": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run coverage && yarn coverage:root && node scripts/coverage-report.js --check",
+		"coverage:root": "node --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage.lcov '!(opx|node_modules)/**/*.test.js'",
 		"lint": "yarn build && opx lint",
 		"format": "yarn build && opx lint --fix",
 		"smoke": "yarn build && node scripts/smoke.js",
@@ -42,8 +43,8 @@
 		"g:clean": "cd $INIT_CWD && rm -rf bin dist coverage .opx/cache",
 		"precommit": "lint-staged --config configs/lint-staged.config.js",
 		"prepare": "husky && envoy || true",
-		"changeset": "opx release",
-		"version-packages": "opx release version && yarn install --mode update-lockfile",
+		"changeset": "opx release add",
+		"version": "opx release version && yarn install --mode update-lockfile",
 		"release": "run-s clean build && opx release publish"
 	},
 	"devDependencies": {

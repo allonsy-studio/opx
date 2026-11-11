@@ -7,6 +7,7 @@ import {
 	defaultConfig,
 	defaultState,
 	enabledNames,
+	isTaskEnabled,
 	readConfig,
 	readState,
 	statePath,
@@ -55,13 +56,21 @@ describe("config read/write", () => {
 		rmSync(dir, { recursive: true });
 	});
 
-	it("merges parsed config over defaults", () => {
+	it("keeps a custom $schema and writes the default one when none is given", () => {
 		const dir = tmp();
-		mkdirSync(join(dir, ".opx"), { recursive: true });
-		writeFileSync(configPath(dir), JSON.stringify({ version: 1, build: { ts: true } }), "utf8");
-		const read = readConfig(dir);
-		expect(read.build).toEqual({ ts: true });
-		expect(read.lint).toEqual({});
+		writeConfig(dir, { $schema: "./schema.json", version: 1 });
+		expect(JSON.parse(readFileSync(configPath(dir), "utf8")).$schema).toBe("./schema.json");
+
+		writeConfig(dir, { version: 1 });
+		expect(JSON.parse(readFileSync(configPath(dir), "utf8")).$schema).toBe(defaultConfig().$schema);
+		rmSync(dir, { recursive: true });
+	});
+
+	it("leaves out release and test when they are undefined", () => {
+		const dir = tmp();
+		writeConfig(dir, { version: 1, build: { ts: true } });
+		const raw = JSON.parse(readFileSync(configPath(dir), "utf8"));
+		expect(raw).toEqual({ $schema: defaultConfig().$schema, version: 1, build: { ts: true } });
 		rmSync(dir, { recursive: true });
 	});
 });
@@ -99,6 +108,30 @@ describe("corrupt files", () => {
 		writeFileSync(configPath(dir), "[]");
 		expect(() => readConfig(dir)).toThrow("expected a JSON object");
 		rmSync(dir, { recursive: true });
+	});
+});
+
+describe("isTaskEnabled", () => {
+	it.each([
+		[true, true],
+		[{ githubReleases: false }, true],
+		[{}, true],
+		[false, false],
+		[undefined, false],
+		[[], false],
+		["path.json", false],
+	])("treats %j as %s", (setting, expected) => {
+		expect(isTaskEnabled(setting)).toBe(expected);
+	});
+
+	it("keeps release settings through a write and read", () => {
+		const dir = tmp();
+		try {
+			writeConfig(dir, { ...defaultConfig(), release: { githubReleases: false } });
+			expect(readConfig(dir).release).toEqual({ githubReleases: false });
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
 	});
 });
 

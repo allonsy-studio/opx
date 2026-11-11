@@ -19,6 +19,10 @@ export type PluginCatalogEntry = {
 	 * alone (e.g. `release`, `test`).
 	 */
 	readonly extensions: readonly string[];
+	/** Packages the host must install itself, such as a plugin's peer dependencies. */
+	readonly requires?: readonly string[];
+	/** Why the plugin is suggested when no file implies it. */
+	readonly reason?: string;
 };
 
 /**
@@ -35,6 +39,7 @@ export const PLUGIN_CATALOG = [
 		shortName: "ts",
 		packages: ["@allons-y/opx-lint-ts"],
 		extensions: [".ts", ".tsx", ".mts", ".cts"],
+		requires: ["typescript"],
 	},
 	{
 		shortName: "md",
@@ -50,6 +55,7 @@ export const PLUGIN_CATALOG = [
 		shortName: "release",
 		packages: ["@allons-y/opx-release"],
 		extensions: [],
+		reason: "Not detectable from files; enable it if you publish packages.",
 	},
 ] as const satisfies readonly PluginCatalogEntry[];
 
@@ -71,13 +77,23 @@ export function isShipped(name: string): boolean {
 	return PLUGIN_CATALOG.some((entry) => entry.shortName === name);
 }
 
+/** The catalog entry whose packages include `pkg`, if any. */
+export function catalogEntryForPackage(pkg: string): PluginCatalogEntry | undefined {
+	return PLUGIN_CATALOG.find((entry) => (entry.packages as readonly string[]).includes(pkg));
+}
+
+/** Whether a config key is a full package id rather than a short name. */
+export function isPackageId(name: string): boolean {
+	return name.startsWith("@") || name.startsWith("opx-plugin-");
+}
+
 /**
  * Dynamic tasks a catalog plugin provides, derived from its package names
- * (`opx-lint-*` → lint, `opx-build-*` → build). Unknown names get both.
+ * (`opx-lint-*` → lint, `opx-build-*` → build). Unknown names get none.
  */
 export function tasksFor(name: string): TaskKind[] {
 	const entry = PLUGIN_CATALOG.find((e) => e.shortName === name);
-	if (!entry) return ["lint", "build"];
+	if (!entry) return [];
 	const tasks: TaskKind[] = [];
 	if (entry.packages.some((pkg) => pkg.includes("/opx-lint-"))) tasks.push("lint");
 	if (entry.packages.some((pkg) => pkg.includes("/opx-build-"))) tasks.push("build");

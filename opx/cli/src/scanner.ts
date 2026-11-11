@@ -4,11 +4,10 @@ import { extname, basename } from "node:path";
 /**
  * @todo use a more robust scanner that can handle symlinks and other edge cases.
  *
- * Map of well-known extensionless filenames to a synthetic "type" token.
- * Lets detectors match Dockerfiles, Makefiles, etc. without inventing fake
- * extensions.
+ * Map of well-known filenames to a synthetic "type" token, so detectors can
+ * match Dockerfiles, Makefiles, `.yarnrc.yml`, etc. by name.
  */
-const EXTENSIONLESS_TYPES: Record<string, string> = {
+const NAMED_TYPES: Record<string, string> = {
 	Dockerfile: "dockerfile",
 	"dockerfile": "dockerfile",
 	Makefile: "makefile",
@@ -25,20 +24,24 @@ const EXTENSIONLESS_TYPES: Record<string, string> = {
 const DECLARATION_FILE = /\.d\.[mc]?ts$/i;
 
 /**
- * The file type token for a file name: its lowercase extension, `.d.ts` for
- * declaration files, or a known extensionless name such as `dockerfile`.
- *
- * Declaration files get their own token, so a JavaScript package that ships
+ * The file type tokens for a file name: a known name's token, such as
+ * `dockerfile` or `yarnrc`, and the lowercase extension. Declaration files
+ * get `.d.ts` instead of `.ts`, so a JavaScript package that ships
  * hand-written types is not mistaken for a TypeScript project.
  *
  * @param name - A file's base name.
- * @returns The token, or null when the file has none.
+ * @returns The tokens, possibly none.
  */
-export function fileTypeOf(name: string): string | null {
-	if (DECLARATION_FILE.test(name)) return ".d.ts";
-	const ext = extname(name);
-	if (ext) return ext.toLowerCase();
-	return EXTENSIONLESS_TYPES[name] ?? null;
+export function fileTypesOf(name: string): string[] {
+	const types: string[] = [];
+	const named = NAMED_TYPES[name];
+	if (named) types.push(named);
+	if (DECLARATION_FILE.test(name)) types.push(".d.ts");
+	else {
+		const ext = extname(name);
+		if (ext) types.push(ext.toLowerCase());
+	}
+	return types;
 }
 
 export type ScanResult = {
@@ -69,8 +72,7 @@ export function scanCommittedTree(cwd: string): ScanResult {
 
 	const files = text.split("\0").filter((p) => p.length > 0);
 	for (const file of files) {
-		const type = fileTypeOf(basename(file));
-		if (type) fileTypes.add(type);
+		for (const type of fileTypesOf(basename(file))) fileTypes.add(type);
 	}
 
 	return { fileTypes, fileCount: files.length };
@@ -84,7 +86,7 @@ export function listFilesInHeadCommit(cwd: string): string[] {
 	try {
 		const stdout = execFileSync(
 			"git",
-			["diff-tree", "--no-commit-id", "--name-only", "-r", "-z", "HEAD"],
+			["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-z", "HEAD"],
 			{ cwd, stdio: ["ignore", "pipe", "ignore"] },
 		);
 		return stdout.toString("utf8").split("\0").filter((p) => p.length > 0);

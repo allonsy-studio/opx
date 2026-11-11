@@ -56,29 +56,18 @@ describe("runReleaseCommand", () => {
 		expect(log.mock.calls.flat().join(" ")).toContain("no releaser is detected");
 	});
 
-	it("forwards the subcommand + args verbatim to the releaser", async () => {
+	it("forwards the subcommand + args verbatim, empty included, to the releaser", async () => {
 		const seen: string[][] = [];
 		load.mockResolvedValue([
 			detector({ run: async (_c, args) => { seen.push(args); return 0; } }),
 		]);
 
 		const code = await runReleaseCommand(ctx(), ["add", "--empty"]);
-
-		expect(code).toBe(0);
-		// The command layer does not inject a default subcommand — that is the
-		// releaser's job (changesets defaults to `status`).
-		expect(seen).toEqual([["add", "--empty"]]);
-	});
-
-	it("passes empty args through without a default subcommand", async () => {
-		const seen: string[][] = [];
-		load.mockResolvedValue([
-			detector({ run: async (_c, args) => { seen.push(args); return 0; } }),
-		]);
-
 		await runReleaseCommand(ctx(), []);
 
-		expect(seen).toEqual([[]]);
+		expect(code).toBe(0);
+		// No default subcommand is injected; that is the releaser's job.
+		expect(seen).toEqual([["add", "--empty"], []]);
 	});
 
 	it("treats a releaser without a run function as passing", async () => {

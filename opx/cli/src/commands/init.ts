@@ -3,8 +3,8 @@ import { join } from "node:path";
 
 import * as p from "@clack/prompts";
 import type { Command } from "commander";
-import type { Detector, DetectorContext, Logger } from "@allons-y/opx";
-import { CLI_NAME } from "../plugin-kit.js";
+import type { Detector, DetectorContext, Logger, PackageJson } from "@allons-y/opx";
+import { CLI_NAME, prereleaseTag, withTag } from "../plugin-kit.js";
 
 import {
 	configPath,
@@ -24,11 +24,13 @@ import {
 
 import { applyCleanup, describePlan, planCleanup } from "../cleanup.js";
 import { buildContext, readHostPackage } from "../context.js";
-import { load as loadDetectors, virtualDetectors } from "../built-in.js";
+import { load as loadDetectors, virtualDetectors, type Suggestion } from "../built-in.js";
+import { colors } from "../colors.js";
+import { PLUGIN_CATALOG } from "../plugin-catalog.js";
 import { eslintConfigHint, scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { LINT_JS, LINT_JS_UPGRADE, lintJsLintsTypeScript } from "../lint-js-version.js";
 import { conventionSetting } from "../toggle.js";
-import { defaultSkipUntilDate } from "@allons-y/opx";
+import { defaultSkipUntilDate, isTaskEnabled } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
 
 export type InitOptions = {
@@ -36,6 +38,9 @@ export type InitOptions = {
 	quiet: boolean;
 	/** Opt in to the plugins' cleanup suggestions and the offer to delete empty files. */
 	cleanup?: boolean;
+	/** Accept suggestions without prompting: every file-based one, or a comma-separated list of short names. */
+	yes?: boolean;
+	accept?: string;
 };
 
 /** Loads the detectors of the enabled plugins; injectable so tests don't import real plugins. */
@@ -47,6 +52,8 @@ export type CleanupOptions = {
 	cleanup?: boolean;
 	/** Loads the enabled plugins' detectors; defaults to the built-in loader. */
 	detectors?: DetectorLoader;
+	/** npm dist-tag to install plugins from, set when this CLI is a prerelease. */
+	tag?: string;
 };
 
 export default function register(program: Command): void {
@@ -56,9 +63,21 @@ export default function register(program: Command): void {
 		.option("--auto", "auto-mode (used by postinstall); only proceeds in TTY", false)
 		.option("--quiet", "suppress informational output when --auto exits early", false)
 		.option("--cleanup", "show what your plugins make unnecessary, and offer to delete empty files git can restore")
+		.option("--yes", "accept every suggestion that matches your files, without prompting")
+		.option("--accept <names>", "accept these plugins without prompting (comma-separated short names, such as js,md,release)")
 		.action(async (opts: InitOptions) => {
 			const cwd = process.cwd();
 			const mode = detectMode(false);
+
+			const tag = prereleaseTag(program.version());
+			if (!opts.auto && (opts.yes || opts.accept)) {
+				process.exitCode = await runAccept(cwd, runInstall, {
+					tag,
+					accept: opts.accept ? opts.accept.split(",").map((n) => n.trim()).filter(Boolean) : "files",
+					cleanup: opts.cleanup,
+				});
+				return;
+			}
 
 			if (opts.auto && mode !== "interactive") {
 				if (!opts.quiet) {
@@ -68,7 +87,7 @@ export default function register(program: Command): void {
 			}
 
 			if (mode === "interactive") {
-				await runInteractive(cwd, runInstall, { cleanup: opts.cleanup && !opts.auto });
+				await runInteractive(cwd, runInstall, { cleanup: opts.cleanup && !opts.auto, tag });
 			} else {
 				await runReport(cwd, { cleanup: opts.cleanup });
 			}
@@ -83,6 +102,55 @@ export const runInstall: InstallRunner = async (cmd, cwd) => {
 	const [bin, ...args] = cmd.split(" ");
 	if (bin) execFileSync(bin, args, { cwd, stdio: "inherit" });
 };
+
+/** Whether a suggestion is already covered by the config. */
+function isPending(s: Suggestion, config: OpxConfig): boolean {
+	if (s.shortName === "release") return !isTaskEnabled(config.release);
+	if (s.pkg.includes("opx-build-")) return !enabledNames(config.build).includes(s.shortName);
+	return !enabledNames(config.lint).includes(s.shortName);
+}
+
+/**
+ * Pair lint-ts with a JavaScript-only lint-js. lint-js 0.x also lints
+ * TypeScript, and npm's `latest` tag still points at it.
+ *
+ * @param cwd - The repository root.
+ * @param hostPkg - The host's `package.json`.
+ * @param accepted - The plugins being enabled.
+ * @param nextConfig - The config after enabling them.
+ * @param candidates - Install specs, updated in place.
+ * @returns Whether an installed 0.x release is being upgraded.
+ */
+function pairLintJs(cwd: string, hostPkg: PackageJson, accepted: Suggestion[], nextConfig: OpxConfig, candidates: string[]): boolean {
+	if (!accepted.some((s) => s.shortName === "ts") || !enabledNames(nextConfig.lint).includes("js")) return false;
+	const fresh = candidates.indexOf(LINT_JS);
+	if (fresh >= 0) {
+		candidates[fresh] = LINT_JS_UPGRADE;
+		return false;
+	}
+	if (!lintJsLintsTypeScript(cwd, hostPkg)) return false;
+	candidates.push(LINT_JS_UPGRADE);
+	return true;
+}
+
+/** The config with the accepted suggestions switched on; everything else is kept. */
+function applyAccepted(config: OpxConfig, accepted: Suggestion[]): OpxConfig {
+	const names = (marker: string): string[] => accepted.filter((s) => s.pkg.includes(marker)).map((s) => s.shortName);
+	return {
+		...config,
+		lint: {
+			...(config.lint ?? {}),
+			...Object.fromEntries(names("opx-lint-").map((shortName) => [shortName, conventionSetting(config.lint, shortName)])),
+		},
+		build: {
+			...(config.build ?? {}),
+			...Object.fromEntries(names("opx-build-").map((shortName) => [shortName, conventionSetting(config.build, shortName)])),
+		},
+		// Keep release settings; `true` only turns it on.
+		release: isTaskEnabled(config.release) ? config.release : accepted.some((s) => s.shortName === "release"),
+		test: config.test === true,
+	} as OpxConfig;
+}
 
 /**
  * Interactively choose and wire up tooling for the repository.
@@ -110,15 +178,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	// Suggested tooling that is indicated by files present in the committed tree.
 	const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
 
-	const enabledLinters = new Set(enabledNames(config.lint));
-	const enabledBuilders = new Set(enabledNames(config.build));
-
-	// A suggestion is already covered if its concern is enabled for that short name.
-	const remaining = suggestions.filter((s) => {
-		if (s.shortName === "release") return config.release !== true;
-		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);
-		return !enabledLinters.has(s.shortName);
-	});
+	const remaining = suggestions.filter((s) => isPending(s, config));
 
 	if (remaining.length === 0) {
 		p.log.success("No new tooling to suggest — your committed tree is fully covered.");
@@ -130,7 +190,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 
 	for (const suggestion of remaining) {
 		const choice = await p.select({
-			message: `Enable ${suggestion.shortName} (${suggestion.pkg})? — ${suggestion.reason}`,
+			message: `Enable ${suggestion.shortName} (${suggestion.pkg})? — ${suggestion.reason}${suggestion.requires.length > 0 ? ` Requires ${suggestion.requires.join(", ")}.` : ""}`,
 			options: [
 				{ value: "yes", label: "Yes — enable now" },
 				{ value: "no", label: "No — never (decline)" },
@@ -144,6 +204,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		if (choice === "yes") {
 			accepted.push(suggestion);
 			if (!suggestion.installed) installCandidates.push(suggestion.pkg);
+			installCandidates.push(...suggestion.requires.filter((dep) => !hasDependency(ctx.hostPkg, dep) && !installCandidates.includes(dep)));
 			// if (suggestion.shortName === "json") {
 			// 	const dialects = await p.multiselect({
 			// 		message: "Also lint JSON variants? (.json is always included)",
@@ -163,22 +224,8 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		}
 	}
 
+	const nextConfig = applyAccepted(config, accepted);
 	const acceptedLint = accepted.filter((s) => s.pkg.includes("opx-lint-")).map((s) => s.shortName);
-	const acceptedBuild = accepted.filter((s) => s.pkg.includes("opx-build-")).map((s) => s.shortName);
-
-	const nextConfig = {
-		...config,
-		lint: {
-			...(config.lint ?? {}),
-			...Object.fromEntries(acceptedLint.map((shortName) => [shortName, conventionSetting(config.lint, shortName)])),
-		},
-		build: {
-			...(config.build ?? {}),
-			...Object.fromEntries(acceptedBuild.map((shortName) => [shortName, true])),
-		},
-		release: config.release === true || accepted.some((s) => s.shortName === "release"),
-		test: config.test === true,
-	} as OpxConfig;
 	writeConfig(cwd, nextConfig);
 
 	let nextState = state;
@@ -198,20 +245,13 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		writeState(cwd, defaultState());
 	}
 
-	// lint-js 0.x also lints TypeScript, and npm's `latest` tag still points at
-	// it, so pair lint-ts with a JavaScript-only lint-js.
-	if (acceptedLint.includes("ts") && enabledNames(nextConfig.lint).includes("js")) {
-		const fresh = installCandidates.indexOf(LINT_JS);
-		if (fresh >= 0) installCandidates[fresh] = LINT_JS_UPGRADE;
-		else if (lintJsLintsTypeScript(cwd, ctx.hostPkg)) {
-			installCandidates.push(LINT_JS_UPGRADE);
-			p.log.info(`Your ${LINT_JS} is a 0.x release, which also lints TypeScript. Upgrading it so lint-ts alone lints .ts files.`);
-		}
+	if (pairLintJs(cwd, ctx.hostPkg, accepted, nextConfig, installCandidates)) {
+		p.log.info(`Your ${LINT_JS} is a 0.x release, which also lints TypeScript. Upgrading it so lint-ts alone lints .ts files.`);
 	}
 
 	if (installCandidates.length > 0) {
 		const pm = inspectPackageManager(cwd, ctx.hostPkg);
-		const cmd = installCommand(pm.name, installCandidates, pm);
+		const cmd = installCommand(pm.name, withTag(installCandidates, options.tag), pm);
 		if (!pm.certain) {
 			p.log.warn(`Not sure which package manager to use (${pm.reason}). Run the one you use:\n  ${cmd}`);
 		} else {
@@ -274,6 +314,11 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	p.outro("Setup complete.");
 }
 
+/** Whether the host lists `dep` in its dependencies or devDependencies. */
+function hasDependency(pkg: PackageJson, dep: string): boolean {
+	return dep in (pkg.dependencies ?? {}) || dep in (pkg.devDependencies ?? {});
+}
+
 /** Drops every message, so loading plugins for cleanup never warns about ones that are not installed. */
 const SILENT: Logger = { info() {}, warn() {}, error() {}, debug() {} };
 
@@ -315,19 +360,14 @@ export async function runReport(cwd: string, options: CleanupOptions = {}): Prom
 	const hostPkg = readHostPackage(cwd);
 	const ctx = buildContext({ cwd });
 	const suggestions = virtualDetectors(ctx.fileTypes, hostPkg);
-	const enabledLinters = new Set(enabledNames(ctx.config.lint));
-	const enabledBuilders = new Set(enabledNames(ctx.config.build));
-	const remaining = suggestions.filter((s) => {
-		if (s.shortName === "release") return ctx.config.release !== true;
-		if (s.pkg.includes("opx-build-")) return !enabledBuilders.has(s.shortName);
-		return !enabledLinters.has(s.shortName);
-	});
+	const remaining = suggestions.filter((s) => isPending(s, ctx.config));
 	if (remaining.length === 0) {
 		console.log(`${CLI_NAME}: nothing new to suggest.`);
 	} else {
-		console.log(`${CLI_NAME}: detected file types that match these built-in detectors:`);
+		console.log(`${CLI_NAME}: detected file types that match these built-in detectors (\`${CLI_NAME} init --yes\` sets them all up):`);
 		for (const s of remaining) {
-			console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
+			const install = [s.pkg, ...s.requires.filter((dep) => !hasDependency(hostPkg, dep))].join(" ");
+			console.log(`  - ${s.shortName}: install ${install}, then run \`${CLI_NAME} enable ${s.shortName}\``);
 		}
 	}
 
@@ -338,4 +378,113 @@ export async function runReport(cwd: string, options: CleanupOptions = {}): Prom
 		console.log(`${CLI_NAME}: cleanup suggestions from your plugins (run \`${CLI_NAME} init --cleanup\` in a terminal to delete empty files):`);
 		for (const line of lines) console.log(line);
 	}
+}
+
+/** What {@link runAccept} should enable. */
+export type AcceptOptions = CleanupOptions & {
+	/** `"files"` accepts every suggestion that matches the committed files; a list names plugins, including ones files can't imply, like `release`. */
+	accept: "files" | string[];
+};
+
+/**
+ * Non-interactive setup: accepts suggestions without prompting and does everything
+ * the interactive flow does. Cleanup suggestions are printed, never applied.
+ *
+ * @param cwd - The repository root.
+ * @param install - Runs the package manager; defaults to spawning it.
+ * @param options - What to accept, plus cleanup settings; see {@link AcceptOptions}.
+ * @returns `1` if a name is unknown or the install fails, otherwise `0`.
+ */
+export async function runAccept(cwd: string, install: InstallRunner = runInstall, options: AcceptOptions): Promise<number> {
+	const ok = (msg: string, detail = ""): void => console.log(`  ${colors.green("✔")} ${msg}${detail ? ` ${colors.dim(detail)}` : ""}`);
+	const skip = (msg: string): void => console.log(`  ${colors.dim(`– ${msg}`)}`);
+	const hint = (msg: string): void => console.log(`    ${colors.dim(msg)}`);
+
+	if (!existsSync(configPath(cwd))) writeConfig(cwd, defaultConfig());
+	const ctx = buildContext({ cwd });
+	const config = readConfig(cwd);
+
+	const everything = virtualDetectors(new Set(PLUGIN_CATALOG.flatMap((e) => e.extensions)), ctx.hostPkg);
+	const matched = virtualDetectors(ctx.fileTypes, ctx.hostPkg).filter((s) => s.shortName !== "release");
+	let chosen: Suggestion[];
+	if (options.accept === "files") {
+		chosen = matched;
+	} else {
+		const unknown = options.accept.filter((n) => !everything.some((s) => s.shortName === n));
+		if (unknown.length > 0) {
+			console.error(`${colors.red("✖")} Unknown plugin${unknown.length > 1 ? "s" : ""}: ${unknown.join(", ")}`);
+			console.error(`  ${colors.dim(`Use any of: ${[...new Set(everything.map((s) => s.shortName))].join(", ")}`)}`);
+			return 1;
+		}
+		chosen = everything.filter((s) => (options.accept as string[]).includes(s.shortName));
+	}
+
+	const accepted = chosen.filter((s) => isPending(s, config));
+	for (const s of chosen) if (!accepted.includes(s)) skip(`${s.shortName} already enabled`);
+	if (accepted.length === 0 && chosen.length === 0) skip("No plugins match the committed files");
+
+	const nextConfig = applyAccepted(config, accepted);
+	writeConfig(cwd, nextConfig);
+	writeState(cwd, readState(cwd));
+	for (const s of accepted) ok(`Enabled ${s.shortName}`, s.pkg);
+
+	const missing = accepted.filter((s) => !s.installed).map((s) => s.pkg);
+	if (pairLintJs(cwd, ctx.hostPkg, accepted, nextConfig, missing)) {
+		hint(`Upgrading ${LINT_JS} too: its 0.x releases also lint TypeScript`);
+	}
+	if (missing.length > 0) {
+		const pm = inspectPackageManager(cwd, ctx.hostPkg);
+		const cmd = installCommand(pm.name, withTag(missing, options.tag), pm);
+		if (!pm.certain) {
+			console.log(`  ${colors.yellow("▲")} Not sure which package manager to use ${colors.dim(`(${pm.reason})`)}`);
+			hint(`Run the one you use: ${cmd}`);
+		} else {
+			console.log(`  ${colors.cyan("●")} Installing ${missing.join(", ")}`);
+			try {
+				await install(cmd, cwd);
+				ok("Installed packages", cmd);
+			} catch {
+				console.error(`  ${colors.red("✖")} Install failed`);
+				console.error(`    ${colors.dim(`Run it yourself, then \`${CLI_NAME} lint\`: ${cmd}`)}`);
+				return 1;
+			}
+		}
+	}
+
+	if (scaffoldEslintConfig(cwd, Object.keys(nextConfig.lint ?? {}))) ok("Wrote eslint.config.js");
+	else {
+		const advice = eslintConfigHint(cwd, accepted.filter((s) => s.pkg.includes("opx-lint-")).map((s) => s.shortName));
+		if (advice) {
+			const [first, ...rest] = advice.split("\n");
+			console.log(`  ${colors.yellow("▲")} ${first}`);
+			for (const line of rest) hint(line);
+		}
+	}
+
+	const hostPath = join(cwd, "package.json");
+	if (accepted.length > 0 && existsSync(hostPath)) {
+		const pkg = JSON.parse(readFileSync(hostPath, "utf8")) as { scripts?: Record<string, string> };
+		pkg.scripts ??= {};
+		if (!pkg.scripts.lint) {
+			pkg.scripts.lint = `${CLI_NAME} lint`;
+			writeFileSync(hostPath, `${JSON.stringify(pkg, null, 2)}\n`, "utf8");
+			ok("Added a lint script", `"lint": "${CLI_NAME} lint"`);
+		}
+	}
+
+	const hookResult = installPostCommitHook(cwd);
+	if (hookResult.created) ok("Installed git hook", hookResult.path);
+	if (ensureOpxIgnored(cwd)) ok("Updated .gitignore", `ignores local .${CLI_NAME}/ files`);
+
+	if (options.cleanup) {
+		const quiet = buildContext({ cwd, logger: SILENT });
+		const lines = describePlan(planCleanup(quiet, await (options.detectors ?? loadDetectors)(quiet)));
+		if (lines.length > 0) {
+			console.log(`  ${colors.yellow("▲")} Your plugins suggest cleanup ${colors.dim("(nothing is deleted without a terminal)")}`);
+			for (const line of lines) console.log(line);
+		}
+	}
+
+	console.log(`\n  ${colors.dim(`Next: \`${CLI_NAME} lint\``)}`);
+	return 0;
 }

@@ -1,11 +1,11 @@
 import type { Command } from "commander";
 
-import { enabledNames, type DetectorContext } from "@allons-y/opx";
+import { enabledNames, inspectPackageManager, installCommand, isTaskEnabled, type DetectorContext } from "@allons-y/opx";
 
 import { buildContext } from "../context.js";
 import { UNDETECTABLE_PLUGINS, virtualDetectors } from "../built-in.js";
 import { detectMode } from "../tty.js";
-import { CLI_NAME } from "../plugin-kit.js";
+import { CLI_NAME, prereleaseTag, withTag } from "../plugin-kit.js";
 
 export type ScanOptions = {
 	report: boolean;
@@ -22,24 +22,30 @@ export type ScanOptions = {
  *
  * @param ctx - The detector context for the host repo.
  * @param opts - The command's flags.
+ * @param tag - npm dist-tag the install command pins to, set when this CLI is a prerelease.
  * @returns `1` when `--strict` is set and a file-based plugin isn't enabled, otherwise `0`.
  */
-export function runScan(ctx: DetectorContext, opts: ScanOptions): number {
+export function runScan(ctx: DetectorContext, opts: ScanOptions, tag?: string): number {
 	const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
 
-	const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(ctx.config.release === true ? ["release"] : [])]);
+	const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(isTaskEnabled(ctx.config.release) ? ["release"] : [])]);
 	// Plugins like release can't be inferred from files, so they never count as missing.
 	const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName) && !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName));
 
 	const mode = detectMode(opts.report || opts.json);
 
 	if (opts.json) {
+		const missing = needsPrompt.filter((s) => !s.installed).map((s) => s.pkg);
+		const pm = inspectPackageManager(ctx.cwd, ctx.hostPkg);
 		const payload = {
 			branch: ctx.branch,
 			fileTypes: [...ctx.fileTypes].sort(),
 			enabled: [...enabledLinters],
 			suggestions,
 			needsPrompt: needsPrompt.map((s) => s.shortName),
+			packageManager: { name: pm.name, certain: pm.certain, reason: pm.reason },
+			install: missing.length > 0 ? installCommand(pm.name, withTag(missing, tag), pm) : null,
+			setup: needsPrompt.length > 0 ? `${CLI_NAME} init --accept ${needsPrompt.map((s) => s.shortName).join(",")}` : null,
 		};
 		process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 	} else if (mode === "report") {
@@ -59,7 +65,7 @@ export default function register(program: Command): void {
 		.option("--json", "machine-readable JSON output", false)
 		.option("--strict", "exit non-zero if any detector needs prompting", false)
 		.action((opts: ScanOptions) => {
-			process.exit(runScan(buildContext({ cwd: process.cwd() }), opts));
+			process.exit(runScan(buildContext({ cwd: process.cwd() }), opts, prereleaseTag(program.version())));
 		});
 }
 
@@ -77,7 +83,8 @@ function renderReport(
 	console.log("Suggestions:");
 	for (const s of suggestions) {
 		const status = enabled.includes(s.shortName) ? "enabled" : s.installed ? "installed, not enabled" : "not installed";
-		console.log(`  - ${s.shortName} (${s.pkg}) — ${s.reason} [${status}]`);
+		const requires = s.requires.length > 0 ? ` Requires ${s.requires.join(", ")}.` : "";
+		console.log(`  - ${s.shortName} (${s.pkg}) — ${s.reason}${requires} [${status}]`);
 	}
 }
 

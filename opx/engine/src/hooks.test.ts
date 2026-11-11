@@ -1,12 +1,20 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
+import { spawnSync } from "node:child_process";
+
+import { useScratch } from "shared/testing.js";
 
 import { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
 
 function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-hooks-"));
 }
+
+/** Windows has no executable bit, so mode checks run only on POSIX. */
+const itPosix = process.platform === "win32" ? it.skip : it;
+
+const mode = (path: string): number => statSync(path).mode & 0o777;
 
 describe("installPostCommitHook", () => {
 	it("creates a new post-commit hook", () => {
@@ -39,8 +47,9 @@ describe("installPostCommitHook", () => {
 		const dir = tmp();
 		mkdirSync(join(dir, ".husky"), { recursive: true });
 		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", "utf8");
-		installPostCommitHook(dir);
+		expect(installPostCommitHook(dir).created).toBe(false);
 		const once = readFileSync(join(dir, ".husky", "post-commit"), "utf8");
+		expect(once).toContain("echo hi");
 		installPostCommitHook(dir);
 		const twice = readFileSync(join(dir, ".husky", "post-commit"), "utf8");
 		expect(twice).toBe(once);
@@ -70,15 +79,17 @@ describe("installPostCommitHook", () => {
 		rmSync(dir, { recursive: true });
 	});
 
-	it("appends to an existing hook that lacks the marker", () => {
+	itPosix("makes a new hook executable", () => {
+		const dir = tmp();
+		expect(mode(installPostCommitHook(dir).path)).toBe(0o755);
+		rmSync(dir, { recursive: true });
+	});
+
+	itPosix("makes an existing hook executable when it adds the line", () => {
 		const dir = tmp();
 		mkdirSync(join(dir, ".husky"), { recursive: true });
-		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", "utf8");
-		const result = installPostCommitHook(dir);
-		expect(result.created).toBe(false);
-		const contents = readFileSync(result.path, "utf8");
-		expect(contents).toContain("echo hi");
-		expect(contents).toContain("opx hook post-commit");
+		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", { encoding: "utf8", mode: 0o644 });
+		expect(mode(installPostCommitHook(dir).path)).toBe(0o755);
 		rmSync(dir, { recursive: true });
 	});
 });
@@ -132,6 +143,48 @@ describe("ensureOpxIgnored", () => {
 		const dir = tmp();
 		ensureOpxIgnored(dir);
 		expect(ensureOpxIgnored(dir)).toBe(false);
+		rmSync(dir, { recursive: true });
+	});
+
+	describe("in a git repository", () => {
+		const scratch = useScratch();
+
+		/** Whether git ignores a path, per `git check-ignore`. */
+		function ignored(repo: string, file: string): boolean {
+			return spawnSync("git", ["check-ignore", "-q", file], { cwd: repo }).status === 0;
+		}
+
+		it.each([
+			["a bare .opx line left above the pattern", ".opx\n.opx/*\n!.opx/config.json\n"],
+			["the exception before the pattern", "!.opx/config.json\n.opx/*\n"],
+			["a root-anchored /.opx/ line", "/.opx/\n"],
+			["a .opx/** line", "node_modules\n.opx/**\n"],
+		])("keeps the config tracked when .gitignore has %s", (_, gitignore) => {
+			const repo = scratch.repo();
+			writeFileSync(join(repo, ".gitignore"), gitignore);
+			expect(ignored(repo, ".opx/config.json")).toBe(true);
+
+			expect(ensureOpxIgnored(repo)).toBe(true);
+			expect(ignored(repo, ".opx/config.json")).toBe(false);
+			expect(ignored(repo, ".opx/state.json")).toBe(true);
+			expect(ensureOpxIgnored(repo)).toBe(false);
+		});
+	});
+
+	it("leaves correctly ordered entries where they are", () => {
+		const dir = tmp();
+		const gitignore = ".opx/*\n!.opx/config.json\nnode_modules\n";
+		writeFileSync(join(dir, ".gitignore"), gitignore, "utf8");
+		expect(ensureOpxIgnored(dir)).toBe(false);
+		expect(readFileSync(join(dir, ".gitignore"), "utf8")).toBe(gitignore);
+		rmSync(dir, { recursive: true });
+	});
+
+	it("keeps CRLF line endings when it rewrites", () => {
+		const dir = tmp();
+		writeFileSync(join(dir, ".gitignore"), "node_modules\r\n.opx\r\n", "utf8");
+		expect(ensureOpxIgnored(dir)).toBe(true);
+		expect(readFileSync(join(dir, ".gitignore"), "utf8")).toBe("node_modules\r\n.opx/*\r\n!.opx/config.json\r\n");
 		rmSync(dir, { recursive: true });
 	});
 });

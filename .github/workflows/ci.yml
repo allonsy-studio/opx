@@ -1,0 +1,145 @@
+name: CI
+
+# Every check runs here. Each check's name says what it validates and where:
+# `<check> | <variant> | Node <version> | <runner>`. Require only `All checks passed`
+# in the branch ruleset, so renaming a check or adding a leg never touches the ruleset.
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        types: [opened, synchronize, reopened]
+    merge_group:
+
+permissions:
+    contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+    # Build, typecheck, and the unit tests on each supported platform, Node, and
+    # TypeScript. The coverage leg also lints, enforces the coverage minimums, and
+    # posts the report; lint and coverage don't vary by platform.
+    test:
+        name: "Test${{ matrix.typescript && format(' | TypeScript {0}', matrix.typescript) || '' }} | Node ${{ matrix.node }} | ${{ matrix.os }}"
+        runs-on: ${{ matrix.os }}
+        permissions:
+            contents: read
+            pull-requests: write # the coverage comment
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - { os: ubuntu-latest, node: 26, coverage: true }
+                    - { os: ubuntu-latest, node: 24 }
+                    - { os: macos-latest, node: 26 }
+                    - { os: windows-latest, node: 24 }
+                    # lint-ts and release allow TypeScript ^5 || ^6; the repo itself uses 6.
+                    - { os: ubuntu-latest, node: 26, typescript: "5" }
+        steps:
+            # The setup steps are anchored here and reused by the smoke job.
+            - &checkout
+              name: Check out code
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  persist-credentials: false
+
+            - &setup-node
+              name: Setup Node
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+              with:
+                  node-version: ${{ matrix.node }}
+                  cache: yarn
+
+            - &install
+              name: Install dependencies
+              run: yarn install --immutable
+
+            # Changes the lockfile in this job's checkout only; nothing is committed.
+            - name: Use TypeScript ${{ matrix.typescript }}
+              if: matrix.typescript
+              run: yarn add --dev typescript@^${{ matrix.typescript }}
+
+            - name: Build and typecheck
+              run: yarn ci
+
+            - name: Test
+              if: ${{ !matrix.coverage }}
+              run: yarn test && yarn test:root
+
+            - name: Test with coverage
+              if: matrix.coverage
+              run: yarn coverage
+
+            # Also after a test failure, so one push reports both.
+            - name: Lint
+              if: ${{ matrix.coverage && !cancelled() }}
+              run: yarn lint
+
+            - name: Coverage report
+              id: coverage
+              # Also after a coverage failure, so the comment shows which package missed.
+              if: ${{ matrix.coverage && !cancelled() }}
+              # One row per package and a `.` row for the code outside them, checked against the minimums in configs/jest.config.js.
+              run: |
+                  node scripts/coverage-report.js > code-coverage-results.md
+                  cat code-coverage-results.md
+                  shopt -s nullglob
+                  files=(opx/*/coverage/coverage-summary.json)
+                  if (( ${#files[@]} > 0 )); then echo "found=true"; else echo "found=false"; fi >> "$GITHUB_OUTPUT"
+
+            - name: Upload coverage data
+              if: ${{ !cancelled() && steps.coverage.outputs.found == 'true' }}
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+              with:
+                  name: coverage-data-${{ github.run_id }}
+                  path: opx/*/coverage/coverage-final.json
+
+            - name: Add coverage PR comment
+              # Fork PRs get a read-only token, so the comment can't be posted;
+              # the job summary below still carries the report.
+              if: >-
+                  !cancelled() &&
+                  steps.coverage.outputs.found == 'true' &&
+                  github.event_name == 'pull_request' &&
+                  github.event.pull_request.head.repo.full_name == github.repository
+              uses: marocchino/sticky-pull-request-comment@78a72662e4e5d4233fa5f28f436806292cc66b65 # v2.6.0
+              with:
+                  path: code-coverage-results.md
+
+            - name: Write to job summary
+              if: ${{ !cancelled() && steps.coverage.outputs.found == 'true' }}
+              run: cat code-coverage-results.md >> $GITHUB_STEP_SUMMARY
+
+    # Packs the packages, installs the tarballs, and runs the real CLI. Windows is
+    # not covered yet: the script runs npm and the opx binary directly, and on
+    # Windows those are .cmd shims.
+    smoke:
+        name: "Smoke | ${{ matrix.pm }} | Node ${{ matrix.node }} | ${{ matrix.os }}"
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - { os: ubuntu-latest, node: 26, pm: npm }
+                    - { os: macos-latest, node: 26, pm: npm }
+        steps:
+            - *checkout
+            - *setup-node
+            - *install
+
+            - name: Pack, install, and run the CLI
+              run: yarn smoke
+
+    # The one check the branch ruleset requires.
+    gate:
+        name: All checks passed
+        if: always()
+        needs: [test, smoke]
+        runs-on: ubuntu-latest
+        steps:
+            - name: Fail if any check failed or was cancelled
+              if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+              run: exit 1

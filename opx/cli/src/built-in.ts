@@ -1,7 +1,7 @@
 import type { Detector, DetectorContext, PackageJson } from "@allons-y/opx";
-import { enabledNames, loadPlugins, normalizeDetectorId } from "@allons-y/opx";
+import { enabledNames, isTaskEnabled, loadPlugins, normalizeDetectorId } from "@allons-y/opx";
 
-import { PLUGIN_CATALOG, type BuiltInShortName } from "./plugin-catalog.js";
+import { PLUGIN_CATALOG, isPackageId, type BuiltInShortName } from "./plugin-catalog.js";
 
 export type { BuiltInShortName };
 
@@ -49,21 +49,21 @@ export function suggest(fileTypes: Set<string>): BuiltInShortName[] {
 }
 
 /**
- * Load any of the enabled built-in lint detectors that are also installed in
- * the host project. Missing installs emit a warning via the loader's normal
- * trust-check flow.
+ * Load the enabled plugins that are installed in the host project.
+ *
+ * Short names resolve to `@allons-y/opx-<task>-<name>`; full package ids load
+ * as written. Each package loads once, even when several tasks enable it.
  */
 export async function load(ctx: DetectorContext): Promise<Detector[]> {
-	const installedLinters = enabledNames(ctx.config.lint)
-		.map((shortName) => `lint-${shortName}`)
-		.filter((entry) => normalizeDetectorId(entry, ctx.hostPkg) !== null);
-	const installedBuilders = enabledNames(ctx.config.build)
-		.map((shortName) => `build-${shortName}`)
-		.filter((entry) => normalizeDetectorId(entry, ctx.hostPkg) !== null);
-	const installedRelease = ctx.config.release === true ? ["release"] : [];
-	const installedTesting = ctx.config.test === true ? ["test"] : [];
-
-	const installed = [...installedLinters, ...installedBuilders, ...installedRelease, ...installedTesting];
+	const entriesFor = (task: "lint" | "build"): string[] =>
+		enabledNames(ctx.config[task]).map((name) => (isPackageId(name) ? name : `${task}-${name}`));
+	const entries = [
+		...entriesFor("lint"),
+		...entriesFor("build"),
+		...(isTaskEnabled(ctx.config.release) ? ["release"] : []),
+		...(ctx.config.test === true ? ["test"] : []),
+	];
+	const installed = [...new Set(entries.map((entry) => normalizeDetectorId(entry, ctx.hostPkg)).filter((id): id is string => id !== null))];
 
 	const plugins = await loadPlugins(installed, {
 		hostPkg: ctx.hostPkg,
@@ -73,28 +73,37 @@ export async function load(ctx: DetectorContext): Promise<Detector[]> {
 	return plugins.flatMap((p) => p.detectors);
 }
 
+/** A catalog plugin suggested for the host repository. */
+export type Suggestion = {
+	/** The short name to enable. */
+	shortName: BuiltInShortName;
+	/** The package to install. */
+	pkg: string;
+	/** Why it is suggested. */
+	reason: string;
+	/** Whether the host already depends on `pkg`. */
+	installed: boolean;
+	/** Packages the host must install itself for the plugin to run, such as `typescript`. */
+	requires: string[];
+};
+
 /**
  * Build a list of "virtual" detector descriptors for built-in packages
  * that aren't installed yet but would match. Used by scan/init to show
  * suggestions before the user has installed them.
  */
-export function virtualDetectors(
-	fileTypes: Set<string>,
-	hostPkg: PackageJson,
-): Array<{ shortName: BuiltInShortName; pkg: string; reason: string; installed: boolean }> {
-	const matched = suggest(fileTypes);
+export function virtualDetectors(fileTypes: Set<string>, hostPkg: PackageJson): Suggestion[] {
 	const deps = { ...(hostPkg.dependencies ?? {}), ...(hostPkg.devDependencies ?? {}) };
-	return [...matched, ...UNDETECTABLE_PLUGINS].reduce<Array<{ shortName: BuiltInShortName; pkg: string; reason: string; installed: boolean }>>((acc, shortName) => {
-		for (const pkg of PACKAGE_HINTS[shortName]) {
-			acc.push({
-				shortName,
-				pkg,
-				reason: (UNDETECTABLE_PLUGINS as readonly string[]).includes(shortName) ? `Plugin ${shortName} found in the committed tree.` : `Files matching ${shortName} found in the committed tree.`,
-				installed: pkg in deps,
-			});
-		}
-		return acc;
-	}, []);
+	const matched = new Set<string>([...suggest(fileTypes), ...UNDETECTABLE_PLUGINS]);
+	return PLUGIN_CATALOG.filter((entry) => matched.has(entry.shortName)).flatMap((entry) =>
+		entry.packages.map((pkg) => ({
+			shortName: entry.shortName,
+			pkg,
+			reason: "reason" in entry ? entry.reason : `Files matching ${entry.shortName} found in the committed tree.`,
+			installed: pkg in deps,
+			requires: "requires" in entry ? [...entry.requires] : [],
+		})),
+	);
 }
 
 export default {

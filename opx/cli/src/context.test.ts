@@ -4,7 +4,13 @@ import { join } from "node:path";
 
 import { useScratch } from "shared/testing.js";
 
-import { buildContext, readHostPackage } from "./context.js";
+/** Spies that run the real scanner, so tests can count git calls. */
+const scanner = await import("./scanner.js");
+const scanCommittedTree = jest.fn(scanner.scanCommittedTree);
+const getCurrentBranch = jest.fn(scanner.getCurrentBranch);
+jest.unstable_mockModule("./scanner.js", () => ({ ...scanner, scanCommittedTree, getCurrentBranch }));
+
+const { buildContext, readHostPackage } = await import("./context.js");
 
 const scratch = useScratch();
 
@@ -13,31 +19,22 @@ describe("readHostPackage", () => {
 		expect(readHostPackage(scratch.dir("opx-ctx-"))).toEqual({});
 	});
 
-	it("parses an existing package.json", () => {
+	it("throws on a malformed package.json instead of treating it as empty", () => {
 		const dir = scratch.dir("opx-ctx-");
-		writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "demo", dependencies: { a: "1" } }), "utf8");
-		const pkg = readHostPackage(dir);
-		expect(pkg.name).toBe("demo");
-		expect(pkg.dependencies?.a).toBe("1");
+		writeFileSync(join(dir, "package.json"), "{oops", "utf8");
+		expect(() => readHostPackage(dir)).toThrow();
 	});
 });
 
 describe("buildContext", () => {
-	it("assembles a DetectorContext from a repo", () => {
-		const dir = scratch.repo({ "package.json": JSON.stringify({ name: "demo" }), "a.ts": "x" });
-
+	it("reads the host package from cwd and derives the package manager from it", () => {
+		const dir = scratch.repo({ "package.json": JSON.stringify({ name: "demo", packageManager: "pnpm@9.0.0" }) });
 		const ctx = buildContext({ cwd: dir });
 		expect(ctx.cwd).toBe(dir);
-		expect(ctx.fileTypes.has(".ts")).toBe(true);
 		expect(ctx.hostPkg.name).toBe("demo");
-		expect(ctx.config).toMatchObject({ version: 1 });
-		expect(ctx.state).toMatchObject({ version: 1 });
-		expect(ctx.branch).toBe("main");
-		expect(typeof ctx.write).toBe("function");
+		expect(ctx.pkgManager).toBe("pnpm");
 		expect(ctx.dryRun).toBe(false);
 		expect(ctx.fix).toBe(false);
-		expect(ctx.logger).toBeDefined();
-		expect(ctx.pkgManager).toBeDefined();
 	});
 
 	it("honors debug, dryRun, and fix options", () => {
@@ -46,17 +43,27 @@ describe("buildContext", () => {
 		expect(ctx.fix).toBe(true);
 	});
 
-	it("write forwards to process.stdout without throwing", () => {
-		const ctx = buildContext({ cwd: scratch.repo() });
-		expect(() => ctx.write("")).not.toThrow();
+	it("write forwards each chunk to process.stdout", () => {
+		const write = jest.spyOn(process.stdout, "write").mockImplementation(() => true);
+		try {
+			buildContext({ cwd: scratch.repo() }).write("hello");
+			expect(write).toHaveBeenCalledWith("hello");
+		} finally {
+			write.mockRestore();
+		}
 	});
 
-	it("reads fileTypes and branch from git only when asked, then reuses them", () => {
+	it("calls git for fileTypes and branch only on first read, then reuses the result", () => {
 		const ctx = buildContext({ cwd: scratch.repo({ "a.ts": "x" }) });
-		expect(typeof Object.getOwnPropertyDescriptor(ctx, "fileTypes")?.get).toBe("function");
-		expect(typeof Object.getOwnPropertyDescriptor(ctx, "branch")?.get).toBe("function");
+		expect(scanCommittedTree).not.toHaveBeenCalled();
+		expect(getCurrentBranch).not.toHaveBeenCalled();
+
 		expect(ctx.fileTypes).toBe(ctx.fileTypes);
-		expect(ctx.branch).toBe("main");
+		expect(ctx.fileTypes.has(".ts")).toBe(true);
+		expect(scanCommittedTree).toHaveBeenCalledTimes(1);
+
+		expect(ctx.branch).toBe(ctx.branch);
+		expect(getCurrentBranch).toHaveBeenCalledTimes(1);
 	});
 
 	it("uses the logger it is given", () => {

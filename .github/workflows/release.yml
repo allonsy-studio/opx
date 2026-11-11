@@ -14,8 +14,19 @@ jobs:
             pull-requests: write
             id-token: write
         steps:
+            - name: Create GitHub App token
+              id: app-token
+              uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3
+              with:
+                  client-id: ${{ secrets.APP_CLIENT_ID }}
+                  private-key: ${{ secrets.APP_PRIVATE_KEY }}
+                  permission-contents: write
+                  permission-pull-requests: write
+
             - name: Check out code
               uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  token: ${{ steps.app-token.outputs.token }}
 
             - name: Setup Node
               uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -32,7 +43,13 @@ jobs:
             - name: Create release pull request or publish
               uses: changesets/action@a45c4d594aa4e2c509dc14a9f2b3b67ba3780d0d # v1
               with:
-                  version: yarn version-packages
+                  version: yarn run version
                   publish: yarn release
+                  # Conventional Commits, like every other pull request.
+                  title: "chore(release): version packages"
+                  commit: "chore(release): version packages"
+                  commitMode: github-api
+                  # opx release publish creates the GitHub releases.
+                  createGithubReleases: false
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

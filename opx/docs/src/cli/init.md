@@ -13,13 +13,15 @@ Scan the committed tree and interactively wire up opx.
 ## Synopsis
 
 ```sh
-opx init [--auto] [--quiet] [--cleanup]
+opx init [--yes | --accept <names>] [--auto] [--quiet] [--cleanup]
 ```
 
 ## Options
 
 | Flag | Default | Description |
 | --- | --- | --- |
+| `--yes` | `false` | Accept every suggestion that matches your files, without prompting. See [Without prompts](#without-prompts). |
+| `--accept <names>` | | Accept these plugins without prompting, as comma-separated short names such as `js,md,release`. Unlike `--yes`, it can enable plugins files can't imply, like `release`. |
 | `--auto` | `false` | Only proceed in an interactive terminal. Intended for `postinstall` scripts. |
 | `--quiet` | `false` | Suppress informational output when `--auto` exits early |
 | `--cleanup` | `false` | Opt in to the [cleanup suggestions](#cleanup) from your plugins, and the offer to delete empty files |
@@ -33,6 +35,22 @@ opx init [--auto] [--quiet] [--cleanup]
 5. Offers to add `"lint": "opx lint"` to your `package.json` scripts.
 6. Installs the `post-commit` husky hook and updates `.gitignore` to ignore `.opx/*` except `.opx/config.json`, which stays tracked.
 7. With `--cleanup`, shows the [cleanup suggestions](#cleanup) your enabled plugins make, and offers to delete empty files they replace.
+
+## Without prompts
+
+`--yes` and `--accept` run the whole setup above in one command, with no questions and no terminal needed. They suit scripts and AI agents.
+
+```sh
+opx init --yes                  # every plugin your files match
+opx init --accept js,md,release # exactly these
+```
+
+- They do everything the interactive flow does: write the config, install missing packages, scaffold `eslint.config.js`, add the `lint` script, install the hook, and update `.gitignore`.
+- `--yes` never enables `release`, since files can't tell whether you publish. Name it with `--accept`.
+- Plugins already enabled are left as they are, and a name opx doesn't know exits `1` before anything changes.
+- If the install fails, your choices stay saved, and opx exits `1` and prints the command to run yourself. If the package manager is [ambiguous](#package-manager), opx prints the command and exits `0`.
+- While this CLI is a prerelease, packages install from its dist-tag (`@allons-y/opx-lint-js@beta`), because npm can't resolve a bare name that has only prereleases.
+- With `--cleanup`, cleanup suggestions are printed and nothing is deleted. `--auto` ignores both flags, so a `postinstall` never changes your project.
 
 ## Package manager
 
@@ -77,4 +95,4 @@ A plugin is only consulted when it is enabled and installed. Because the suggest
 
 ## Non-interactive use
 
-With no TTY, `CI` set, or `OPX_NONINTERACTIVE` set, `init` prints the suggestions and the commands to run instead of prompting. Use [`opx enable`](../enable/) to apply them. With `--cleanup` it also prints the cleanup suggestions, and changes nothing. `init --auto` (postinstall) never runs cleanup, even with `--cleanup`.
+With no TTY, `CI` set, or `OPX_NONINTERACTIVE` set, `init` prints the suggestions and the commands to run instead of prompting. Use [`opx init --yes`](#without-prompts) to apply them all at once, or [`opx enable`](../enable/) one at a time. With `--cleanup` it also prints the cleanup suggestions, and changes nothing. `init --auto` (postinstall) never runs cleanup, even with `--cleanup`.

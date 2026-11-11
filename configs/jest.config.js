@@ -52,7 +52,8 @@ export default {
 	coveragePathIgnorePatterns: ["/node_modules/", "/engine/src/detector\\.ts$"],
 	coverageDirectory: "./coverage",
 	coverageProvider: "v8",
-	coverageReporters: isCI ? ["cobertura", "json"] : ["text", "text-summary"],
+	// CI writes json-summary for scripts/coverage-report.js and json for the uploaded artifact.
+	coverageReporters: isCI ? ["json-summary", "json"] : ["text", "text-summary"],
 	// Each package runs Jest on its own, so these apply per package. They sit a
 	// couple of points under what the packages reach today (98-100% lines,
 	// 96-100% branches, 96-100% functions), so real erosion fails and routine

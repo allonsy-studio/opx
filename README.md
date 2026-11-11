@@ -22,8 +22,8 @@
   <a href="https://www.npmjs.com/package/@allons-y/opx">
     <img src="https://img.shields.io/npm/dw/@allons-y/opx.svg" alt="NPM downloads" height="20" />
   </a>
-  <a href="https://github.com/allonsy-studio/opx/actions/workflows/testing.yml">
-    <img src="https://github.com/allonsy-studio/opx/actions/workflows/testing.yml/badge.svg?branch=main" alt="Tests" height="20" />
+  <a href="https://github.com/allonsy-studio/opx/actions/workflows/ci.yml">
+    <img src="https://github.com/allonsy-studio/opx/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" height="20" />
   </a>
   <a href="https://github.com/allonsy-studio/opx/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/allonsy-studio/opx.svg" alt="License" height="20" />
@@ -79,12 +79,15 @@ yarn opx init
 writes a starter `.opx/config.json`, and offers to add a `lint` script and a
 post-commit hook.
 
+To set up without prompts, for scripts and AI agents, run
+`yarn opx init --yes`. See [Using opx with an AI agent](#using-opx-with-an-ai-agent).
+
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `opx scan` | Report which detectors would activate for the committed tree. |
-| `opx init` | Interactive setup: pick detectors, install packages, wire scripts and hooks, then show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
+| `opx init` | Interactive setup (or `--yes` / `--accept js,md` to skip the prompts): pick detectors, install packages, wire scripts and hooks, then show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
 | `opx enable <name>` | Enable a detector by short name (`js`, `json`, `md`, …) or package id. |
 | `opx disable <name>` | Disable a detector. |
 | `opx lint [paths…]` | Run every enabled lint detector. |
@@ -94,6 +97,18 @@ post-commit hook.
 
 Run `opx <command> --help` for per-command flags. `opx lint --fix` auto-fixes
 where the underlying tool supports it.
+
+## Using opx with an AI agent
+
+opx is built to be driven by an agent with no human in the loop. It never prompts without a terminal, and every command has a clear exit code.
+
+1. Install the CLI with the project's package manager: `yarn add --dev @allons-y/opx-cli`.
+2. Run `opx scan --json`. `suggestions` lists matching plugins, `install` and `setup` are the commands to run, and `packageManager` says which manager opx will use.
+3. Run `opx init --yes` to set up every plugin your files match, or `opx init --accept js,md,release` to choose. It installs packages, writes `.opx/config.json`, scaffolds `eslint.config.js`, adds a `lint` script, and installs the git hook.
+4. Run `opx lint`. Exit `0` is clean and `1` means problems; `opx lint --fix` applies fixes.
+5. Commit `.opx/config.json`, `eslint.config.js`, `package.json`, the lockfile, and `.husky/`.
+
+Don't hand-edit `.opx/state.json`. Use `opx enable <name>` and `opx disable <name>` to change plugins afterwards. The docs site also publishes an `llms.txt` index, and the full guide is [Use opx with an AI agent](opx/docs/src/guides/agents.md).
 
 ## Configuration
 
@@ -208,7 +223,7 @@ yarn typecheck   # type-check every package
 
 <h2>Contributing</h2>
 
-Contributions are welcome & appreciated! Please open an [issue](https://github.com/allonsy-studio/opx/issues/new) (before submitting a pull request) if you find a bug, have a feature request, or have a question. Be sure to follow the [contribution guidelines](.github/CONTRIBUTING.md) and [code of conduct](.github/CODE_OF_CONDUCT.md) but most importantly, be excellent to each other. 💖
+Contributions are welcome & appreciated! Please open an [issue](https://github.com/allonsy-studio/opx/issues/new) (before submitting a pull request) if you find a bug, have a feature request, or have a question. Be sure to follow the [contribution guidelines](https://github.com/allonsy-studio/.github/blob/main/CONTRIBUTING.md) and [code of conduct](https://github.com/allonsy-studio/.github/blob/main/CODE_OF_CONDUCT.md) but most importantly, be excellent to each other. 💖
 
 <!-- weaver:contribution:END -->
 

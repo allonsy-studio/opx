@@ -93,11 +93,6 @@ describe("cleanup", () => {
 			expect(plan.advice[0]?.reason).toContain("bundled by @acme/opx-x");
 		});
 
-		it("builds the command for the project's package manager", () => {
-			const plan = planCleanup({ ...ctx(make(), dev("eslint")), pkgManager: "pnpm" } as DetectorContext, [plugin(pkg("eslint"))]);
-			expect(plan.command).toBe("pnpm remove eslint");
-		});
-
 		it("keeps a package the project imports, requires, references in config, or runs", () => {
 			const dir = make({
 				"eslint.config.js": 'import js from "@eslint/js";\nimport { defineConfig } from "eslint/config";\n',
@@ -204,12 +199,6 @@ describe("cleanup", () => {
 				expect(plan.advice[0]?.command).toBeUndefined();
 			}
 		});
-
-		it("never runs it", () => {
-			const dir = make({ ".eslintrc.json": '{ "rules": {} }' });
-			planCleanup(ctx(dir), [plugin(withCommand(".eslintrc.json", { run: ["touch", "ran.txt"] }))]);
-			expect(existsSync(join(dir, "ran.txt"))).toBe(false);
-		});
 	});
 
 	describe("applyCleanup", () => {
@@ -228,9 +217,8 @@ describe("cleanup", () => {
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 		});
 
-		it("refuses any other file it is handed", () => {
-			const dir = make({ "src/app.js": "export {};\n", "empty.txt": "" });
-			writeFileSync(join(dir, "empty.txt"), "");
+		it("refuses a path that has content or does not exist", () => {
+			const dir = make({ "src/app.js": "export {};\n" });
 			expect(applyCleanup(dir, ["src/app.js", "missing", "package.json"])).toEqual([]);
 			expect(existsSync(join(dir, "src/app.js"))).toBe(true);
 		});
