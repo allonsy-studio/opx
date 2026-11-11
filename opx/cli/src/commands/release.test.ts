@@ -31,7 +31,7 @@ describe("runReleaseCommand", () => {
 
 	beforeEach(() => {
 		log = jest.spyOn(console, "log").mockImplementation(() => {});
-		load = jest.spyOn(builtIns, "load");
+		load = jest.spyOn(builtIns, "loadTask");
 	});
 
 	afterEach(() => {
@@ -39,7 +39,7 @@ describe("runReleaseCommand", () => {
 	});
 
 	it("returns 0 and reports when no releaser is detected", async () => {
-		load.mockResolvedValue([]);
+		load.mockResolvedValue({ detectors: [], failures: [] });
 
 		const code = await runReleaseCommand(ctx(), ["status"]);
 
@@ -47,20 +47,18 @@ describe("runReleaseCommand", () => {
 		expect(log.mock.calls.flat().join(" ")).toContain("no releaser is detected");
 	});
 
-	it("ignores detectors whose concern is not release", async () => {
-		load.mockResolvedValue([detector({ concern: "build", run: async () => 2 })]);
-
-		const code = await runReleaseCommand(ctx(), ["status"]);
-
-		expect(code).toBe(0);
-		expect(log.mock.calls.flat().join(" ")).toContain("no releaser is detected");
+	it("exits 1 when the release plugin is enabled but can't be loaded", async () => {
+		jest.spyOn(process.stderr, "write").mockImplementation(() => true);
+		load.mockResolvedValue({ detectors: [], failures: ["broken"] });
+		expect(await runReleaseCommand(ctx(), ["status"])).toBe(1);
+		expect(log.mock.calls.flat().join(" ")).not.toContain("no releaser is detected");
 	});
 
 	it("forwards the subcommand + args verbatim, empty included, to the releaser", async () => {
 		const seen: string[][] = [];
-		load.mockResolvedValue([
+		load.mockResolvedValue({ detectors: [
 			detector({ run: async (_c, args) => { seen.push(args); return 0; } }),
-		]);
+		], failures: [] });
 
 		const code = await runReleaseCommand(ctx(), ["add", "--empty"]);
 		await runReleaseCommand(ctx(), []);
@@ -71,7 +69,7 @@ describe("runReleaseCommand", () => {
 	});
 
 	it("treats a releaser without a run function as passing", async () => {
-		load.mockResolvedValue([detector({ run: undefined })]);
+		load.mockResolvedValue({ detectors: [detector({ run: undefined })], failures: [] });
 
 		const code = await runReleaseCommand(ctx(), ["status"]);
 
@@ -79,10 +77,10 @@ describe("runReleaseCommand", () => {
 	});
 
 	it("returns the first non-zero exit code across releasers", async () => {
-		load.mockResolvedValue([
+		load.mockResolvedValue({ detectors: [
 			detector({ shortName: "ok", run: async () => 0 }),
 			detector({ shortName: "bad", run: async () => 2 }),
-		]);
+		], failures: [] });
 
 		const code = await runReleaseCommand(ctx(), ["version"]);
 
@@ -101,7 +99,7 @@ describe("runReleaseCommand", () => {
 					return 0;
 				},
 			});
-		load.mockResolvedValue([make("a"), make("b")]);
+		load.mockResolvedValue({ detectors: [make("a"), make("b")], failures: [] });
 
 		await runReleaseCommand(ctx(), ["status"]);
 

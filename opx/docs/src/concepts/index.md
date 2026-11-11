@@ -11,7 +11,7 @@ eleventyNavigation:
 
 1. **Scan.** opx lists the files in your git `HEAD` and collects their extensions.
 2. **Match.** Each installed plugin's detector decides whether it applies to that set of file types.
-3. **Load.** Only plugins that are both enabled in `.opx/config.json` and installed in your `package.json` are loaded.
+3. **Load.** Only plugins that are both enabled in `.opx/config.json` and installed in your `package.json` are loaded. opx loads them from your project's `node_modules`, so it finds them wherever opx itself is installed, including globally or through `npx`.
 4. **Run.** `opx lint` and `opx build` run every loaded detector for that task, in parallel, and combine the exit codes.
 
 Because opx reads the committed tree, untracked and ignored files never influence what it suggests.

@@ -1,21 +1,28 @@
-import { jest } from "@jest/globals";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 import type { DetectorContext } from "@allons-y/opx";
+import { useScratch } from "shared/testing.js";
 
-const fakeDetector = {
-	id: "@allons-y/opx-lint-js",
-	shortName: "js",
-	displayName: "JavaScript",
-	concern: "lint",
-	detect: () => true,
-	describe: () => ({ summary: "", bundledDeps: [] }),
-};
+import { PLUGIN_CATALOG } from "./plugin-catalog.js";
+import { suggest, virtualDetectors, load, loadTask, PACKAGE_HINTS, SUPPORTED_FILE_EXTS, UNDETECTABLE_PLUGINS } from "./built-in.js";
 
-jest.unstable_mockModule("@allons-y/opx-lint-js", () => ({ __esModule: true, default: fakeDetector }), { virtual: true });
+const scratch = useScratch();
 
-const { PLUGIN_CATALOG } = await import("./plugin-catalog.js");
-const { suggest, virtualDetectors, load, PACKAGE_HINTS, SUPPORTED_FILE_EXTS, UNDETECTABLE_PLUGINS } =
-	await import("./built-in.js");
+/** A detector module's default-export source. */
+const detector = (shortName: string, concern: string) => `{ id: "x", shortName: "${shortName}", displayName: "", concern: "${concern}", detect: () => true, describe: () => ({ summary: "", bundledDeps: [] }) }`;
+
+/** A host project with ESM plugin packages installed under `node_modules`, each exporting `source`. */
+function host(packages: Record<string, string>): string {
+	const dir = scratch.dir("opx-builtin-");
+	for (const [name, source] of Object.entries(packages)) {
+		const pkg = join(dir, "node_modules", name);
+		mkdirSync(pkg, { recursive: true });
+		writeFileSync(join(pkg, "package.json"), JSON.stringify({ name, type: "module", exports: { ".": { import: "./index.js" } } }));
+		writeFileSync(join(pkg, "index.js"), source);
+	}
+	return dir;
+}
 
 function ctx(partial: Partial<DetectorContext>): DetectorContext {
 	return {
@@ -118,25 +125,28 @@ describe("virtualDetectors", () => {
 });
 
 describe("load", () => {
+	const lintJs = () => host({ "@allons-y/opx-lint-js": `export default ${detector("js", "lint")};\n` });
+
 	it("returns [] when nothing is configured/installed", async () => {
-		const loaded = await load(ctx({ hostPkg: {}, config: { version: 1, lint: {}, build: {}, release: false, test: false } }));
+		const loaded = await load(ctx({ cwd: host({}), hostPkg: {}, config: { version: 1, lint: {}, build: {}, release: false, test: false } }));
 		expect(loaded).toEqual([]);
 	});
 
 	it("loads an installed, configured lint detector", async () => {
 		const loaded = await load(
 			ctx({
+				cwd: lintJs(),
 				hostPkg: { dependencies: { "@allons-y/opx-lint-js": "1" } },
 				config: { version: 1, lint: { js: true }, build: {}, release: false, test: false },
 			}),
 		);
-		expect(loaded).toHaveLength(1);
-		expect(loaded[0]?.shortName).toBe("js");
+		expect(loaded.map((d) => d.shortName)).toEqual(["js"]);
 	});
 
 	it("loads the release plugin when release holds settings", async () => {
 		const loaded = await load(
 			ctx({
+				cwd: host({ "@allons-y/opx-release": `export default ${detector("release", "release")};\n` }),
 				hostPkg: { devDependencies: { "@allons-y/opx-release": "1" } },
 				config: { version: 1, lint: {}, build: {}, release: { githubReleases: false }, test: false },
 			}),
@@ -147,6 +157,7 @@ describe("load", () => {
 	it("loads an installed plugin enabled by package id, once, even under two tasks", async () => {
 		const loaded = await load(
 			ctx({
+				cwd: lintJs(),
 				hostPkg: { dependencies: { "@allons-y/opx-lint-js": "1" } },
 				config: { version: 1, lint: { "@allons-y/opx-lint-js": true }, build: { "@allons-y/opx-lint-js": true, js: true }, release: false, test: false },
 			}),
@@ -157,10 +168,31 @@ describe("load", () => {
 	it("ignores configured detectors that are not installed", async () => {
 		const loaded = await load(
 			ctx({
+				cwd: host({}),
 				hostPkg: {},
 				config: { version: 1, lint: { css: true }, build: { ts: true }, release: true, test: true },
 			}),
 		);
 		expect(loaded).toEqual([]);
+	});
+});
+
+describe("loadTask", () => {
+	it("returns only the task's own detectors, from the plugins enabled for that task", async () => {
+		const cwd = host({ "opx-plugin-mixed": `export default [${detector("a", "lint")}, ${detector("b", "build")}];\n` });
+		const config = { version: 1 as const, lint: { "opx-plugin-mixed": true }, build: {}, release: false, test: false };
+		const { detectors, failures } = await loadTask(ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-mixed": "1" } }, config }), "lint");
+		expect(detectors.map((d) => d.shortName)).toEqual(["a"]);
+		expect(failures).toEqual([]);
+		expect((await loadTask(ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-mixed": "1" } }, config }), "build")).detectors).toEqual([]);
+	});
+
+	it("reports an enabled plugin that isn't installed or can't be imported", async () => {
+		const cwd = host({ "opx-plugin-broken": "export default ;\n" });
+		const config = { version: 1 as const, lint: { css: true, "opx-plugin-broken": true }, build: {}, release: true, test: false };
+		const lint = await loadTask(ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-broken": "1" } }, config }), "lint");
+		expect(lint.detectors).toEqual([]);
+		expect(lint.failures).toEqual([expect.stringContaining("no matching package is installed"), expect.stringContaining('failed to import "opx-plugin-broken"')]);
+		expect((await loadTask(ctx({ cwd, hostPkg: {}, config }), "release")).failures).toEqual([expect.stringContaining('"release" is declared')]);
 	});
 });

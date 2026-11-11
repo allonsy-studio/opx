@@ -1,6 +1,7 @@
 import type { Detector, DetectorContext, PackageJson } from "@allons-y/opx";
 import { enabledNames, isTaskEnabled, loadPlugins, normalizeDetectorId } from "@allons-y/opx";
 
+import { colors } from "./colors.js";
 import { PLUGIN_CATALOG, isPackageId, type BuiltInShortName } from "./plugin-catalog.js";
 
 export type { BuiltInShortName };
@@ -73,6 +74,41 @@ export async function load(ctx: DetectorContext): Promise<Detector[]> {
 	return plugins.flatMap((p) => p.detectors);
 }
 
+/** A task whose command runs that task's enabled plugins. */
+export type RunnableTask = "lint" | "build" | "release";
+
+/** The plugins enabled for one task, and why any enabled plugin couldn't be loaded. */
+export type TaskPlugins = {
+	/** Detectors for the task, from the plugins that loaded. */
+	detectors: Detector[];
+	/** One reason per enabled plugin that couldn't be loaded. */
+	failures: string[];
+};
+
+/**
+ * Load the plugins enabled for one task. Unlike {@link load}, a plugin that is
+ * enabled but can't be loaded is reported, so the command can fail instead of
+ * passing without running it.
+ */
+export async function loadTask(ctx: DetectorContext, task: RunnableTask): Promise<TaskPlugins> {
+	const entries = task === "release"
+		? (isTaskEnabled(ctx.config.release) ? ["release"] : [])
+		: enabledNames(ctx.config[task]).map((name) => (isPackageId(name) ? name : `${task}-${name}`));
+	const failures: string[] = [];
+	const plugins = await loadPlugins([...new Set(entries)], {
+		hostPkg: ctx.hostPkg,
+		cwd: ctx.cwd,
+		logger: ctx.logger,
+		onSkip: (_entry, reason) => failures.push(reason),
+	});
+	return { detectors: plugins.flatMap((p) => p.detectors).filter((d) => d.concern === task), failures };
+}
+
+/** Print each load failure as a `✖` line on stderr. */
+export function reportLoadFailures(failures: string[]): void {
+	for (const reason of failures) process.stderr.write(`${colors.red("✖")} ${reason}\n`);
+}
+
 /** A catalog plugin suggested for the host repository. */
 export type Suggestion = {
 	/** The short name to enable. */
@@ -110,5 +146,6 @@ export default {
 	PACKAGE_HINTS,
 	suggest,
 	load,
+	loadTask,
 	virtualDetectors,
 };

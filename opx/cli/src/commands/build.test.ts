@@ -33,7 +33,7 @@ describe("runBuildCommand", () => {
 		// Swallow the grouped output so the test log stays clean.
 		jest.spyOn(process.stdout, "write").mockImplementation(() => true);
 		log = jest.spyOn(console, "log").mockImplementation(() => {});
-		load = jest.spyOn(builtIns, "load");
+		load = jest.spyOn(builtIns, "loadTask");
 	});
 
 	afterEach(() => {
@@ -41,7 +41,7 @@ describe("runBuildCommand", () => {
 	});
 
 	it("returns 0 and reports when no builders are detected", async () => {
-		load.mockResolvedValue([]);
+		load.mockResolvedValue({ detectors: [], failures: [] });
 
 		const code = await runBuildCommand(ctx(), []);
 
@@ -49,21 +49,18 @@ describe("runBuildCommand", () => {
 		expect(log.mock.calls.flat().join(" ")).toContain("no builders are detected");
 	});
 
-	it("ignores detectors whose concern is not build", async () => {
-		load.mockResolvedValue([detector({ concern: "lint", run: async () => 2 })]);
-
-		const code = await runBuildCommand(ctx(), []);
-
-		// The lone lint detector is filtered out, so it behaves as "no builders".
-		expect(code).toBe(0);
-		expect(log.mock.calls.flat().join(" ")).toContain("no builders are detected");
+	it("exits 1 instead of reporting no builders when an enabled builder can't be loaded", async () => {
+		jest.spyOn(process.stderr, "write").mockImplementation(() => true);
+		load.mockResolvedValue({ detectors: [], failures: ["broken"] });
+		expect(await runBuildCommand(ctx(), [])).toBe(1);
+		expect(log.mock.calls.flat().join(" ")).not.toContain("no builders are detected");
 	});
 
 	it("forwards the build paths to each builder's runner", async () => {
 		const seen: string[][] = [];
-		load.mockResolvedValue([
+		load.mockResolvedValue({ detectors: [
 			detector({ run: async (_c, paths) => { seen.push(paths); return 0; } }),
-		]);
+		], failures: [] });
 
 		const code = await runBuildCommand(ctx(), ["src/a.ts", "src/b.ts"]);
 

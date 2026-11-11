@@ -153,4 +153,19 @@ describe("readConcerns", () => {
 		const { readConcerns } = await import("./toggle-command.js");
 		expect(await readConcerns("opx-plugin-missing-xyz", process.cwd(), {})).toBeUndefined();
 	});
+
+	it("loads an installed plugin and keeps only the lint and build tasks its detectors declare", async () => {
+		const { readConcerns } = await import("./toggle-command.js");
+		const dir = mkdtempSync(join(tmpdir(), "opx-concerns-"));
+		try {
+			const plugin = join(dir, "node_modules", "opx-plugin-both");
+			mkdirSync(plugin, { recursive: true });
+			writeFileSync(join(plugin, "package.json"), JSON.stringify({ name: "opx-plugin-both", type: "module", exports: { ".": { import: "./index.js" } } }));
+			const detector = (concern: string) => `{ id: "opx-plugin-both", shortName: "both", displayName: "Both", concern: "${concern}", detect: () => true, describe: () => ({ summary: "", bundledDeps: [] }) }`;
+			writeFileSync(join(plugin, "index.js"), `export default [${detector("build")}, ${detector("release")}, ${detector("lint")}];\n`);
+			expect(await readConcerns("opx-plugin-both", dir, { devDependencies: { "opx-plugin-both": "1.0.0" } })).toEqual(["lint", "build"]);
+		} finally {
+			rmSync(dir, { recursive: true, force: true });
+		}
+	});
 });
