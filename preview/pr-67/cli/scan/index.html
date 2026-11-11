@@ -125,7 +125,8 @@
       <span class="token property">"shortName"</span><span class="token operator">:</span> <span class="token string">"md"</span><span class="token punctuation">,</span>
       <span class="token property">"pkg"</span><span class="token operator">:</span> <span class="token string">"@allons-y/opx-lint-md"</span><span class="token punctuation">,</span>
       <span class="token property">"reason"</span><span class="token operator">:</span> <span class="token string">"Files matching md found in the committed tree."</span><span class="token punctuation">,</span>
-      <span class="token property">"installed"</span><span class="token operator">:</span> <span class="token boolean">true</span>
+      <span class="token property">"installed"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+      <span class="token property">"requires"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
   <span class="token property">"needsPrompt"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"md"</span><span class="token punctuation">]</span>
@@ -152,7 +153,7 @@
 </tr>
 <tr>
 <td><code>suggestions</code></td>
-<td>Plugins that match, with whether their package is installed</td>
+<td>Plugins that match, with whether their package is installed and any <code>requires</code>: packages your project must install itself (the <code>ts</code> plugin needs <code>typescript</code>)</td>
 </tr>
 <tr>
 <td><code>needsPrompt</code></td>
@@ -160,6 +161,7 @@
 </tr>
 </tbody>
 </table>
+<p><code>release</code> is always suggested because opx can't detect it from files. Its reason reads &quot;Not detectable from files; enable it if you publish packages.&quot; and it never counts toward <code>--strict</code>.</p>
 <h2 id="using-it-in-ci" tabindex="-1"><a class="header-anchor" href="#using-it-in-ci">Using it in CI</a></h2>
 <pre class="language-sh"><code class="language-sh">opx scan <span class="token parameter variable">--strict</span></code></pre>
 <p>fails the job when the repo contains files that an available plugin could lint but that aren't enabled.</p>
