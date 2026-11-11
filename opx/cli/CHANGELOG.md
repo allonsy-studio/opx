@@ -1,5 +1,33 @@
 # @allons-y/opx-cli
 
+## 0.1.0-beta.4
+
+### Minor Changes
+
+- 07965b1: `opx init` and `opx enable` now fit `@allons-y/opx-lint-ts` into projects that already use opx.
+
+  - A newly enabled plugin follows the others in its task. When they all point at the same config file, such as `./eslint.config.js`, `opx init` (with or without `--yes`) and `opx enable` point the new one there too, instead of writing `true`.
+  - `opx enable` no longer replaces a plugin's config path with `true` when the plugin is enabled again.
+  - When the project has its own `eslint.config.js`, `opx init` and `opx enable` print the import & spread lines it still needs. opx never edits that file. A new project still gets a scaffolded `eslint.config.js` that includes lint-ts.
+  - `@allons-y/opx-lint-js` 0.x also lints TypeScript. Accepting `ts` in `opx init` installs lint-js from its JavaScript-only `^1.0.0-beta.1` range, or upgrades a 0.x release already installed, and `opx enable ts` prints that upgrade command, so `.ts` files are no longer linted twice. Installing from a dist-tag keeps that range instead of adding the tag to it.
+  - Declaration files such as `types.d.ts` count as their own file type, so a JavaScript package that ships hand-written types is not offered lint-ts.
+
+- 9abc31b: Set up opx with one command and no prompts, so scripts and AI agents can adopt it.
+
+  - `opx init --yes` accepts every plugin your files match; `--accept js,md,release` names them, including `release`, which files can't imply. Both install packages, write the config, scaffold `eslint.config.js`, add the `lint` script, and install the hook. Unknown names and failed installs exit `1`.
+  - `opx scan --json` adds `packageManager`, `install`, and `setup`, the commands that add and enable what's missing.
+  - While the CLI is a prerelease, plugins install from its dist-tag (`@beta`). A bare `npm install @allons-y/opx-lint-js` failed because the packages have only prereleases.
+  - The `release` suggestion no longer claims it was found in your files.
+  - The docs site publishes `llms.txt` and a guide, "Use opx with an AI agent".
+
+### Patch Changes
+
+- bedebaa: `opx scan` and `opx init` now suggest `@allons-y/opx-lint-ts` for TypeScript files, and note that it needs `typescript`. `opx enable ts` works, and `opx enable @allons-y/opx-lint-ts` enables `ts` under `lint` instead of writing the package id to every task. A third-party plugin id is written under the tasks its detectors declare; if opx can't load it, pass `--task`. The `release` suggestion no longer claims it was found in your files.
+- 764ad1b: Saving `.opx/config.json` now warns when it leaves out a top-level key opx doesn't know. `opx enable`, `opx disable`, and `opx init` name the removed keys instead of dropping them silently. `writeConfig` returns the keys it left out, and the engine exports `CONFIG_KEYS`, the keys it keeps.
+- Updated dependencies [07965b1]
+- Updated dependencies [764ad1b]
+  - @allons-y/opx@0.1.0-beta.4
+
 ## 0.1.0-beta.3
 
 ### Patch Changes
