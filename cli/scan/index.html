@@ -78,6 +78,7 @@
 				<li><a href="/opx/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/guides/agents/">Use opx with an AI agent</a></li>
 			</ul>
 		</li>
 		<li>
@@ -129,7 +130,10 @@
       <span class="token property">"requires"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
-  <span class="token property">"needsPrompt"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"md"</span><span class="token punctuation">]</span>
+  <span class="token property">"needsPrompt"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"md"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+  <span class="token property">"packageManager"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"name"</span><span class="token operator">:</span> <span class="token string">"yarn"</span><span class="token punctuation">,</span> <span class="token property">"certain"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span> <span class="token property">"reason"</span><span class="token operator">:</span> <span class="token string">"packageManager field"</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  <span class="token property">"install"</span><span class="token operator">:</span> <span class="token string">"yarn add -D @allons-y/opx-lint-md@beta"</span><span class="token punctuation">,</span>
+  <span class="token property">"setup"</span><span class="token operator">:</span> <span class="token string">"opx init --accept md"</span>
 <span class="token punctuation">}</span></code></pre>
 <table>
 <thead>
@@ -158,6 +162,18 @@
 <tr>
 <td><code>needsPrompt</code></td>
 <td>Short names of file-based suggestions that aren't enabled</td>
+</tr>
+<tr>
+<td><code>packageManager</code></td>
+<td>The package manager opx would use, whether it is <code>certain</code>, and <code>reason</code> it chose it</td>
+</tr>
+<tr>
+<td><code>install</code></td>
+<td>The command that installs the packages in <code>needsPrompt</code> that are missing, or <code>null</code>. Pinned to the dist-tag while the CLI is a prerelease.</td>
+</tr>
+<tr>
+<td><code>setup</code></td>
+<td>The <code>opx init --accept</code> command that enables everything in <code>needsPrompt</code>, or <code>null</code></td>
 </tr>
 </tbody>
 </table>

@@ -78,6 +78,7 @@
 				<li><a href="/opx/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/guides/agents/">Use opx with an AI agent</a></li>
 			</ul>
 		</li>
 		<li>
@@ -91,7 +92,7 @@
 		<h1 data-pagefind-meta="title">opx init</h1>
 		<p>Scan the committed tree and interactively wire up opx.</p>
 <h2 id="synopsis" tabindex="-1"><a class="header-anchor" href="#synopsis">Synopsis</a></h2>
-<pre class="language-sh"><code class="language-sh">opx init <span class="token punctuation">[</span>--auto<span class="token punctuation">]</span> <span class="token punctuation">[</span>--quiet<span class="token punctuation">]</span> <span class="token punctuation">[</span>--cleanup<span class="token punctuation">]</span></code></pre>
+<pre class="language-sh"><code class="language-sh">opx init <span class="token punctuation">[</span>--yes <span class="token operator">|</span> <span class="token parameter variable">--accept</span> <span class="token operator">&lt;</span>names<span class="token operator">></span><span class="token punctuation">]</span> <span class="token punctuation">[</span>--auto<span class="token punctuation">]</span> <span class="token punctuation">[</span>--quiet<span class="token punctuation">]</span> <span class="token punctuation">[</span>--cleanup<span class="token punctuation">]</span></code></pre>
 <h2 id="options" tabindex="-1"><a class="header-anchor" href="#options">Options</a></h2>
 <table>
 <thead>
@@ -102,6 +103,16 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>--yes</code></td>
+<td><code>false</code></td>
+<td>Accept every suggestion that matches your files, without prompting. See <a href="#without-prompts">Without prompts</a>.</td>
+</tr>
+<tr>
+<td><code>--accept &lt;names&gt;</code></td>
+<td></td>
+<td>Accept these plugins without prompting, as comma-separated short names such as <code>js,md,release</code>. Unlike <code>--yes</code>, it can enable plugins files can't imply, like <code>release</code>.</td>
+</tr>
 <tr>
 <td><code>--auto</code></td>
 <td><code>false</code></td>
@@ -129,6 +140,18 @@
 <li>Installs the <code>post-commit</code> husky hook and updates <code>.gitignore</code> to ignore <code>.opx/*</code> except <code>.opx/config.json</code>, which stays tracked.</li>
 <li>With <code>--cleanup</code>, shows the <a href="#cleanup">cleanup suggestions</a> your enabled plugins make, and offers to delete empty files they replace.</li>
 </ol>
+<h2 id="without-prompts" tabindex="-1"><a class="header-anchor" href="#without-prompts">Without prompts</a></h2>
+<p><code>--yes</code> and <code>--accept</code> run the whole setup above in one command, with no questions and no terminal needed. They suit scripts and AI agents.</p>
+<pre class="language-sh"><code class="language-sh">opx init <span class="token parameter variable">--yes</span>                  <span class="token comment"># every plugin your files match</span>
+opx init <span class="token parameter variable">--accept</span> js,md,release <span class="token comment"># exactly these</span></code></pre>
+<ul>
+<li>They do everything the interactive flow does: write the config, install missing packages, scaffold <code>eslint.config.js</code>, add the <code>lint</code> script, install the hook, and update <code>.gitignore</code>.</li>
+<li><code>--yes</code> never enables <code>release</code>, since files can't tell whether you publish. Name it with <code>--accept</code>.</li>
+<li>Plugins already enabled are left as they are, and a name opx doesn't know exits <code>1</code> before anything changes.</li>
+<li>If the install fails, your choices stay saved, and opx exits <code>1</code> and prints the command to run yourself. If the package manager is <a href="#package-manager">ambiguous</a>, opx prints the command and exits <code>0</code>.</li>
+<li>While this CLI is a prerelease, packages install from its dist-tag (<code>@allons-y/opx-lint-js@beta</code>), because npm can't resolve a bare name that has only prereleases.</li>
+<li>With <code>--cleanup</code>, cleanup suggestions are printed and nothing is deleted. <code>--auto</code> ignores both flags, so a <code>postinstall</code> never changes your project.</li>
+</ul>
 <h2 id="package-manager" tabindex="-1"><a class="header-anchor" href="#package-manager">Package manager</a></h2>
 <p>opx works out which package manager the project uses, in this order:</p>
 <ol>
@@ -179,7 +202,7 @@
 </ul>
 <p>A plugin is only consulted when it is enabled and installed. Because the suggestions ship with the plugin, they match the version you have. See <a href="../../guides/writing-a-detector/">Writing a detector</a> to add them to your own plugin.</p>
 <h2 id="non-interactive-use" tabindex="-1"><a class="header-anchor" href="#non-interactive-use">Non-interactive use</a></h2>
-<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="../enable/"><code>opx enable</code></a> to apply them. With <code>--cleanup</code> it also prints the cleanup suggestions, and changes nothing. <code>init --auto</code> (postinstall) never runs cleanup, even with <code>--cleanup</code>.</p>
+<p>With no TTY, <code>CI</code> set, or <code>OPX_NONINTERACTIVE</code> set, <code>init</code> prints the suggestions and the commands to run instead of prompting. Use <a href="#without-prompts"><code>opx init --yes</code></a> to apply them all at once, or <a href="../enable/"><code>opx enable</code></a> one at a time. With <code>--cleanup</code> it also prints the cleanup suggestions, and changes nothing. <code>init --auto</code> (postinstall) never runs cleanup, even with <code>--cleanup</code>.</p>
 
 	</main>
 </div>
