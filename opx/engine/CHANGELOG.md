@@ -1,5 +1,22 @@
 # @allons-y/opx
 
+## 0.1.0-beta.5
+
+### Minor Changes
+
+- 7e063f9: opx now loads plugins from your project's `node_modules`, so a global or `npx` install of opx finds the plugins your project installs. Before, it looked next to its own install and reported "no linters are detected".
+
+  `opx lint`, `opx build`, and `opx release` now exit 1 when an enabled plugin isn't installed or fails to import, and say why on stderr, instead of passing without running it. They still run the plugins that loaded.
+
+  For plugin hosts, `loadPlugins` takes an optional `onSkip(entry, reason)` callback, and the engine exports `resolvePackageEntry` and `packageEntry`.
+
+### Patch Changes
+
+- 3615815: opx works in Yarn Plug'n'Play projects:
+
+  - The lint plugins no longer lint the `.pnp.cjs` and `.pnp.loader.mjs` files Yarn generates.
+  - The post-commit hook runs opx through `yarn` when the project uses Plug'n'Play, which has no `node_modules/.bin`. Before, it found no opx and silently did nothing. Running `opx init` again upgrades a hook an earlier version installed.
+
 ## 0.1.0-beta.4
 
 ### Minor Changes

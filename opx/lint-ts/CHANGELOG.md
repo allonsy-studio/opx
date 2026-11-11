@@ -1,5 +1,18 @@
 # @allons-y/opx-lint-ts
 
+## 0.1.0-beta.2
+
+### Patch Changes
+
+- 3615815: opx works in Yarn Plug'n'Play projects:
+
+  - The lint plugins no longer lint the `.pnp.cjs` and `.pnp.loader.mjs` files Yarn generates.
+  - The post-commit hook runs opx through `yarn` when the project uses Plug'n'Play, which has no `node_modules/.bin`. Before, it found no opx and silently did nothing. Running `opx init` again upgrades a hook an earlier version installed.
+
+- Updated dependencies [7e063f9]
+- Updated dependencies [3615815]
+  - @allons-y/opx@0.1.0-beta.5
+
 ## 0.1.0-beta.1
 
 ### Minor Changes

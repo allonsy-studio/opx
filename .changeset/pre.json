@@ -28,6 +28,7 @@
     "initial-opx-release",
     "js-only-lint-js",
     "lighter-startup-shared-runner",
+    "load-plugins-from-host",
     "modern-syntax-rules",
     "new-shared-workspace",
     "opx-gitignore-order",
@@ -38,6 +39,7 @@
     "self-contained-types",
     "slim-release-add",
     "starter-config-and-docs",
-    "warn-dropped-config-keys"
+    "warn-dropped-config-keys",
+    "yarn-pnp-support"
   ]
 }
