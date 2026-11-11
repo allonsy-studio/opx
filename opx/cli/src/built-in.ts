@@ -5,14 +5,6 @@ import { PLUGIN_CATALOG, isPackageId, type BuiltInShortName } from "./plugin-cat
 
 export type { BuiltInShortName };
 
-/** A plugin the CLI can suggest, whether or not its package is installed yet. */
-export type Suggestion = {
-	shortName: BuiltInShortName;
-	pkg: string;
-	reason: string;
-	installed: boolean;
-};
-
 /**
  * Built-in file-type detector registry. opx-cli knows the official
  * @allons-y/opx-(lint|build)-* packages by name; the actual detector code lives
