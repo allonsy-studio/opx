@@ -1,6 +1,8 @@
-import { loadPlugins, readConfig, type Logger, type PackageJson } from "@allons-y/opx";
+import { inspectPackageManager, installCommand, loadPlugins, readConfig, type Logger, type PackageJson } from "@allons-y/opx";
 
 import { readHostPackage } from "./context.js";
+import { eslintConfigHint } from "./eslint-scaffold.js";
+import { LINT_JS_UPGRADE, lintJsLintsTypeScript } from "./lint-js-version.js";
 import { CLI_NAME } from "./plugin-kit.js";
 import { saveConfig } from "./save-config.js";
 import type { TaskKind } from "./plugin-catalog.js";
@@ -24,7 +26,9 @@ export const readConcerns: ConcernReader = async (id, cwd, hostPkg) => {
  *
  * Writes the config only when something changed, so a no-op never creates or
  * rewrites the file. Enabling a third-party plugin without `--task` loads it
- * to read which tasks it runs in.
+ * to read which tasks it runs in. After enabling a lint plugin, prints what
+ * the project still needs: the lines its own `eslint.config.js` lacks, and a
+ * `lint-js` upgrade when a 0.x release would lint `.ts` files alongside `lint-ts`.
  *
  * @param cwd - The repository root.
  * @param name - A plugin short name or full package id.
@@ -45,5 +49,14 @@ export async function runToggleCommand(cwd: string, name: string, enable: boolea
 	}
 	if (result.config !== config) saveConfig(cwd, result.config);
 	console.log(`${CLI_NAME}: ${result.message}`);
+	const key = target.name;
+	if (enable && result.config !== config && result.config.lint?.[key] !== undefined) {
+		const hint = eslintConfigHint(cwd, [key]);
+		if (hint) console.log(`${CLI_NAME}: ${hint}`);
+		if (key === "ts" && lintJsLintsTypeScript(cwd, hostPkg)) {
+			const cmd = installCommand(inspectPackageManager(cwd, hostPkg).name, [LINT_JS_UPGRADE]);
+			console.log(`${CLI_NAME}: your @allons-y/opx-lint-js is a 0.x release, which also lints TypeScript, so .ts files would be linted twice. Upgrade it:\n  ${cmd}`);
+		}
+	}
 	return 0;
 }

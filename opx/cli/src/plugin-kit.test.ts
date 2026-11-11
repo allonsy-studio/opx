@@ -37,6 +37,7 @@ describe("prerelease tags", () => {
 		expect(prereleaseTag("1.0.0")).toBeUndefined();
 		expect(prereleaseTag(undefined)).toBeUndefined();
 		expect(withTag(["a", "b"], "beta")).toEqual(["a@beta", "b@beta"]);
+		expect(withTag(["@scope/a", "@scope/b@^1.0.0-beta.1"], "beta")).toEqual(["@scope/a@beta", "@scope/b@^1.0.0-beta.1"]);
 		expect(withTag(["a"], undefined)).toEqual(["a"]);
 	});
 });

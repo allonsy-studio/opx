@@ -195,6 +195,53 @@ describe("init", () => {
 			expect(read(dir, "eslint.config.js")).toBe("// mine\n");
 		});
 
+		it("points an accepted plugin at the local config the others share", async () => {
+			const config = JSON.stringify({ version: 1, lint: { js: "./eslint.config.js", md: "./eslint.config.js" } });
+			const dir = make({ "a.ts": "x", "package.json": PKG, ".opx/config.json": config });
+			answers({ ts: "yes" });
+			await runInteractive(dir, install);
+			expect(json(dir, ".opx/config.json").lint?.ts).toBe("./eslint.config.js");
+		});
+
+		it("installs a JavaScript-only lint-js beside lint-ts", async () => {
+			const dir = make({ "a.js": "x", "b.ts": "x", "package.json": PKG });
+			answers({ js: "yes", ts: "yes" });
+			await runInteractive(dir, install);
+			const cmd = String(install.mock.calls.at(-1)?.[0]);
+			expect(cmd).toContain("@allons-y/opx-lint-js@^1.0.0-beta.1");
+			expect(cmd).toContain("@allons-y/opx-lint-ts");
+			expect(cmd).not.toMatch(/opx-lint-js(\s|$)/);
+		});
+
+		it("upgrades an installed lint-js 0.x when lint-ts is accepted", async () => {
+			const pkg = JSON.stringify({ name: "host", devDependencies: { "@allons-y/opx-lint-js": "^0.1.0-beta.0" } });
+			const dir = make({ "a.ts": "x", "package.json": pkg, ".opx/config.json": JSON.stringify({ version: 1, lint: { js: true } }) });
+			answers({ ts: "yes" });
+			await runInteractive(dir, install);
+			expect(String(install.mock.calls.at(-1)?.[0])).toContain("@allons-y/opx-lint-js@^1.0.0-beta.1");
+			expect(logInfo.mock.calls.map((c: unknown[]) => String(c[0])).join("\n")).toContain("0.x release");
+		});
+
+		it("leaves lint-js alone when the project does not use it", async () => {
+			const dir = make({ "a.ts": "x", "package.json": PKG });
+			answers({ ts: "yes" });
+			await runInteractive(dir, install);
+			const cmd = String(install.mock.calls.at(-1)?.[0]);
+			expect(cmd).toContain("@allons-y/opx-lint-ts");
+			expect(cmd).not.toContain("opx-lint-js");
+		});
+
+		it("prints the lines an existing eslint.config.js lacks", async () => {
+			const eslint = 'import js from "@allons-y/opx-lint-js/eslint.config.js";\nexport default [...js];\n';
+			const dir = make({ "a.ts": "x", "package.json": PKG, "eslint.config.js": eslint });
+			answers({ ts: "yes" });
+			await runInteractive(dir, install);
+			const info = logInfo.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
+			expect(info).toContain('import ts from "@allons-y/opx-lint-ts/eslint.config.js";');
+			expect(info).toContain("...ts,");
+			expect(read(dir, "eslint.config.js")).toBe(eslint);
+		});
+
 		it("keeps existing config choices and does not re-ask for them", async () => {
 			const dir = make({ "a.js": "x", "package.json": PKG });
 			answers({ js: "yes" });
@@ -285,6 +332,28 @@ describe("init", () => {
 			const dir = make({ "a.js": "x", "package.json": PKG });
 			await runAccept(dir, install, { accept: "files", tag: "beta" });
 			expect(install.mock.calls[0]?.[0]).toContain("@allons-y/opx-lint-js@beta");
+		});
+
+		it("keeps lint-js on its JavaScript-only range beside lint-ts, even from a dist-tag", async () => {
+			const dir = make({ "a.js": "x", "b.ts": "x", "package.json": PKG });
+			await runAccept(dir, install, { accept: ["js", "ts"], tag: "beta" });
+			const cmd = String(install.mock.calls[0]?.[0]);
+			expect(cmd).toContain("@allons-y/opx-lint-js@^1.0.0-beta.1");
+			expect(cmd).toContain("@allons-y/opx-lint-ts@beta");
+		});
+
+		it("follows the shared config, upgrades lint-js 0.x, and shows what eslint.config.js lacks", async () => {
+			const pkg = JSON.stringify({ name: "host", devDependencies: { "@allons-y/opx-lint-js": "^0.1.0-beta.0" } });
+			const config = JSON.stringify({ version: 1, lint: { js: "./eslint.config.js" } });
+			const eslint = 'import js from "@allons-y/opx-lint-js/eslint.config.js";\nexport default [...js];\n';
+			const dir = make({ "a.ts": "x", "package.json": pkg, ".opx/config.json": config, "eslint.config.js": eslint });
+			await runAccept(dir, install, { accept: ["ts"] });
+
+			expect(json(dir, ".opx/config.json").lint?.ts).toBe("./eslint.config.js");
+			expect(String(install.mock.calls[0]?.[0])).toContain("@allons-y/opx-lint-js@^1.0.0-beta.1");
+			expect(printed()).toContain("Upgrading @allons-y/opx-lint-js too");
+			expect(printed()).toContain('import ts from "@allons-y/opx-lint-ts/eslint.config.js";');
+			expect(read(dir, "eslint.config.js")).toBe(eslint);
 		});
 
 		it("prints cleanup suggestions but deletes nothing", async () => {

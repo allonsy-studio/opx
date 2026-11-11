@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
-import { composeEslintConfig, scaffoldEslintConfig } from "./eslint-scaffold.js";
+import { composeEslintConfig, eslintConfigHint, scaffoldEslintConfig } from "./eslint-scaffold.js";
 
 function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-eslint-"));
@@ -22,6 +22,12 @@ describe("composeEslintConfig", () => {
 		expect(out).toContain("\t...js,");
 		expect(out).toContain("\t...md,");
 		expect(out).toContain("export default [");
+	});
+
+	it("composes the TypeScript detector's config alongside JavaScript's", () => {
+		const out = composeEslintConfig(["js", "ts"]);
+		expect(out).toContain('import ts from "@allons-y/opx-lint-ts/eslint.config.js";');
+		expect(out).toContain("\t...ts,");
 	});
 
 	it("filters out unknown names while keeping known ones", () => {
@@ -56,6 +62,46 @@ describe("scaffoldEslintConfig", () => {
 		const contents = readFileSync(join(dir, "eslint.config.js"), "utf8");
 		expect(contents).toContain("...js,");
 		expect(contents).not.toContain("...md,");
+		rmSync(dir, { recursive: true });
+	});
+});
+
+describe("eslintConfigHint", () => {
+	const withConfig = (text: string, file = "eslint.config.js"): string => {
+		const dir = tmp();
+		writeFileSync(join(dir, file), text, "utf8");
+		return dir;
+	};
+
+	it("returns null without a root config or when nothing is missing", () => {
+		const none = tmp();
+		expect(eslintConfigHint(none, ["ts"])).toBeNull();
+		const full = withConfig('import ts from "@allons-y/opx-lint-ts/eslint.config.js";\nexport default [...ts];\n');
+		expect(eslintConfigHint(full, ["ts"])).toBeNull();
+		expect(eslintConfigHint(full, ["css"])).toBeNull();
+		rmSync(none, { recursive: true });
+		rmSync(full, { recursive: true });
+	});
+
+	it("lists the import and spread an existing config lacks", () => {
+		const dir = withConfig('import js from "@allons-y/opx-lint-js/eslint.config.js";\nexport default [...js, { files: ["src/**/*.ts"] }];\n');
+		const hint = eslintConfigHint(dir, ["js", "ts"]);
+		expect(hint).toContain("eslint.config.js doesn't include the ts config");
+		expect(hint).toContain('import ts from "@allons-y/opx-lint-ts/eslint.config.js";');
+		expect(hint).toContain("...ts,");
+		expect(hint).toContain("spread it into");
+		expect(hint).not.toContain("opx-lint-js/eslint.config.js\";\n");
+		rmSync(dir, { recursive: true });
+	});
+
+	it("renames a binding the config already declares, and names .mjs configs", () => {
+		const dir = withConfig('import ts from "typescript-eslint";\nexport default [];\n', "eslint.config.mjs");
+		const hint = eslintConfigHint(dir, ["ts", "md"]);
+		expect(hint).toContain("eslint.config.mjs doesn't include the ts, md config");
+		expect(hint).toContain('import opxTs from "@allons-y/opx-lint-ts/eslint.config.js";');
+		expect(hint).toContain("...opxTs,");
+		expect(hint).toContain("...md,");
+		expect(hint).toContain("spread them into");
 		rmSync(dir, { recursive: true });
 	});
 });

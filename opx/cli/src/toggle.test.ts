@@ -83,6 +83,22 @@ describe("toggle", () => {
 		expect(toggle({ ...base(), release: true }, "release", true, {})).toMatchObject({ message: expect.stringContaining("already enabled") });
 	});
 
+	it("points a new plugin at the config file the others share", () => {
+		const config = { ...base(), lint: { js: "./eslint.config.js", md: "./eslint.config.js", json: false } };
+		const result = toggle(config, "ts", true, {});
+		expect(result).toMatchObject({ config: { lint: { ts: "./eslint.config.js" } }, message: expect.stringContaining("lint uses ./eslint.config.js") });
+	});
+
+	it("enables with true when the other plugins disagree", () => {
+		const config = { ...base(), lint: { js: "./eslint.config.js", md: true } };
+		expect(toggle(config, "ts", true, {})).toMatchObject({ config: { lint: { ts: true } }, message: 'enabled "ts" in lint.' });
+	});
+
+	it("keeps a plugin's config path when it is enabled again", () => {
+		const config = { ...base(), lint: { js: "./eslint.config.js" } };
+		expect(toggle(config, "js", true, {})).toMatchObject({ config, message: expect.stringContaining("already enabled") });
+	});
+
 	it("disables a plugin and preserves the others", () => {
 		const config = { ...base(), lint: { js: true, md: true } };
 		expect(toggle(config, "js", false, {})).toMatchObject({ config: { lint: { md: true } }, message: 'disabled "js" in lint.' });

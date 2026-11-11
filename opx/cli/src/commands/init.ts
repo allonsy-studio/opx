@@ -27,8 +27,10 @@ import { buildContext, readHostPackage } from "../context.js";
 import { load as loadDetectors, virtualDetectors, type Suggestion } from "../built-in.js";
 import { colors } from "../colors.js";
 import { PLUGIN_CATALOG } from "../plugin-catalog.js";
-import { scaffoldEslintConfig } from "../eslint-scaffold.js";
+import { eslintConfigHint, scaffoldEslintConfig } from "../eslint-scaffold.js";
+import { LINT_JS, LINT_JS_UPGRADE, lintJsLintsTypeScript } from "../lint-js-version.js";
 import { saveConfig } from "../save-config.js";
+import { conventionSetting } from "../toggle.js";
 import { defaultSkipUntilDate, isTaskEnabled } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
 
@@ -109,6 +111,29 @@ function isPending(s: Suggestion, config: OpxConfig): boolean {
 	return !enabledNames(config.lint).includes(s.shortName);
 }
 
+/**
+ * Pair lint-ts with a JavaScript-only lint-js. lint-js 0.x also lints
+ * TypeScript, and npm's `latest` tag still points at it.
+ *
+ * @param cwd - The repository root.
+ * @param hostPkg - The host's `package.json`.
+ * @param accepted - The plugins being enabled.
+ * @param nextConfig - The config after enabling them.
+ * @param candidates - Install specs, updated in place.
+ * @returns Whether an installed 0.x release is being upgraded.
+ */
+function pairLintJs(cwd: string, hostPkg: PackageJson, accepted: Suggestion[], nextConfig: OpxConfig, candidates: string[]): boolean {
+	if (!accepted.some((s) => s.shortName === "ts") || !enabledNames(nextConfig.lint).includes("js")) return false;
+	const fresh = candidates.indexOf(LINT_JS);
+	if (fresh >= 0) {
+		candidates[fresh] = LINT_JS_UPGRADE;
+		return false;
+	}
+	if (!lintJsLintsTypeScript(cwd, hostPkg)) return false;
+	candidates.push(LINT_JS_UPGRADE);
+	return true;
+}
+
 /** The config with the accepted suggestions switched on; everything else is kept. */
 function applyAccepted(config: OpxConfig, accepted: Suggestion[]): OpxConfig {
 	const names = (marker: string): string[] => accepted.filter((s) => s.pkg.includes(marker)).map((s) => s.shortName);
@@ -116,11 +141,11 @@ function applyAccepted(config: OpxConfig, accepted: Suggestion[]): OpxConfig {
 		...config,
 		lint: {
 			...(config.lint ?? {}),
-			...Object.fromEntries(names("opx-lint-").map((shortName) => [shortName, true])),
+			...Object.fromEntries(names("opx-lint-").map((shortName) => [shortName, conventionSetting(config.lint, shortName)])),
 		},
 		build: {
 			...(config.build ?? {}),
-			...Object.fromEntries(names("opx-build-").map((shortName) => [shortName, true])),
+			...Object.fromEntries(names("opx-build-").map((shortName) => [shortName, conventionSetting(config.build, shortName)])),
 		},
 		// Keep release settings; `true` only turns it on.
 		release: isTaskEnabled(config.release) ? config.release : accepted.some((s) => s.shortName === "release"),
@@ -201,6 +226,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	}
 
 	const nextConfig = applyAccepted(config, accepted);
+	const acceptedLint = accepted.filter((s) => s.pkg.includes("opx-lint-")).map((s) => s.shortName);
 	saveConfig(cwd, nextConfig, (message) => p.log.warn(message));
 
 	let nextState = state;
@@ -218,6 +244,10 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	} else {
 		// Ensure the .opx directory exists so the cache subtree has a home.
 		writeState(cwd, defaultState());
+	}
+
+	if (pairLintJs(cwd, ctx.hostPkg, accepted, nextConfig, installCandidates)) {
+		p.log.info(`Your ${LINT_JS} is a 0.x release, which also lints TypeScript. Upgrading it so lint-ts alone lints .ts files.`);
 	}
 
 	if (installCandidates.length > 0) {
@@ -244,6 +274,9 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	const scaffolded = scaffoldEslintConfig(cwd, Object.keys(nextConfig.lint ?? {}));
 	if (scaffolded) {
 		p.log.success("Wrote a composable eslint.config.js — edit it to add your own or third-party rules.");
+	} else {
+		const hint = eslintConfigHint(cwd, acceptedLint);
+		if (hint) p.log.info(hint);
 	}
 
 	// Patch host package.json scripts opportunistically.
@@ -397,6 +430,9 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 	for (const s of accepted) ok(`Enabled ${s.shortName}`, s.pkg);
 
 	const missing = accepted.filter((s) => !s.installed).map((s) => s.pkg);
+	if (pairLintJs(cwd, ctx.hostPkg, accepted, nextConfig, missing)) {
+		hint(`Upgrading ${LINT_JS} too: its 0.x releases also lint TypeScript`);
+	}
 	if (missing.length > 0) {
 		const pm = inspectPackageManager(cwd, ctx.hostPkg);
 		const cmd = installCommand(pm.name, withTag(missing, options.tag), pm);
@@ -417,6 +453,14 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 	}
 
 	if (scaffoldEslintConfig(cwd, Object.keys(nextConfig.lint ?? {}))) ok("Wrote eslint.config.js");
+	else {
+		const advice = eslintConfigHint(cwd, accepted.filter((s) => s.pkg.includes("opx-lint-")).map((s) => s.shortName));
+		if (advice) {
+			const [first, ...rest] = advice.split("\n");
+			console.log(`  ${colors.yellow("▲")} ${first}`);
+			for (const line of rest) hint(line);
+		}
+	}
 
 	const hostPath = join(cwd, "package.json");
 	if (accepted.length > 0 && existsSync(hostPath)) {

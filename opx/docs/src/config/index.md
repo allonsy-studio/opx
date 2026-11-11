@@ -59,7 +59,7 @@ Use your own ESLint flat config for JavaScript, and lint JSONC and JSON5 too:
 }
 ```
 
-The settings each plugin understands are documented on its page: [js](../plugins/lint-js/), [json](../plugins/lint-json/), [md](../plugins/lint-md/), [release](../plugins/release/).
+The settings each plugin understands are documented on its page: [js](../plugins/lint-js/), [ts](../plugins/lint-ts/), [json](../plugins/lint-json/), [md](../plugins/lint-md/), [release](../plugins/release/).
 
 ## Defaults & errors
 

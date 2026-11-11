@@ -10,6 +10,11 @@ describe("PLUGIN_CATALOG", () => {
 		expect(new Set(names).size).toBe(names.length);
 	});
 
+	it("gives each file extension to one plugin only", () => {
+		const all = PLUGIN_CATALOG.flatMap((e) => [...e.extensions]);
+		expect(new Set(all).size).toBe(all.length);
+	});
+
 	it("uses leading-dot, lowercase extensions where present", () => {
 		for (const entry of PLUGIN_CATALOG) {
 			for (const ext of entry.extensions) {
@@ -31,6 +36,7 @@ describe("task helpers", () => {
 		expect(isStaticTask("release")).toBe(true);
 		expect(isStaticTask("js")).toBe(false);
 		expect(isShipped("js")).toBe(true);
+		expect(isShipped("ts")).toBe(true);
 		expect(isShipped("css")).toBe(false);
 	});
 });

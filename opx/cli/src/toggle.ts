@@ -49,6 +49,27 @@ function packageTasks(config: OpxConfig, name: string, enable: boolean, requeste
 	return `can't tell which task "${name}" runs in. Install it first, or pass --task lint or --task build.`;
 }
 
+/** Whether a plugin setting is on: `true`, a config path, or inline settings. */
+function isOn(setting: unknown): boolean {
+	return setting !== undefined && setting !== false;
+}
+
+/**
+ * The setting to write for a newly enabled plugin.
+ *
+ * When every other enabled plugin in the task points at the same config file,
+ * the new one points there too, so it gets the project's local rules.
+ *
+ * @param entries - The task's current plugin settings.
+ * @param name - The plugin being enabled.
+ * @returns That shared path, or `true`.
+ */
+export function conventionSetting(entries: Record<string, unknown> | undefined, name: string): string | true {
+	const others = Object.entries(entries ?? {}).filter(([key, setting]) => key !== name && isOn(setting)).map(([, setting]) => setting);
+	const [first] = others;
+	return typeof first === "string" && others.every((setting) => setting === first) ? first : true;
+}
+
 /**
  * Enable or disable a plugin in the config.
  *
@@ -89,17 +110,21 @@ export function toggle(config: OpxConfig, name: string, enable: boolean, hostPkg
 
 	const verb = enable ? "enabled" : "disabled";
 	const changed = tasks.filter((task) =>
-		enable ? config[task]?.[key] !== true : [key, ...stale].some((k) => typeof config[task]?.[k] !== "undefined"));
+		enable ? !isOn(config[task]?.[key]) : [key, ...stale].some((k) => typeof config[task]?.[k] !== "undefined"));
 	if (changed.length === 0) {
 		return { config, message: `"${key}" is already ${verb} in ${tasks.join(", ")}.` };
 	}
 
 	const next: OpxConfig = { ...config };
+	const shared: string[] = [];
 	for (const task of changed) {
 		const entries = { ...(config[task] ?? {}) };
-		if (enable) entries[key] = true;
-		else for (const k of [key, ...stale]) delete entries[k];
+		if (enable) {
+			entries[key] = conventionSetting(config[task], key);
+			if (typeof entries[key] === "string") shared.push(`${task} uses ${entries[key]}`);
+		} else for (const k of [key, ...stale]) delete entries[k];
 		next[task] = entries;
 	}
-	return { config: next, message: `${verb} "${key}" in ${changed.join(", ")}.` };
+	const note = shared.length > 0 ? ` It follows your other plugins: ${shared.join(", ")}.` : "";
+	return { config: next, message: `${verb} "${key}" in ${changed.join(", ")}.${note}` };
 }

@@ -1,11 +1,11 @@
 import type { Command } from "commander";
 import type { BuiltInShortName } from "../built-in.js";
 
-import { extname, basename } from "node:path";
+import { basename } from "node:path";
 
 import { enabledNames, isDeferred, readConfig, readState, writeState } from "@allons-y/opx";
 
-import { getCurrentBranch, getHeadCommit, listFilesInHeadCommit } from "../scanner.js";
+import { fileTypesOf, getCurrentBranch, getHeadCommit, listFilesInHeadCommit } from "../scanner.js";
 import builtIns from "../built-in.js";
 
 export default function register(program: Command): void {
@@ -44,8 +44,7 @@ export function runPostCommit(cwd: string = process.cwd(), today: string = new D
 
 	const newTypes = new Set<string>();
 	for (const file of newFiles) {
-		const ext = extname(basename(file));
-		if (ext) newTypes.add(ext.toLowerCase());
+		for (const type of fileTypesOf(basename(file))) newTypes.add(type);
 	}
 
 	const enabledLinters = new Set(enabledNames(config.lint));

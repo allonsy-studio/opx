@@ -11,7 +11,7 @@ const { execFileSync } = childProcess;
 const mockedExec = jest.fn(childProcess.execFileSync);
 jest.unstable_mockModule("node:child_process", () => ({ ...childProcess, execFileSync: mockedExec }));
 
-const { getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } = await import("./scanner.js");
+const { fileTypesOf, getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } = await import("./scanner.js");
 
 const scratch = useScratch();
 
@@ -22,12 +22,29 @@ function commit(dir: string, name: string, content = "x"): void {
 	execFileSync("git", ["commit", "-m", "msg"], { cwd: dir, stdio: "ignore" });
 }
 
+describe("fileTypesOf", () => {
+	it("gives declaration files their own type", () => {
+		expect(fileTypesOf("eleventy.d.ts")).toEqual([".d.ts"]);
+		expect(fileTypesOf("index.d.mts")).toEqual([".d.ts"]);
+		expect(fileTypesOf("index.D.CTS")).toEqual([".d.ts"]);
+		expect(fileTypesOf("cli.ts")).toEqual([".ts"]);
+	});
+
+	it("returns a known name's token beside its extension", () => {
+		expect(fileTypesOf(".yarnrc.yml")).toEqual(["yarnrc", ".yml"]);
+		expect(fileTypesOf("Makefile")).toEqual(["makefile"]);
+		expect(fileTypesOf("Styles.CSS")).toEqual([".css"]);
+		expect(fileTypesOf("README")).toEqual([]);
+	});
+});
+
 describe("scanCommittedTree", () => {
 	it("collects extensions and known extensionless types from the committed tree", () => {
-		const dir = scratch.repo({ "a.ts": "x", Dockerfile: "FROM x", "styles.CSS": "x" });
+		const dir = scratch.repo({ "a.ts": "x", Dockerfile: "FROM x", "styles.CSS": "x", "types.d.ts": "x" });
 
 		const scan = scanCommittedTree(dir);
 		expect(scan.fileTypes.has(".ts")).toBe(true);
+		expect(scan.fileTypes.has(".d.ts")).toBe(true);
 		expect(scan.fileTypes.has(".css")).toBe(true);
 		expect(scan.fileTypes.has("dockerfile")).toBe(true);
 		expect(scan.fileCount).toBeGreaterThanOrEqual(3);

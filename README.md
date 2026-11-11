@@ -141,11 +141,13 @@ config as a plain array, you compose them by spreading:
 ```js
 // eslint.config.js
 import js from "@allons-y/opx-lint-js/eslint.config.js";
+import ts from "@allons-y/opx-lint-ts/eslint.config.js";
 import json from "@allons-y/opx-lint-json/eslint.config.js";
 import md from "@allons-y/opx-lint-md/eslint.config.js";
 
 export default [
 	...js,
+	...ts,
 	...json,
 	...md,
 ];

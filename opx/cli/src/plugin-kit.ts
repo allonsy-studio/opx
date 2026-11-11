@@ -67,5 +67,6 @@ export function prereleaseTag(version: string | undefined): string | undefined {
 
 /** Pin packages to a dist-tag, since npm can't resolve a bare name that only has prereleases. */
 export function withTag(packages: string[], tag: string | undefined): string[] {
-	return tag ? packages.map((pkg) => `${pkg}@${tag}`) : packages;
+	// A spec that already names a version or range, such as `pkg@^1.0.0`, keeps it.
+	return tag ? packages.map((pkg) => (pkg.lastIndexOf("@") > 0 ? pkg : `${pkg}@${tag}`)) : packages;
 }

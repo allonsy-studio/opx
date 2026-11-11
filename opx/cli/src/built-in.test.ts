@@ -36,7 +36,7 @@ function ctx(partial: Partial<DetectorContext>): DetectorContext {
 
 describe("derived constants", () => {
 	it("SUPPORTED_FILE_EXTS contains detectable short names only", () => {
-		expect(SUPPORTED_FILE_EXTS).toEqual(expect.arrayContaining(["js", "md", "json"]));
+		expect(SUPPORTED_FILE_EXTS).toEqual(expect.arrayContaining(["js", "ts", "md", "json"]));
 		expect(SUPPORTED_FILE_EXTS).not.toContain("release");
 		expect(SUPPORTED_FILE_EXTS).not.toContain("test");
 	});
@@ -48,6 +48,7 @@ describe("derived constants", () => {
 
 	it("PACKAGE_HINTS maps every short name to its packages", () => {
 		expect(PACKAGE_HINTS.js).toContain("@allons-y/opx-lint-js");
+		expect(PACKAGE_HINTS.ts).toContain("@allons-y/opx-lint-ts");
 		expect(PACKAGE_HINTS.release).toContain("@allons-y/opx-release");
 	});
 });
@@ -56,6 +57,18 @@ describe("suggest", () => {
 	it("returns short names whose extensions appear in the file set", () => {
 		expect(suggest(new Set([".md"]))).toContain("md");
 		expect(suggest(new Set([".mjs"]))).toEqual(["js"]);
+	});
+
+	it.each([".ts", ".tsx", ".mts", ".cts"])("suggests ts, and not js, for %s", (ext) => {
+		expect(suggest(new Set([ext]))).toEqual(["ts"]);
+	});
+
+	it("does not suggest ts for declaration files alone", () => {
+		expect(suggest(new Set([".js", ".d.ts"]))).toEqual(["js"]);
+	});
+
+	it("suggests both js and ts for a mixed tree", () => {
+		expect(suggest(new Set([".js", ".ts"]))).toEqual(["js", "ts"]);
 	});
 
 	it("returns empty when nothing matches", () => {

@@ -20,6 +20,30 @@ const NAMED_TYPES: Record<string, string> = {
 	".yarnrc.yml": "yarnrc",
 };
 
+/** Declaration files, which describe types rather than holding source. */
+const DECLARATION_FILE = /\.d\.[mc]?ts$/i;
+
+/**
+ * The file type tokens for a file name: a known name's token, such as
+ * `dockerfile` or `yarnrc`, and the lowercase extension. Declaration files
+ * get `.d.ts` instead of `.ts`, so a JavaScript package that ships
+ * hand-written types is not mistaken for a TypeScript project.
+ *
+ * @param name - A file's base name.
+ * @returns The tokens, possibly none.
+ */
+export function fileTypesOf(name: string): string[] {
+	const types: string[] = [];
+	const named = NAMED_TYPES[name];
+	if (named) types.push(named);
+	if (DECLARATION_FILE.test(name)) types.push(".d.ts");
+	else {
+		const ext = extname(name);
+		if (ext) types.push(ext.toLowerCase());
+	}
+	return types;
+}
+
 export type ScanResult = {
 	fileTypes: Set<string>;
 	fileCount: number;
@@ -48,11 +72,7 @@ export function scanCommittedTree(cwd: string): ScanResult {
 
 	const files = text.split("\0").filter((p) => p.length > 0);
 	for (const file of files) {
-		const name = basename(file);
-		const named = NAMED_TYPES[name];
-		if (named) fileTypes.add(named);
-		const ext = extname(name);
-		if (ext) fileTypes.add(ext.toLowerCase());
+		for (const type of fileTypesOf(basename(file))) fileTypes.add(type);
 	}
 
 	return { fileTypes, fileCount: files.length };
