@@ -94,7 +94,7 @@
 <ol>
 <li><strong>Scan.</strong> opx lists the files in your git <code>HEAD</code> and collects their extensions.</li>
 <li><strong>Match.</strong> Each installed plugin's detector decides whether it applies to that set of file types.</li>
-<li><strong>Load.</strong> Only plugins that are both enabled in <code>.opx/config.json</code> and installed in your <code>package.json</code> are loaded.</li>
+<li><strong>Load.</strong> Only plugins that are both enabled in <code>.opx/config.json</code> and installed in your <code>package.json</code> are loaded. opx loads them from your project's <code>node_modules</code>, so it finds them wherever opx itself is installed, including globally or through <code>npx</code>.</li>
 <li><strong>Run.</strong> <code>opx lint</code> and <code>opx build</code> run every loaded detector for that task, in parallel, and combine the exit codes.</li>
 </ol>
 <p>Because opx reads the committed tree, untracked and ignored files never influence what it suggests.</p>

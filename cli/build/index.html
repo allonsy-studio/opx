@@ -93,7 +93,7 @@
 		<p>Run every enabled build plugin.</p>
 <h2 id="synopsis" tabindex="-1"><a class="header-anchor" href="#synopsis">Synopsis</a></h2>
 <pre class="language-sh"><code class="language-sh">opx build <span class="token punctuation">[</span>paths<span class="token punctuation">..</span>.<span class="token punctuation">]</span></code></pre>
-<p>Works like <a href="../lint/"><code>opx lint</code></a> for the <code>build</code> task. There are no official build plugins yet, so with none enabled it prints a hint and exits <code>0</code>. Third-party plugins can provide one by exporting a detector with <code>concern: &quot;build&quot;</code>; see <a href="../../guides/writing-a-detector/">Writing a detector</a>.</p>
+<p>Works like <a href="../lint/"><code>opx lint</code></a> for the <code>build</code> task. There are no official build plugins yet, so with none enabled it prints a hint and exits <code>0</code>. An enabled builder that can't be loaded makes it exit <code>1</code>, as with <code>opx lint</code>. Third-party plugins can provide one by exporting a detector with <code>concern: &quot;build&quot;</code>; see <a href="../../guides/writing-a-detector/">Writing a detector</a>.</p>
 
 	</main>
 </div>

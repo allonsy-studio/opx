@@ -114,6 +114,7 @@
 <li>Paths are forwarded to every plugin. A plugin skips paths it doesn't handle, so <code>opx lint README.md</code> only lints that file with the Markdown plugin.</li>
 <li>Files ignored by your <code>.gitignore</code> are ignored by the linters as well.</li>
 <li>If no linters are enabled, it prints a hint to run <code>opx init</code> and exits <code>0</code>.</li>
+<li>If a linter is enabled but can't be loaded (not installed, or its package fails to import), it says why on stderr, runs the linters that did load, and exits <code>1</code>.</li>
 </ul>
 <h2 id="exit-codes" tabindex="-1"><a class="header-anchor" href="#exit-codes">Exit codes</a></h2>
 <table>
@@ -130,7 +131,7 @@
 </tr>
 <tr>
 <td><code>1</code></td>
-<td>At least one plugin reported errors</td>
+<td>At least one plugin reported errors, or an enabled plugin couldn't be loaded</td>
 </tr>
 </tbody>
 </table>

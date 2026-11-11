@@ -307,12 +307,20 @@
 <td>Normalize a detector reference (short or full) to a canonical package id by checking the host's dependencies. Returns null if no candidate is installed.</td>
 </tr>
 <tr>
+<td><a href="/opx/api/functions/packageEntry/">packageEntry</a></td>
+<td>The entry an <code>import</code> of the package root loads, relative to the package folder.</td>
+</tr>
+<tr>
 <td><a href="/opx/api/functions/readConfig/">readConfig</a></td>
 <td>Read <code>.opx/config.json</code>, filling gaps with defaults.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/readState/">readState</a></td>
 <td>Read <code>.opx/state.json</code>. The file is a disposable cache, so a missing or unreadable file gives an empty state rather than an error.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/resolvePackageEntry/">resolvePackageEntry</a></td>
+<td>Find an installed package from the host project, the way Node searches <code>node_modules</code> folders from <code>cwd</code> upward, and return its <code>import</code> entry as a file URL. Returns <code>undefined</code> when no <code>node_modules</code> copy exists, such as under Yarn Plug'n'Play.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/resolvePluginPackageName/">resolvePluginPackageName</a></td>
