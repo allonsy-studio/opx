@@ -91,6 +91,23 @@
 	<main id="main" class="docs-content" data-pagefind-body="">
 		<h1 data-pagefind-meta="title">release</h1>
 		<p><code>@allons-y/opx-release</code> wraps <a href="https://github.com/changesets/changesets">changesets</a> behind <code>opx release</code>. It writes a sensible default changesets config on first use and gives you a prompt-free path for CI.</p>
+<h2 id="opx-release-and-changesets" tabindex="-1"><a class="header-anchor" href="#opx-release-and-changesets">opx release and changesets</a></h2>
+<p><code>opx release</code> is a thin layer over the changesets CLI that ships with the plugin. Your <code>.changeset/</code> files, config, and changelogs are plain changesets, so a repository can stop using opx and keep working with <code>changeset</code> directly. The one exception is the <a href="#changelog-format">readable changelog format</a> if you opted in, which needs this package installed.</p>
+<p><strong>The same as changesets:</strong></p>
+<ul>
+<li><code>opx release add</code> in a terminal runs changesets' own prompt, so <code>--open</code> and <code>--since</code> work.</li>
+<li><code>opx release version</code> runs <code>changeset version</code>.</li>
+<li><code>status</code>, <code>pre</code>, <code>tag</code>, and every other subcommand go straight to the bundled changesets CLI.</li>
+</ul>
+<p><strong>What opx adds:</strong></p>
+<ul>
+<li>A prompt-free <code>add</code> for CI, scripts, and agents: <code>--type</code>, <code>--pkg</code>, <code>--summary</code>, <code>--empty</code>. Changesets has no way to record a change without prompting.</li>
+<li>A starter <code>.changeset/config.json</code> and README on first use, with your default branch as <code>baseBranch</code>.</li>
+<li>An opt-in, <a href="#changelog-format">readable changelog format</a> with PR links, thanks, and diff links, and no need for <code>@changesets/changelog-github</code>.</li>
+<li>Opt-in <a href="#release-dates">release dates</a> under each new version.</li>
+<li>A <code>publish</code> that finishes the release: it tags each version that has no tag, pushes the tags, and creates GitHub releases with the changelog notes. Changesets tags locally and leaves pushing and releases to <code>changesets/action</code> or your own script. See <a href="#releasing">Releasing</a>.</li>
+<li>One bundled changesets version, so you don't install or pin it yourself.</li>
+</ul>
 <h2 id="install" tabindex="-1"><a class="header-anchor" href="#install">Install</a></h2>
 <pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-release
 <span class="token function">yarn</span> opx <span class="token builtin class-name">enable</span> release</code></pre>
