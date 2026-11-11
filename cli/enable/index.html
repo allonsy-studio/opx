@@ -117,7 +117,10 @@
 <li>A third-party package id (<code>opx-plugin-foo</code>, <code>@scope/opx-plugin-foo</code>) is written under the tasks its detectors declare. opx loads the installed package to read them. If it can't, pass <code>--task</code>; opx never writes a plugin to every task.</li>
 <li><code>release</code> is a static task: it sets the top-level <code>release</code> boolean and ignores <code>--task</code>.</li>
 <li>Unknown names, and <code>--task</code> values a plugin doesn't provide, print an error and exit <code>1</code>.</li>
-<li>Running it when nothing would change prints a message and exits <code>0</code>.</li>
+<li>Running it when nothing would change prints a message and exits <code>0</code>. A plugin that already points at a config file counts as enabled and keeps its path.</li>
+<li>A newly enabled plugin follows the others in its task: when they all point at the same config file, such as <code>./eslint.config.js</code>, it points there too. Otherwise it's set to <code>true</code>.</li>
+<li>After enabling a lint plugin, opx prints any import &amp; spread lines your own <code>eslint.config.js</code> still needs. It never edits that file.</li>
+<li>Enabling <code>ts</code> next to a 0.x <code>@allons-y/opx-lint-js</code> prints the command to upgrade it, because 0.x also lints TypeScript. See <a href="../../plugins/lint-ts/#move-from-lint-js-0x">Move from lint-js 0.x</a>.</li>
 </ul>
 <h2 id="examples" tabindex="-1"><a class="header-anchor" href="#examples">Examples</a></h2>
 <pre class="language-sh"><code class="language-sh">opx <span class="token builtin class-name">enable</span> js
