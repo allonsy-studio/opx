@@ -12,10 +12,10 @@ opx never prompts without a terminal, prints actionable errors, and exits with a
 
 ## Set up
 
-1. Install the CLI with the project's package manager. While opx is in beta, add the tag.
+1. Install the CLI with the project's package manager.
 
    ```sh
-   yarn add --dev @allons-y/opx-cli@beta
+   yarn add --dev @allons-y/opx-cli
    ```
 
 2. Look at what opx would do.

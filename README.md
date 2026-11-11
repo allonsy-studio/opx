@@ -65,7 +65,7 @@ Install the CLI (it's tiny — detector packages are loaded on demand, not
 pre-installed):
 
 ```sh
-yarn add --dev @allons-y/opx-cli@beta
+yarn add --dev @allons-y/opx-cli
 ```
 
 Then scan and wire up tooling interactively:
@@ -102,7 +102,7 @@ where the underlying tool supports it.
 
 opx is built to be driven by an agent with no human in the loop. It never prompts without a terminal, and every command has a clear exit code.
 
-1. Install the CLI with the project's package manager: `yarn add --dev @allons-y/opx-cli@beta`.
+1. Install the CLI with the project's package manager: `yarn add --dev @allons-y/opx-cli`.
 2. Run `opx scan --json`. `suggestions` lists matching plugins, `install` and `setup` are the commands to run, and `packageManager` says which manager opx will use.
 3. Run `opx init --yes` to set up every plugin your files match, or `opx init --accept js,md,release` to choose. It installs packages, writes `.opx/config.json`, scaffolds `eslint.config.js`, adds a `lint` script, and installs the git hook.
 4. Run `opx lint`. Exit `0` is clean and `1` means problems; `opx lint --fix` applies fixes.
