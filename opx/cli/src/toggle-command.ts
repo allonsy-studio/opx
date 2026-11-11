@@ -1,4 +1,4 @@
-import { loadPlugins, readConfig, writeConfig, type Logger, type PackageJson } from "@allons-y/opx";
+import { loadPlugins, readConfig, type Logger, type PackageJson } from "@allons-y/opx";
 
 import { readHostPackage } from "./context.js";
 import { CLI_NAME } from "./plugin-kit.js";
