@@ -36,7 +36,8 @@ opx scan [--report] [--json] [--strict]
       "shortName": "md",
       "pkg": "@allons-y/opx-lint-md",
       "reason": "Files matching md found in the committed tree.",
-      "installed": true
+      "installed": true,
+      "requires": []
     }
   ],
   "needsPrompt": ["md"]
@@ -48,8 +49,10 @@ opx scan [--report] [--json] [--strict]
 | `branch` | Current git branch |
 | `fileTypes` | Sorted file extensions found in `HEAD` |
 | `enabled` | Plugins enabled in `.opx/config.json` (lint plugins, plus `release` if on) |
-| `suggestions` | Plugins that match, with whether their package is installed |
+| `suggestions` | Plugins that match, with whether their package is installed and any `requires`: packages your project must install itself (the `ts` plugin needs `typescript`) |
 | `needsPrompt` | Short names of file-based suggestions that aren't enabled |
+
+`release` is always suggested because opx can't detect it from files. Its reason reads "Not detectable from files; enable it if you publish packages." and it never counts toward `--strict`.
 
 ## Using it in CI
 

@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import * as p from "@clack/prompts";
 import type { Command } from "commander";
-import type { Detector, DetectorContext, Logger } from "@allons-y/opx";
+import type { Detector, DetectorContext, Logger, PackageJson } from "@allons-y/opx";
 import { CLI_NAME } from "../plugin-kit.js";
 
 import {
@@ -128,7 +128,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 
 	for (const suggestion of remaining) {
 		const choice = await p.select({
-			message: `Enable ${suggestion.shortName} (${suggestion.pkg})? — ${suggestion.reason}`,
+			message: `Enable ${suggestion.shortName} (${suggestion.pkg})? — ${suggestion.reason}${suggestion.requires.length > 0 ? ` Requires ${suggestion.requires.join(", ")}.` : ""}`,
 			options: [
 				{ value: "yes", label: "Yes — enable now" },
 				{ value: "no", label: "No — never (decline)" },
@@ -142,6 +142,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		if (choice === "yes") {
 			accepted.push(suggestion);
 			if (!suggestion.installed) installCandidates.push(suggestion.pkg);
+			installCandidates.push(...suggestion.requires.filter((dep) => !hasDependency(ctx.hostPkg, dep) && !installCandidates.includes(dep)));
 			// if (suggestion.shortName === "json") {
 			// 	const dialects = await p.multiselect({
 			// 		message: "Also lint JSON variants? (.json is always included)",
@@ -259,6 +260,11 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	p.outro("Setup complete.");
 }
 
+/** Whether the host lists `dep` in its dependencies or devDependencies. */
+function hasDependency(pkg: PackageJson, dep: string): boolean {
+	return dep in (pkg.dependencies ?? {}) || dep in (pkg.devDependencies ?? {});
+}
+
 /** Drops every message, so loading plugins for cleanup never warns about ones that are not installed. */
 const SILENT: Logger = { info() {}, warn() {}, error() {}, debug() {} };
 
@@ -312,7 +318,8 @@ export async function runReport(cwd: string, options: CleanupOptions = {}): Prom
 	} else {
 		console.log(`${CLI_NAME}: detected file types that match these built-in detectors:`);
 		for (const s of remaining) {
-			console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
+			const install = [s.pkg, ...s.requires.filter((dep) => !hasDependency(hostPkg, dep))].join(" ");
+			console.log(`  - ${s.shortName}: install ${install}, then run \`${CLI_NAME} enable ${s.shortName}\``);
 		}
 	}
 

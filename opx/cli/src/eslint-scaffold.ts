@@ -9,6 +9,7 @@ const ESLINT_CONFIG_PACKAGES: Record<string, string> = {
 	js: "@allons-y/opx-lint-js",
 	json: "@allons-y/opx-lint-json",
 	md: "@allons-y/opx-lint-md",
+	ts: "@allons-y/opx-lint-ts",
 };
 
 /**

@@ -24,7 +24,7 @@ opx <command> [options]
 |---|---|
 | `opx scan` | Scan the committed tree and report which detectors would activate. |
 | `opx init` | Interactive setup: pick detectors, install packages, wire a `lint` script and post-commit hook, and, with `--cleanup`, show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
-| `opx enable <name>` | Enable a detector by short name (`js`, `md`, `json`, ...) or fully-qualified package id. Use `--task lint\|build` to target a concern. |
+| `opx enable <name>` | Enable a detector by short name (`js`, `ts`, `md`, `json`, ...) or package id. First-party ids resolve to their short name; a third-party id goes under the tasks its detectors declare, or pass `--task lint\|build`. |
 | `opx disable <name>` | Disable a detector (also accepts `--task`). |
 | `opx lint [paths...]` | Run every enabled lint detector. `--fix` auto-fixes where supported. |
 | `opx build [paths...]` | Run every enabled build detector. |
