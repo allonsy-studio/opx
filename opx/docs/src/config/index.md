@@ -32,6 +32,8 @@ opx reads `.opx/config.json` from the repository root. [`opx init`](../cli/init/
 
 Short names must be lowercase letters and digits (`js`, `md`).
 
+No other top-level keys are allowed. When a command such as `opx enable` or `opx init` saves the file, it leaves out any other key and prints a warning that names it.
+
 ## Plugin settings
 
 Wherever a plugin is configured, the value can be any one of:

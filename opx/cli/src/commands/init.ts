@@ -29,6 +29,7 @@ import { colors } from "../colors.js";
 import { PLUGIN_CATALOG } from "../plugin-catalog.js";
 import { eslintConfigHint, scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { LINT_JS, LINT_JS_UPGRADE, lintJsLintsTypeScript } from "../lint-js-version.js";
+import { saveConfig } from "../save-config.js";
 import { conventionSetting } from "../toggle.js";
 import { defaultSkipUntilDate, isTaskEnabled } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
@@ -226,7 +227,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 
 	const nextConfig = applyAccepted(config, accepted);
 	const acceptedLint = accepted.filter((s) => s.pkg.includes("opx-lint-")).map((s) => s.shortName);
-	writeConfig(cwd, nextConfig);
+	saveConfig(cwd, nextConfig, (message) => p.log.warn(message));
 
 	let nextState = state;
 	for (const shortName of deferred) {

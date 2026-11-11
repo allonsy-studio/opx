@@ -2,6 +2,8 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 
+import type { OpxConfig } from "./detector.js";
+
 import {
 	configPath,
 	defaultConfig,
@@ -53,6 +55,15 @@ describe("config read/write", () => {
 		expect(raw.build).toBeUndefined();
 		expect(raw.release).toBe(false);
 		expect(raw.test).toBe(false);
+		rmSync(dir, { recursive: true });
+	});
+
+	it("leaves out top-level keys it doesn't know and returns them, sorted", () => {
+		const dir = tmp();
+		const config = { ...defaultConfig(), zeta: 1, custom: { keep: 1 } } as OpxConfig;
+		expect(writeConfig(dir, config)).toEqual(["custom", "zeta"]);
+		expect(Object.keys(JSON.parse(readFileSync(configPath(dir), "utf8")))).not.toContain("custom");
+		expect(writeConfig(dir, defaultConfig())).toEqual([]);
 		rmSync(dir, { recursive: true });
 	});
 

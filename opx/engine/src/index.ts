@@ -20,6 +20,7 @@ export type {
 export type { LoadedPlugin, LoadOptions } from "./registry.js";
 export { isValidPluginName, loadPlugins, normalizeDetectorId, resolvePluginPackageName } from "./registry.js";
 export {
+	CONFIG_KEYS,
 	configPath,
 	defaultConfig,
 	defaultState,
