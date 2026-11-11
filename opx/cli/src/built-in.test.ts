@@ -107,9 +107,9 @@ describe("virtualDetectors", () => {
 		expect(release?.installed).toBe(false);
 	});
 
-	it("suggests ts for TypeScript files and says it needs typescript", () => {
+	it("suggests ts for TypeScript files", () => {
 		const result = virtualDetectors(new Set([".ts", ".js"]), {});
-		expect(result.find((r) => r.shortName === "ts")).toMatchObject({ pkg: "@allons-y/opx-lint-ts", requires: ["typescript"] });
+		expect(result.find((r) => r.shortName === "ts")).toMatchObject({ pkg: "@allons-y/opx-lint-ts" });
 		expect(virtualDetectors(new Set([".js"]), {}).some((r) => r.shortName === "ts")).toBe(false);
 	});
 

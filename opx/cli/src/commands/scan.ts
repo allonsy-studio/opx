@@ -83,8 +83,7 @@ function renderReport(
 	console.log("Suggestions:");
 	for (const s of suggestions) {
 		const status = enabled.includes(s.shortName) ? "enabled" : s.installed ? "installed, not enabled" : "not installed";
-		const requires = s.requires.length > 0 ? ` Requires ${s.requires.join(", ")}.` : "";
-		console.log(`  - ${s.shortName} (${s.pkg}) — ${s.reason}${requires} [${status}]`);
+		console.log(`  - ${s.shortName} (${s.pkg}) — ${s.reason} [${status}]`);
 	}
 }
 

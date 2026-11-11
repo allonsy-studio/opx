@@ -49,6 +49,7 @@ opx init --accept js,md,release # exactly these
 - `--yes` never enables `release`, since files can't tell whether you publish. Name it with `--accept`.
 - Plugins already enabled are left as they are, and a name opx doesn't know exits `1` before anything changes.
 - If the install fails, your choices stay saved, and opx exits `1` and prints the command to run yourself. If the package manager is [ambiguous](#package-manager), opx prints the command and exits `0`.
+- A plugin's peer dependencies, such as the `typescript` that `ts` needs, are installed too. See [Peer dependencies](#peer-dependencies).
 - While this CLI is a prerelease, packages install from its dist-tag (`@allons-y/opx-lint-js@beta`), because npm can't resolve a bare name that has only prereleases.
 - With `--cleanup`, cleanup suggestions are printed and nothing is deleted. `--auto` ignores both flags, so a `postinstall` never changes your project.
 
@@ -66,6 +67,21 @@ opx looks in the project folder and then up to the repository root, so a workspa
 At a workspace root it also adds the flag some versions require: `-w` for pnpm (pnpm 9 and earlier refuse without it; pnpm 10 accepts it) and `-W` for Yarn Classic.
 
 If the signals disagree (the `packageManager` field names one manager and a lockfile another, or several managers have lockfiles), opx doesn't guess. It saves your choices, then prints the install command for you to run instead of running it, and says what conflicts.
+
+## Peer dependencies
+
+A plugin lists the packages it needs from your project, such as `typescript` for `ts`, under `peerDependencies` in its own `package.json`. That is the only place the supported range lives, so a plugin release that supports a new `typescript` major changes nothing in opx.
+
+How they get installed depends on the package manager:
+
+| Manager | What happens |
+| --- | --- |
+| npm, pnpm, bun | Current versions install peers with the plugin, within the plugin's range, so opx runs one install. Older versions that don't, or a project that turned the setting off, need the peers installed by hand. |
+| Yarn | Yarn only warns about a missing peer. After the plugin installs, opx reads its `peerDependencies` and installs the ones your project lacks, with the plugin's range, such as `typescript@^5.0.0 \|\| ^6.0.0`. Yarn picks the newest version in range. |
+
+opx skips optional peers and any peer your `package.json` already lists. It never changes a version your project already uses. If that version is outside what the plugin supports, such as TypeScript 7 where lint-ts supports 5 and 6, opx prints a warning that names both and leaves it alone; the plugin may not work until you move to a supported version. npm can also refuse the install over the same conflict. Where it can't read the installed plugin to find its peers, such as under Yarn Plug'n'Play, it says so; install the packages under `peerDependencies` in the plugin's `package.json` yourself. 
+
+A peer that npm, pnpm, or bun installs for you isn't added to your `package.json`, and pnpm keeps it out of your top-level `node_modules`. Add it yourself if your own code or scripts use it, such as `typescript` for `tsc`.
 
 ## Cleanup
 

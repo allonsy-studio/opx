@@ -342,6 +342,99 @@ describe("init", () => {
 			expect(cmd).toContain("@allons-y/opx-lint-ts@beta");
 		});
 
+		describe("peer dependencies", () => {
+			const LINT_TS = "@allons-y/opx-lint-ts";
+			/** A fake plugin manifest, so the test covers how opx reads peers, not what lint-ts declares. */
+			const manifest = { name: LINT_TS, peerDependencies: { "fake-peer": "^1.0.0 || ^2.0.0", "fake-optional": "*" }, peerDependenciesMeta: { "fake-optional": { optional: true } } };
+			const peer = `fake-peer@${manifest.peerDependencies["fake-peer"]}`;
+			/** An install that puts the plugin manifest in node_modules, as a package manager would. */
+			const installsLintTs = (dir: string) => (cmd: string) => {
+				install(cmd, dir);
+				if (cmd.includes(LINT_TS)) {
+					mkdirSync(join(dir, "node_modules", LINT_TS), { recursive: true });
+					writeFileSync(join(dir, "node_modules", LINT_TS, "package.json"), JSON.stringify(manifest));
+				}
+			};
+			const commands = (): string[] => install.mock.calls.map(([cmd]) => String(cmd));
+
+			it.each([
+				["npm", "package-lock.json"],
+				["pnpm", "pnpm-lock.yaml"],
+				["bun", "bun.lock"],
+			])("leaves peers to %s, which installs them itself", async (_pm, lockfile) => {
+				const dir = make({ "a.ts": "x", "package.json": PKG, [lockfile]: "" });
+				await runAccept(dir, installsLintTs(dir) as never, { accept: ["ts"], tag: "beta" });
+				expect(commands()).toHaveLength(1);
+				expect(commands()[0]).toContain(`${LINT_TS}@beta`);
+				expect(commands()[0]).not.toContain("fake-peer");
+			});
+
+			it("installs the plugin's peers with Yarn, which doesn't, from the range the plugin declares, leaving optional peers out", async () => {
+				const dir = make({ "a.ts": "x", "package.json": PKG, "yarn.lock": "" });
+				const code = await runAccept(dir, installsLintTs(dir) as never, { accept: ["ts"], tag: "beta" });
+				expect(code).toBe(0);
+				expect(commands()).toHaveLength(2);
+				expect(commands()[0]).toContain(`${LINT_TS}@beta`);
+				expect(commands()[1]).toMatch(/^yarn add -D /);
+				expect(commands()[1]).toContain(`"${peer}"`);
+				expect(commands()[1]).not.toContain("fake-optional");
+				expect(printed()).toContain("Installed peer dependencies");
+			});
+
+			it("skips a peer the project already depends on", async () => {
+				const pkg = JSON.stringify({ name: "h", devDependencies: { "fake-peer": "^1.5.0" } });
+				const dir = make({ "a.ts": "x", "package.json": pkg, "yarn.lock": "" });
+				await runAccept(dir, installsLintTs(dir) as never, { accept: ["ts"] });
+				expect(commands()).toHaveLength(1);
+			});
+
+			it.each([
+				["Yarn", "yarn.lock"],
+				["npm", "package-lock.json"],
+			])("flags a project peer the plugin doesn't support under %s, and leaves its version alone", async (_pm, lockfile) => {
+				const pkg = JSON.stringify({ name: "h", devDependencies: { "fake-peer": "^3.0.0" } });
+				const dir = make({ "a.ts": "x", "package.json": pkg, [lockfile]: "" });
+				const code = await runAccept(dir, installsLintTs(dir) as never, { accept: ["ts"] });
+				expect(code).toBe(0);
+				expect(commands()).toHaveLength(1);
+				expect(commands().join("\n")).not.toContain("fake-peer");
+				expect(printed()).toContain("fake-peer ^3.0.0 is outside ^1.0.0 || ^2.0.0, which @allons-y/opx-lint-ts supports");
+				expect(printed()).toContain("opx doesn't change the versions your project uses");
+				expect((JSON.parse(read(dir, "package.json")) as { devDependencies: object }).devDependencies).toEqual({ "fake-peer": "^3.0.0" });
+			});
+
+			it("installs peers for a plugin that was already installed", async () => {
+				const pkg = JSON.stringify({ name: "h", devDependencies: { [LINT_TS]: "^1.0.0" } });
+				const dir = make({ "a.ts": "x", "package.json": pkg, "yarn.lock": "" });
+				installsLintTs(dir)(`yarn add -D ${LINT_TS}`);
+				install.mockClear();
+				await runAccept(dir, install, { accept: ["ts"] });
+				expect(commands()).toHaveLength(1);
+				expect(commands()[0]).toContain("fake-peer@");
+			});
+
+			it("says what to do when it can't read the plugin to find its peers", async () => {
+				const dir = make({ "a.ts": "x", "package.json": PKG, "yarn.lock": "" });
+				const code = await runAccept(dir, install, { accept: ["ts"] });
+				expect(code).toBe(0);
+				expect(commands()).toHaveLength(1);
+				expect(printed()).toContain("Couldn't read @allons-y/opx-lint-ts");
+			});
+
+			it("fails with the peer command to run when installing peers fails", async () => {
+				const dir = make({ "a.ts": "x", "package.json": PKG, "yarn.lock": "" });
+				const err = jest.spyOn(console, "error").mockImplementation(() => {});
+				const failing = (cmd: string) => {
+					installsLintTs(dir)(cmd);
+					if (cmd.includes("fake-peer")) throw new Error("boom");
+				};
+				expect(await runAccept(dir, failing as never, { accept: ["ts"] })).toBe(1);
+				expect(err.mock.calls.map((c) => String(c[0])).join("\n") + err.mock.calls.map((c) => String(c[0])).join("")).toContain("Install failed");
+				expect(err.mock.calls.some((c) => String(c[0]).includes("yarn add -D") && String(c[0]).includes("fake-peer@"))).toBe(true);
+				err.mockRestore();
+			});
+		});
+
 		it("follows the shared config, upgrades lint-js 0.x, and shows what eslint.config.js lacks", async () => {
 			const pkg = JSON.stringify({ name: "host", devDependencies: { "@allons-y/opx-lint-js": "^0.1.0-beta.0" } });
 			const config = JSON.stringify({ version: 1, lint: { js: "./eslint.config.js" } });
@@ -434,17 +527,48 @@ describe("init", () => {
 			expect(prompt?.options?.map((o) => o.value)).toEqual(["yes", "no", "later"]);
 		});
 
-		it("asks for typescript along with the ts plugin unless the project has it", async () => {
+		it("installs a Yarn project's peer dependencies after the plugin", async () => {
+			const manifest = JSON.stringify({ name: "@allons-y/opx-lint-ts", peerDependencies: { "fake-peer": "^1.0.0" } });
+			const dir = make({ "a.ts": "x", "package.json": PKG, "yarn.lock": "" });
+			answers({ ts: "yes" });
+			const installs: string[] = [];
+			await runInteractive(dir, (cmd) => {
+				installs.push(cmd);
+				mkdirSync(join(dir, "node_modules/@allons-y/opx-lint-ts"), { recursive: true });
+				writeFileSync(join(dir, "node_modules/@allons-y/opx-lint-ts/package.json"), manifest);
+			});
+			expect(installs).toHaveLength(2);
+			expect(installs[0]).toMatch(/^yarn add -D @allons-y\/opx-lint-ts$/);
+			expect(installs[1]).toContain("fake-peer@^1.0.0");
+
+			const npm = make({ "a.ts": "x", "package.json": PKG, "package-lock.json": "" });
+			installs.length = 0;
+			await runInteractive(npm, (cmd) => void installs.push(cmd));
+			expect(installs).toEqual(["npm install --save-dev @allons-y/opx-lint-ts"]);
+		});
+
+		it("flags a project peer the plugin doesn't support, without installing over it", async () => {
+			const manifest = JSON.stringify({ name: "@allons-y/opx-lint-ts", peerDependencies: { "fake-peer": "^1.0.0" } });
+			const pkg = JSON.stringify({ name: "h", devDependencies: { "fake-peer": "^3.0.0" } });
+			const dir = make({ "a.ts": "x", "package.json": pkg, "yarn.lock": "" });
+			answers({ ts: "yes" });
+			const installs: string[] = [];
+			await runInteractive(dir, (cmd) => {
+				installs.push(cmd);
+				mkdirSync(join(dir, "node_modules/@allons-y/opx-lint-ts"), { recursive: true });
+				writeFileSync(join(dir, "node_modules/@allons-y/opx-lint-ts/package.json"), manifest);
+			});
+			expect(installs).toHaveLength(1);
+			expect(logWarn.mock.calls.some(([m]) => String(m).includes("fake-peer ^3.0.0 is outside ^1.0.0"))).toBe(true);
+			expect(read(dir, "package.json")).toContain('"fake-peer": "^3.0.0"');
+		});
+
+		it("warns when it can't read the plugin to find its peer dependencies", async () => {
 			const dir = make({ "a.ts": "x", "package.json": PKG, "yarn.lock": "" });
 			answers({ ts: "yes" });
 			await runInteractive(dir, install);
-			expect(select.mock.calls.find(([o]) => o.message.startsWith("Enable ts "))?.[0].message).toContain("Requires typescript.");
-			expect(confirm.mock.calls.some(([o]) => o.message.includes("yarn add -D @allons-y/opx-lint-ts typescript"))).toBe(true);
-
-			confirm.mockClear();
-			const withTs = make({ "a.ts": "x", "package.json": JSON.stringify({ name: "h", devDependencies: { typescript: "^5" } }), "yarn.lock": "" });
-			await runInteractive(withTs, install);
-			expect(confirm.mock.calls.some(([o]) => o.message.endsWith("yarn add -D @allons-y/opx-lint-ts"))).toBe(true);
+			expect(install).toHaveBeenCalledTimes(1);
+			expect(logWarn.mock.calls.some(([m]) => String(m).includes("Couldn't read @allons-y/opx-lint-ts"))).toBe(true);
 		});
 
 		it("shows the command the install prompt would run", async () => {
@@ -629,12 +753,8 @@ describe("init", () => {
 			expect(printed()).toContain("opx enable js");
 		});
 
-		it("lists typescript in the install command for ts, unless the project has it", async () => {
+		it("names only the plugin to install, since peers come from its own package.json", async () => {
 			await runReport(make({ "a.ts": "x", "package.json": PKG }));
-			expect(printed()).toContain("install @allons-y/opx-lint-ts typescript, then run `opx enable ts`");
-
-			log.mockClear();
-			await runReport(make({ "a.ts": "x", "package.json": JSON.stringify({ name: "h", devDependencies: { typescript: "^5" } }) }));
 			expect(printed()).toContain("install @allons-y/opx-lint-ts, then run `opx enable ts`");
 		});
 

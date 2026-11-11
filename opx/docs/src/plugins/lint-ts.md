@@ -13,10 +13,10 @@ eleventyNavigation:
 ## Install
 
 ```sh
-yarn add --dev @allons-y/opx-lint-ts typescript
+yarn add --dev @allons-y/opx-lint-ts
 ```
 
-`typescript` 5 or newer is a required peer dependency, because `typescript-eslint` loads it. Then turn the plugin on in `.opx/config.json`:
+`typescript` 5 or 6 is a required peer dependency, because `typescript-eslint` loads it. Most projects already have it; if yours doesn't, your package manager warns, and `opx init` installs it for you. TypeScript 7 is not supported yet: it has no programmatic API for `typescript-eslint` to load. The supported range is this package's `peerDependencies`. opx never changes a version your project already uses; it warns if that version is outside the range. See [Peer dependencies](../../cli/init/#peer-dependencies). Then turn the plugin on in `.opx/config.json`:
 
 ```json
 {

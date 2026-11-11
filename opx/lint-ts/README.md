@@ -5,8 +5,10 @@ opx detector + runner for **TypeScript**. Bundles ESLint with [`typescript-eslin
 ## Install
 
 ```sh
-yarn add --dev @allons-y/opx-lint-ts typescript
+yarn add --dev @allons-y/opx-lint-ts
 ```
+
+Your project needs `typescript` 5 or 6, which this package declares as a peer dependency. Most projects already have it; if yours doesn't, your package manager warns, and `opx init` installs it for you.
 
 Then enable it in `.opx/config.json`:
 
@@ -101,7 +103,7 @@ Every block is `files`-scoped, so the TS formatting rules never leak onto other 
 ## Requirements
 
 - Node.js ≥ 24
-- `typescript` ≥ 5 in the host repo (peer; `typescript-eslint` loads it at config-load time)
+- `typescript` 5 or 6 in the host repo (peer, declared in this package; 7 is not supported yet; `typescript-eslint` loads it at config-load time)
 
 ---
 
