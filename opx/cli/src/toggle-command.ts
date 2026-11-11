@@ -1,7 +1,8 @@
-import { loadPlugins, readConfig, writeConfig, type Logger, type PackageJson } from "@allons-y/opx";
+import { loadPlugins, readConfig, type Logger, type PackageJson } from "@allons-y/opx";
 
 import { readHostPackage } from "./context.js";
 import { CLI_NAME } from "./plugin-kit.js";
+import { saveConfig } from "./save-config.js";
 import type { TaskKind } from "./plugin-catalog.js";
 import { resolveTarget, toggle } from "./toggle.js";
 
@@ -42,7 +43,7 @@ export async function runToggleCommand(cwd: string, name: string, enable: boolea
 		console.error(`${CLI_NAME}: ${result.error}`);
 		return 1;
 	}
-	if (result.config !== config) writeConfig(cwd, result.config);
+	if (result.config !== config) saveConfig(cwd, result.config);
 	console.log(`${CLI_NAME}: ${result.message}`);
 	return 0;
 }

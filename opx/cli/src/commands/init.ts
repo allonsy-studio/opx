@@ -28,6 +28,7 @@ import { load as loadDetectors, virtualDetectors, type Suggestion } from "../bui
 import { colors } from "../colors.js";
 import { PLUGIN_CATALOG } from "../plugin-catalog.js";
 import { scaffoldEslintConfig } from "../eslint-scaffold.js";
+import { saveConfig } from "../save-config.js";
 import { defaultSkipUntilDate, isTaskEnabled } from "@allons-y/opx";
 import { detectMode } from "../tty.js";
 
@@ -200,7 +201,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	}
 
 	const nextConfig = applyAccepted(config, accepted);
-	writeConfig(cwd, nextConfig);
+	saveConfig(cwd, nextConfig, (message) => p.log.warn(message));
 
 	let nextState = state;
 	for (const shortName of deferred) {

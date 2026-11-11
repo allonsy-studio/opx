@@ -34,6 +34,14 @@ describe("runToggleCommand", () => {
 		for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
 	});
 
+	it("warns on stderr when saving drops a key opx doesn't know", async () => {
+		const stderr = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
+		const dir = project({ version: 1, custom: { keep: 1 } });
+		expect(await runToggleCommand(dir, "js", true)).toBe(0);
+		expect(configOf(dir).custom).toBeUndefined();
+		expect(said(stderr)).toMatch(/▲ Removed a key opx doesn't know from \.opx\/config\.json: "custom"/);
+	});
+
 	it("enables a plugin, creating the config if there isn't one", async () => {
 		const dir = project();
 		expect(await runToggleCommand(dir, "js", true)).toBe(0);
