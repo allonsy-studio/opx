@@ -1,5 +1,15 @@
 # @allons-y/opx
 
+## 0.1.0-beta.4
+
+### Minor Changes
+
+- 764ad1b: Saving `.opx/config.json` now warns when it leaves out a top-level key opx doesn't know. `opx enable`, `opx disable`, and `opx init` name the removed keys instead of dropping them silently. `writeConfig` returns the keys it left out, and the engine exports `CONFIG_KEYS`, the keys it keeps.
+
+### Patch Changes
+
+- 07965b1: The `DynamicTaskConfig` type now allows a string for a plugin setting, a path to that plugin's config file, as `.opx/config.json`'s schema and the lint runners already did.
+
 ## 0.1.0-beta.3
 
 ### Minor Changes
