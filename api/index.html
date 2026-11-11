@@ -202,6 +202,21 @@
 </tr>
 </tbody>
 </table>
+<h2 id="variables" tabindex="-1"><a class="header-anchor" href="#variables">Variables</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/opx/api/variables/CONFIG_KEYS/">CONFIG_KEYS</a></td>
+<td>The top-level keys <code>writeConfig</code> keeps; the schema allows no others.</td>
+</tr>
+</tbody>
+</table>
 <h2 id="functions" tabindex="-1"><a class="header-anchor" href="#functions">Functions</a></h2>
 <table>
 <thead>
@@ -317,7 +332,7 @@
 </tr>
 <tr>
 <td><a href="/opx/api/functions/writeConfig/">writeConfig</a></td>
-<td>Write <code>.opx/config.json</code>, creating the folder if needed. Empty task maps are left out.</td>
+<td>Write <code>.opx/config.json</code>, creating the folder if needed. Empty task maps are left out, and so are top-level keys outside <a href="/opx/api/variables/CONFIG_KEYS/">CONFIG_KEYS</a>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/writeState/">writeState</a></td>
