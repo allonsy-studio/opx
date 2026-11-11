@@ -1,5 +1,19 @@
 # @allons-y/opx-cli
 
+## 0.1.0-beta.5
+
+### Patch Changes
+
+- 7e063f9: opx now loads plugins from your project's `node_modules`, so a global or `npx` install of opx finds the plugins your project installs. Before, it looked next to its own install and reported "no linters are detected".
+
+  `opx lint`, `opx build`, and `opx release` now exit 1 when an enabled plugin isn't installed or fails to import, and say why on stderr, instead of passing without running it. They still run the plugins that loaded.
+
+  For plugin hosts, `loadPlugins` takes an optional `onSkip(entry, reason)` callback, and the engine exports `resolvePackageEntry` and `packageEntry`.
+
+- Updated dependencies [7e063f9]
+- Updated dependencies [3615815]
+  - @allons-y/opx@0.1.0-beta.5
+
 ## 0.1.0-beta.4
 
 ### Minor Changes
