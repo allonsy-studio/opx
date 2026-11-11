@@ -23,7 +23,7 @@ opx <command> [options]
 | Command | What it does |
 |---|---|
 | `opx scan` | Scan the committed tree and report which detectors would activate. |
-| `opx init` | Interactive setup: pick detectors, install packages, wire a `lint` script and post-commit hook, and, with `--cleanup`, show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
+| `opx init` | Interactive setup (`--yes` or `--accept js,md` skips the prompts): pick detectors, install packages, wire a `lint` script and post-commit hook, and, with `--cleanup`, show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
 | `opx enable <name>` | Enable a detector by short name (`js`, `ts`, `md`, `json`, ...) or package id. First-party ids resolve to their short name; a third-party id goes under the tasks its detectors declare, or pass `--task lint\|build`. |
 | `opx disable <name>` | Disable a detector (also accepts `--task`). |
 | `opx lint [paths...]` | Run every enabled lint detector. `--fix` auto-fixes where supported. |
@@ -32,6 +32,18 @@ opx <command> [options]
 | `opx hook` | Internal — invoked by the post-commit git hook. |
 
 Run `opx <command> --help` for per-command flags.
+
+## Using opx with an AI agent
+
+opx is built to be driven by an agent with no human in the loop. It never prompts without a terminal, and every command has a clear exit code.
+
+1. Install the CLI with the project's package manager: `yarn add --dev @allons-y/opx-cli`.
+2. Run `opx scan --json`. `suggestions` lists matching plugins, `install` and `setup` are the commands to run, and `packageManager` says which manager opx will use.
+3. Run `opx init --yes` to set up every plugin your files match, or `opx init --accept js,md,release` to choose. It installs packages, writes `.opx/config.json`, scaffolds `eslint.config.js`, adds a `lint` script, and installs the git hook.
+4. Run `opx lint`. Exit `0` is clean and `1` means problems; `opx lint --fix` applies fixes.
+5. Commit `.opx/config.json`, `eslint.config.js`, `package.json`, the lockfile, and `.husky/`.
+
+Don't hand-edit `.opx/state.json`. Use `opx enable <name>` and `opx disable <name>` to change plugins afterwards. The docs site also publishes an `llms.txt` index, and the full guide is [Use opx with an AI agent](../docs/src/guides/agents.md).
 
 ## Configuration
 
