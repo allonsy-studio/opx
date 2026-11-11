@@ -11,7 +11,7 @@ function tmp(): string {
 describe("composeEslintConfig", () => {
 	it("returns null when no short names map to config packages", () => {
 		expect(composeEslintConfig([])).toBeNull();
-		expect(composeEslintConfig(["css", "ts"])).toBeNull();
+		expect(composeEslintConfig(["css", "scss"])).toBeNull();
 	});
 
 	it("emits imports and spreads for known config-shipping detectors", () => {
