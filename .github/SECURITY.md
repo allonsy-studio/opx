@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-opx is in beta. Security fixes are released for the latest published version of each `@allons-y/opx*` package.
+Security fixes are released for the latest published version of each `@allons-y/opx*` package.
 
 ## Reporting a vulnerability
 

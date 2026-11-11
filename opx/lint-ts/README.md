@@ -23,12 +23,12 @@ Requires [`@allons-y/opx-cli`](https://www.npmjs.com/package/@allons-y/opx-cli).
 
 ## Move from lint-js 0.x
 
-`@allons-y/opx-lint-js` 0.x also linted TypeScript. From 1.0 it lints JavaScript only, so upgrading it without adding lint-ts silently stops TypeScript linting. Running both versions side by side lints every `.ts` file twice, with two rule sets.
+Earlier betas of `@allons-y/opx-lint-js` also linted TypeScript. From 0.1.0 it lints JavaScript only, so upgrading it without adding lint-ts silently stops TypeScript linting. Running both versions side by side lints every `.ts` file twice, with two rule sets.
 
 1. Install lint-ts & a JavaScript-only lint-js in one step:
 
    ```sh
-   yarn add --dev @allons-y/opx-lint-ts "@allons-y/opx-lint-js@^1.0.0-beta.1"
+   yarn add --dev @allons-y/opx-lint-ts "@allons-y/opx-lint-js@^0.1.0"
    ```
 
 2. Run `opx enable ts`. When your other lint plugins all point at your own `eslint.config.js`, `ts` points there too.

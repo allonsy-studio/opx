@@ -112,7 +112,7 @@ Change a command, flag, config key, or plugin behavior, and update its docs in t
 
 - Add a changeset (`yarn changeset`) for anything a user would notice. Tests, CI, docs, and internal refactors need none.
 - Releases run through opx itself: `changesets/action` opens the release pull request, and merging it runs `yarn release` (`opx release publish`).
-- The repo is in beta pre-release mode (`.changeset/pre.json`).
+- The repo has left beta pre-release mode; the first stable release is 0.1.0.
 
 ## Commits and pull requests
 
