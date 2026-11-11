@@ -83,7 +83,7 @@ describe("virtualDetectors", () => {
 
 		const release = result.find((r) => r.shortName === "release");
 		expect(release).toBeDefined();
-		expect(release?.reason).toContain("Plugin release");
+		expect(release?.reason).toContain("Not detectable from files");
 		expect(release?.installed).toBe(false);
 	});
 

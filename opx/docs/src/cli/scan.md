@@ -39,7 +39,10 @@ opx scan [--report] [--json] [--strict]
       "installed": true
     }
   ],
-  "needsPrompt": ["md"]
+  "needsPrompt": ["md"],
+  "packageManager": { "name": "yarn", "certain": true, "reason": "packageManager field" },
+  "install": "yarn add -D @allons-y/opx-lint-md@beta",
+  "setup": "opx init --accept md"
 }
 ```
 
@@ -50,6 +53,9 @@ opx scan [--report] [--json] [--strict]
 | `enabled` | Plugins enabled in `.opx/config.json` (lint plugins, plus `release` if on) |
 | `suggestions` | Plugins that match, with whether their package is installed |
 | `needsPrompt` | Short names of file-based suggestions that aren't enabled |
+| `packageManager` | The package manager opx would use, whether it is `certain`, and `reason` it chose it |
+| `install` | The command that installs the packages in `needsPrompt` that are missing, or `null`. Pinned to the dist-tag while the CLI is a prerelease. |
+| `setup` | The `opx init --accept` command that enables everything in `needsPrompt`, or `null` |
 
 ## Using it in CI
 

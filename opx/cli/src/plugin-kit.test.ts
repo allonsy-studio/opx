@@ -28,3 +28,15 @@ describe("toAction", () => {
 		expect(exit).toHaveBeenCalledWith(0);
 	});
 });
+
+describe("prerelease tags", () => {
+	it("reads the dist-tag from a prerelease version and ignores stable ones", async () => {
+		const { prereleaseTag, withTag } = await import("./plugin-kit.js");
+		expect(prereleaseTag("1.0.0-beta.3")).toBe("beta");
+		expect(prereleaseTag("2.0.0-rc")).toBe("rc");
+		expect(prereleaseTag("1.0.0")).toBeUndefined();
+		expect(prereleaseTag(undefined)).toBeUndefined();
+		expect(withTag(["a", "b"], "beta")).toEqual(["a@beta", "b@beta"]);
+		expect(withTag(["a"], undefined)).toEqual(["a"]);
+	});
+});

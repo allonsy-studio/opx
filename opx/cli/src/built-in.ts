@@ -5,6 +5,14 @@ import { PLUGIN_CATALOG, type BuiltInShortName } from "./plugin-catalog.js";
 
 export type { BuiltInShortName };
 
+/** A plugin the CLI can suggest, whether or not its package is installed yet. */
+export type Suggestion = {
+	shortName: BuiltInShortName;
+	pkg: string;
+	reason: string;
+	installed: boolean;
+};
+
 /**
  * Built-in file-type detector registry. opx-cli knows the official
  * @allons-y/opx-(lint|build)-* packages by name; the actual detector code lives
@@ -81,15 +89,15 @@ export async function load(ctx: DetectorContext): Promise<Detector[]> {
 export function virtualDetectors(
 	fileTypes: Set<string>,
 	hostPkg: PackageJson,
-): Array<{ shortName: BuiltInShortName; pkg: string; reason: string; installed: boolean }> {
+): Suggestion[] {
 	const matched = suggest(fileTypes);
 	const deps = { ...(hostPkg.dependencies ?? {}), ...(hostPkg.devDependencies ?? {}) };
-	return [...matched, ...UNDETECTABLE_PLUGINS].reduce<Array<{ shortName: BuiltInShortName; pkg: string; reason: string; installed: boolean }>>((acc, shortName) => {
+	return [...matched, ...UNDETECTABLE_PLUGINS].reduce<Suggestion[]>((acc, shortName) => {
 		for (const pkg of PACKAGE_HINTS[shortName]) {
 			acc.push({
 				shortName,
 				pkg,
-				reason: (UNDETECTABLE_PLUGINS as readonly string[]).includes(shortName) ? `Plugin ${shortName} found in the committed tree.` : `Files matching ${shortName} found in the committed tree.`,
+				reason: (UNDETECTABLE_PLUGINS as readonly string[]).includes(shortName) ? `Not detectable from files; enable ${shortName} if it applies to this project.` : `Files matching ${shortName} found in the committed tree.`,
 				installed: pkg in deps,
 			});
 		}
