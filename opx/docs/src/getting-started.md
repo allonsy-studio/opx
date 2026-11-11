@@ -14,12 +14,12 @@ eleventyNavigation:
 
 ## Install
 
-opx is currently published under the `beta` tag.
+Install opx from npm:
 
 ```sh
-yarn add --dev @allons-y/opx-cli@beta
+yarn add --dev @allons-y/opx-cli
 # or
-npm install --save-dev @allons-y/opx-cli@beta
+npm install --save-dev @allons-y/opx-cli
 ```
 
 The CLI is deliberately small. Plugins are separate packages that you install yourself, or let `opx init` install for you.
