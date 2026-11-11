@@ -37,7 +37,7 @@ describe("runToggleCommand", () => {
 	it("warns on stderr when saving drops a key opx doesn't know", () => {
 		const stderr = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
 		const dir = project({ version: 1, custom: { keep: 1 } });
-		expect(runToggleCommand(dir, "js", true)).toBe(0);
+		expect(await runToggleCommand(dir, "js", true)).toBe(0);
 		expect(configOf(dir).custom).toBeUndefined();
 		expect(said(stderr)).toMatch(/▲ Removed a key opx doesn't know from \.opx\/config\.json: "custom"/);
 	});
