@@ -78,6 +78,7 @@
 				<li><a href="/opx/preview/pr-39/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/preview/pr-39/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/preview/pr-39/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/preview/pr-39/guides/agents/">Use opx with an AI agent</a></li>
 			</ul>
 		</li>
 		<li>
@@ -189,15 +190,30 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-39/api/type-aliases/StaticTask/">StaticTask</a></td>
-<td>A task with no plugin choice, so config turns it on or off with a boolean.</td>
+<td>A task with no plugin choice: config turns it on with <code>true</code> or with its settings.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-39/api/type-aliases/StaticTaskConfig/">StaticTaskConfig</a></td>
-<td>The config keys for static tasks, each a boolean.</td>
+<td>The config keys for static tasks: <code>true</code>, <code>false</code>, or the task's settings, which also turn it on.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-39/api/type-aliases/SuggestionCommand/">SuggestionCommand</a></td>
 <td>A command a person can run to act on a suggestion. opx prints it and never runs it.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="variables" tabindex="-1"><a class="header-anchor" href="#variables">Variables</a></h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/opx/preview/pr-39/api/variables/CONFIG_KEYS/">CONFIG_KEYS</a></td>
+<td>The top-level keys <code>writeConfig</code> keeps; the schema allows no others.</td>
 </tr>
 </tbody>
 </table>
@@ -275,6 +291,10 @@
 <td>Whether a plugin's suggestion is currently deferred: a &quot;later&quot; answer recorded for this branch that has not yet expired. A deferral stays active through <code>skipUntilDate</code> inclusive, and never applies on another branch.</td>
 </tr>
 <tr>
+<td><a href="/opx/preview/pr-39/api/functions/isTaskEnabled/">isTaskEnabled</a></td>
+<td>Whether a static task such as <code>release</code> is on: <code>true</code>, or a settings object.</td>
+</tr>
+<tr>
 <td><a href="/opx/preview/pr-39/api/functions/isValidPluginName/">isValidPluginName</a></td>
 <td>Whether a package name follows the opx plugin naming convention: <code>@allons-y/opx-*</code>, <code>opx-plugin-*</code>, or <code>@scope/opx-plugin-*</code>.</td>
 </tr>
@@ -312,7 +332,7 @@
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-39/api/functions/writeConfig/">writeConfig</a></td>
-<td>Write <code>.opx/config.json</code>, creating the folder if needed. Empty task maps are left out.</td>
+<td>Write <code>.opx/config.json</code>, creating the folder if needed. Empty task maps are left out, and so are top-level keys outside <a href="/opx/preview/pr-39/api/variables/CONFIG_KEYS/">CONFIG_KEYS</a>.</td>
 </tr>
 <tr>
 <td><a href="/opx/preview/pr-39/api/functions/writeState/">writeState</a></td>

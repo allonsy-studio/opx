@@ -78,6 +78,7 @@
 				<li><a href="/opx/preview/pr-39/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/preview/pr-39/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/preview/pr-39/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/preview/pr-39/guides/agents/">Use opx with an AI agent</a></li>
 			</ul>
 		</li>
 		<li>
@@ -106,7 +107,7 @@
 </tr>
 <tr>
 <td><code>init</code></td>
-<td>Write a starter <code>.changeset/config.json</code> and stop</td>
+<td>Write a starter <code>.changeset/config.json</code> and stop. <code>--changelog</code> opts in to the <a href="../../plugins/release/#changelog-format">custom changelog format</a></td>
 </tr>
 <tr>
 <td><code>add</code></td>
@@ -114,17 +115,21 @@
 </tr>
 <tr>
 <td><code>version</code></td>
-<td>Apply pending changes: bump versions and update changelogs</td>
+<td>Apply pending changes: bump versions and update changelogs. <code>--snapshot &lt;name&gt;</code> makes a <a href="../../plugins/release/#snapshot-releases">snapshot</a> version</td>
 </tr>
 <tr>
 <td><code>publish</code></td>
-<td>Publish packages whose versions aren't on the registry</td>
+<td>Publish, tag, push tags, and create GitHub releases (<a href="../../plugins/release/#releasing">details</a>). <code>--no-push</code>, <code>--no-github-release</code>, and <code>--action</code>/<code>--no-action</code> change the steps; <code>--tag &lt;name&gt;</code> publishes under a dist-tag; <code>--no-git-tag</code> publishes and stops</td>
+</tr>
+<tr>
+<td><code>pre enter &lt;tag&gt;</code> / <code>pre exit</code></td>
+<td>Start or end a <a href="../../plugins/release/#pre-releases">pre-release</a></td>
 </tr>
 </tbody>
 </table>
 <p>Any other subcommand is passed to the bundled changesets CLI.</p>
 <h2 id="recording-a-change" tabindex="-1"><a class="header-anchor" href="#recording-a-change">Recording a change</a></h2>
-<p>Interactively, <code>opx release add</code> asks which packages changed, the bump, and a summary.</p>
+<p>In a terminal, <code>opx release add</code> runs changesets' own prompt (<code>changeset add</code>), so its options, such as <code>--open</code> and <code>--since</code>, work as the <a href="https://github.com/changesets/changesets/blob/main/packages/cli/README.md#add">changesets docs</a> describe.</p>
 <p>For scripts and CI, pass flags:</p>
 <table>
 <thead>
@@ -153,6 +158,30 @@
 </tbody>
 </table>
 <pre class="language-sh"><code class="language-sh">opx release <span class="token function">add</span> <span class="token parameter variable">--type</span> patch <span class="token parameter variable">--pkg</span> @acme/cli <span class="token parameter variable">--summary</span> <span class="token string">"Fix crash on empty config"</span></code></pre>
+<h2 id="opting-in-to-the-custom-changelog" tabindex="-1"><a class="header-anchor" href="#opting-in-to-the-custom-changelog">Opting in to the custom changelog</a></h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--changelog</code></td>
+<td>Set <code>changelog</code> to <code>@allons-y/opx-release/changelog</code>, with <code>repo</code> from <code>package.json</code></td>
+</tr>
+<tr>
+<td><code>--date</code></td>
+<td>Also set <code>releaseDate</code>, so <code>version</code> dates each new version</td>
+</tr>
+<tr>
+<td><code>--maintainer</code></td>
+<td>GitHub handle that is never thanked. Repeat or comma-separate. Replaces the default, which reads <code>author</code> and <code>contributors</code> from <code>package.json</code>.</td>
+</tr>
+</tbody>
+</table>
+<pre class="language-sh"><code class="language-sh">opx release init <span class="token parameter variable">--changelog</span></code></pre>
 <p><code>opx release</code> requires <code>release</code> to be enabled: <code>opx enable release</code>.</p>
 
 	</main>

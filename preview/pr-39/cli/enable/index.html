@@ -78,6 +78,7 @@
 				<li><a href="/opx/preview/pr-39/guides/compose-eslint/">Custom ESLint settings</a></li>
 				<li><a href="/opx/preview/pr-39/guides/ci/">Use opx in CI</a></li>
 				<li><a href="/opx/preview/pr-39/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/preview/pr-39/guides/agents/">Use opx with an AI agent</a></li>
 			</ul>
 		</li>
 		<li>
@@ -105,13 +106,15 @@
 <tr>
 <td><code>--task &lt;tasks...&gt;</code></td>
 <td>every task the plugin provides</td>
-<td>One or more of <code>lint</code>, <code>build</code></td>
+<td>One or more of <code>lint</code>, <code>build</code>. Required when opx can't load a third-party plugin to read its tasks</td>
 </tr>
 </tbody>
 </table>
 <h2 id="behavior" tabindex="-1"><a class="header-anchor" href="#behavior">Behavior</a></h2>
 <ul>
 <li>Plugins are written only to the tasks they provide. <code>opx enable js</code> touches <code>lint</code> only, because the official JS plugin is a linter.</li>
+<li>A first-party package id resolves to its short name: <code>opx enable @allons-y/opx-lint-ts</code> is the same as <code>opx enable ts</code>, and writes <code>ts</code> under <code>lint</code>.</li>
+<li>A third-party package id (<code>opx-plugin-foo</code>, <code>@scope/opx-plugin-foo</code>) is written under the tasks its detectors declare. opx loads the installed package to read them. If it can't, pass <code>--task</code>; opx never writes a plugin to every task.</li>
 <li><code>release</code> is a static task: it sets the top-level <code>release</code> boolean and ignores <code>--task</code>.</li>
 <li>Unknown names, and <code>--task</code> values a plugin doesn't provide, print an error and exit <code>1</code>.</li>
 <li>Running it when nothing would change prints a message and exits <code>0</code>. A plugin that already points at a config file counts as enabled and keeps its path.</li>
@@ -121,6 +124,8 @@
 </ul>
 <h2 id="examples" tabindex="-1"><a class="header-anchor" href="#examples">Examples</a></h2>
 <pre class="language-sh"><code class="language-sh">opx <span class="token builtin class-name">enable</span> js
+opx <span class="token builtin class-name">enable</span> ts
+opx <span class="token builtin class-name">enable</span> @allons-y/opx-lint-ts
 opx <span class="token builtin class-name">enable</span> release
 opx <span class="token builtin class-name">enable</span> @acme/opx-plugin-foo <span class="token parameter variable">--task</span> lint</code></pre>
 
