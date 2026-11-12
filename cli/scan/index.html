@@ -126,8 +126,7 @@
       <span class="token property">"shortName"</span><span class="token operator">:</span> <span class="token string">"md"</span><span class="token punctuation">,</span>
       <span class="token property">"pkg"</span><span class="token operator">:</span> <span class="token string">"@allons-y/opx-lint-md"</span><span class="token punctuation">,</span>
       <span class="token property">"reason"</span><span class="token operator">:</span> <span class="token string">"Files matching md found in the committed tree."</span><span class="token punctuation">,</span>
-      <span class="token property">"installed"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
-      <span class="token property">"requires"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+      <span class="token property">"installed"</span><span class="token operator">:</span> <span class="token boolean">true</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">]</span><span class="token punctuation">,</span>
   <span class="token property">"needsPrompt"</span><span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"md"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
@@ -157,7 +156,7 @@
 </tr>
 <tr>
 <td><code>suggestions</code></td>
-<td>Plugins that match, with whether their package is installed and any <code>requires</code>: packages your project must install itself (the <code>ts</code> plugin needs <code>typescript</code>)</td>
+<td>Plugins that match, with whether their package is installed. Peer dependencies such as <code>typescript</code> aren't listed: a plugin declares them in its own <code>package.json</code>, and <a href="../init/#peer-dependencies"><code>opx init</code></a> installs them</td>
 </tr>
 <tr>
 <td><code>needsPrompt</code></td>
