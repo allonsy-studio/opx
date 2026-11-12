@@ -109,7 +109,8 @@ describe("the post-commit hook", () => {
 		mkdirSync(join(dir, "node_modules", ".bin"), { recursive: true });
 		const fakes: [string, string][] = [[join(fake, "yarn"), "yarn"], [join(dir, "node_modules", ".bin", "opx"), "opx"]];
 		for (const [path, name] of fakes) {
-			writeFileSync(path, `#!/bin/sh\necho "${name} $*" > "${record}"\n`);
+			// Write then rename, so the test never reads a half-written record.
+			writeFileSync(path, `#!/bin/sh\necho "${name} $*" > "${record}.tmp" && mv "${record}.tmp" "${record}"\n`);
 			chmodSync(path, 0o755);
 		}
 		const hook = installPostCommitHook(dir).path;
