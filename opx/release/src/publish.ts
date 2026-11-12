@@ -1,6 +1,7 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { setTimeout as sleep } from "node:timers/promises";
 
 import { read as readConfig } from "@changesets/config";
 import { shouldSkipPackage } from "@changesets/should-skip-package";
@@ -84,6 +85,47 @@ export function resolveSettings(cwd: string, config: unknown, args: Pick<Publish
 /** A package version that should have a tag and a GitHub release. */
 export type ReleaseTarget = { name: string; version: string; dir: string; tag: string; prerelease: boolean };
 
+/** A public package version that should be on a registry. */
+export type RegistryTarget = { name: string; version: string; registry: string };
+
+/** The registry changesets publishes to when nothing else is set. */
+const NPM_REGISTRY = "https://registry.npmjs.org";
+
+/** How long to wait between registry checks after a failed publish; about a minute in all. */
+export const REGISTRY_RETRY_MS = [0, 10_000, 20_000, 30_000];
+
+/** A package's registry, found as changesets finds it: `publishConfig.registry`, then `npm_config_registry`, then npm. */
+export function registryFor(packageJson: { publishConfig?: { registry?: string } }, env: NodeJS.ProcessEnv = process.env): string {
+	return (packageJson.publishConfig?.registry ?? env.npm_config_registry ?? NPM_REGISTRY).replace(/\/+$/, "");
+}
+
+/**
+ * Whether a version is listed on its registry. A lookup that fails counts as not listed.
+ * @param fetchFn - Injected in tests.
+ */
+export async function isOnRegistry(target: RegistryTarget, fetchFn: typeof fetch = fetch): Promise<boolean> {
+	try {
+		const response = await fetchFn(`${target.registry}/${target.name.replace("/", "%2f")}`, {
+			headers: { accept: "application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8" },
+		});
+		if (!response.ok) return false;
+		const body = (await response.json()) as { versions?: Record<string, unknown> };
+		return Boolean(body.versions && target.version in body.versions);
+	} catch {
+		return false;
+	}
+}
+
+/** The current version of every public package changesets would publish. */
+export async function registryTargets(cwd: string, env: NodeJS.ProcessEnv = process.env): Promise<RegistryTarget[]> {
+	const packages = await getPackages(cwd);
+	const config = await readConfig(cwd, packages);
+	return packages.packages
+		.filter((pkg) => !shouldSkipPackage(pkg, { ignore: config.ignore, allowPrivatePackages: false }))
+		.map((pkg) => ({ name: pkg.packageJson.name, version: pkg.packageJson.version, registry: registryFor(pkg.packageJson as { publishConfig?: { registry?: string } }, env) }))
+		.sort((a, b) => a.name.localeCompare(b.name));
+}
+
 /**
  * The current version of every package changesets tags: public packages, and private ones
  * when `privatePackages.tag` is on. Tags follow changesets: `v1.2.3` for a single package,
@@ -156,6 +198,10 @@ export type PublishDeps = {
 	publish: (cwd: string, args: string[]) => Promise<number>;
 	/** A GitHub client, or why there isn't one. */
 	github: (cwd: string) => GitHubClient | { reason: string };
+	/** Whether a version is listed on its registry. */
+	onRegistry: (target: RegistryTarget) => Promise<boolean>;
+	/** Pause between registry checks. */
+	wait: (ms: number) => Promise<void>;
 };
 
 /** A GitHub client from `GITHUB_TOKEN` and the repository, or why one can't be made. */
@@ -172,6 +218,8 @@ export const publishDeps: PublishDeps = {
 	ui: defaultUi,
 	publish: (cwd, args) => runChangeset(cwd, ["publish", ...args]),
 	github: (cwd) => githubFromEnv(cwd),
+	onRegistry: isOnRegistry,
+	wait: sleep,
 };
 
 /** What happened to one package's tag and release, for the summary. */
@@ -180,9 +228,28 @@ type Outcome = { target: ReleaseTarget; tag: "new" | "exists" | "moved" | "faile
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
 
 /**
+ * Check the registry for each public version, retrying on `REGISTRY_RETRY_MS`.
+ * @returns `name@version` for each version still missing.
+ */
+async function missingFromRegistry(cwd: string, deps: PublishDeps): Promise<string[]> {
+	let missing = await registryTargets(cwd);
+	for (const delay of REGISTRY_RETRY_MS) {
+		if (missing.length === 0) break;
+		if (delay > 0) {
+			deps.ui.step("Waiting for the registry", `${plural(missing.length, "version")} not listed yet`);
+			await deps.wait(delay);
+		}
+		const listed = await Promise.all(missing.map((target) => deps.onRegistry(target)));
+		missing = missing.filter((_, i) => !listed[i]);
+	}
+	return missing.map((target) => `${target.name}@${target.version}`);
+}
+
+/**
  * Publish, then finish the release: tag each published version, push the tags, create the
  * GitHub releases, and for an Action repository commit the build and move the major tag.
- * Every step skips what is already done, so a failed run can be re-run.
+ * Every step skips what is already done, so a failed run can be re-run. When changesets fails
+ * but every public version turns up on the registry, the release carries on.
  *
  * @param config - The `release` value from `.opx/config.json`.
  * @returns `0` when every step worked; otherwise the publish exit code, or `1`.
@@ -197,11 +264,17 @@ export async function runPublish(cwd: string, args: string[], config: unknown, d
 	const code = await deps.publish(cwd, parsed.forwarded);
 	ui.gap();
 	if (code !== 0) {
-		ui.fail("Publishing failed", `changesets exited with ${code}`);
-		ui.hint("Nothing was tagged. Fix the error and run it again; published versions are skipped.");
-		return code;
+		ui.warn(`changesets exited with ${code}`, "checking the registry");
+		const missing = await missingFromRegistry(cwd, deps);
+		if (missing.length > 0) {
+			ui.fail("Publishing failed", `not on the registry: ${missing.join(", ")}`);
+			ui.hint("Nothing was tagged. Fix the error and run it again; published versions are skipped.");
+			return code;
+		}
+		ui.ok("Every version is on the registry", "finishing the release");
+	} else {
+		ui.ok("Published to the registry");
 	}
-	ui.ok("Published to the registry");
 
 	if (parsed.noGitTag) {
 		ui.skip("Tags and GitHub releases", "--no-git-tag");

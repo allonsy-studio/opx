@@ -2,10 +2,24 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { jest } from "@jest/globals";
 import { useScratch } from "shared/testing.js";
 
 import type { GitHubClient, NewRelease } from "./github.js";
-import { changelogSection, githubFromEnv, parsePublishArgs, releaseTargets, resolveSettings, runPublish, type PublishDeps } from "./publish.js";
+import {
+	changelogSection,
+	githubFromEnv,
+	isOnRegistry,
+	parsePublishArgs,
+	REGISTRY_RETRY_MS,
+	registryFor,
+	registryTargets,
+	releaseTargets,
+	resolveSettings,
+	runPublish,
+	type PublishDeps,
+	type RegistryTarget,
+} from "./publish.js";
 import { createUi } from "./ui.js";
 
 const scratch = useScratch();
@@ -65,21 +79,40 @@ function fakeGithub(existing: string[] = [], fail?: string): GitHubClient & { cr
 	};
 }
 
-/** Deps with a captured ui, a publish step that exits `code`, and the given GitHub. */
-function deps(github: GitHubClient | { reason: string }, code = 0): PublishDeps & { out: string[]; err: string[]; published: string[][] } {
+/**
+ * Deps with a captured ui, a publish step that exits `code`, and the given GitHub. `listed`
+ * says whether a version is on the registry at a given check, counting from 0.
+ */
+function deps(
+	github: GitHubClient | { reason: string },
+	code = 0,
+	listed: (target: RegistryTarget, check: number) => boolean = () => false,
+): PublishDeps & { out: string[]; err: string[]; published: string[][]; looked: string[][]; waited: number[] } {
 	const out: string[] = [];
 	const err: string[] = [];
 	const published: string[][] = [];
+	const looked: string[][] = [];
+	const waited: number[] = [];
 	return {
 		out,
 		err,
 		published,
+		looked,
+		waited,
 		ui: createUi({ out: (l) => out.push(l), err: (l) => err.push(l), color: false, unicode: true }),
 		publish: async (_cwd, args) => {
 			published.push(args);
 			return code;
 		},
 		github: () => github,
+		onRegistry: async (target) => {
+			const check = waited.length;
+			(looked[check] ??= []).push(`${target.name}@${target.version}`);
+			return listed(target, check);
+		},
+		wait: async (ms) => {
+			waited.push(ms);
+		},
 	};
 }
 
@@ -157,6 +190,42 @@ describe("releaseTargets", () => {
 	});
 });
 
+describe("registryFor", () => {
+	it("uses publishConfig, then npm_config_registry, then npm, without a trailing slash", () => {
+		expect(registryFor({ publishConfig: { registry: "https://npm.pkg.github.com/" } }, { npm_config_registry: "https://r.test" })).toBe("https://npm.pkg.github.com");
+		expect(registryFor({}, { npm_config_registry: "https://r.test/" })).toBe("https://r.test");
+		expect(registryFor({}, {})).toBe("https://registry.npmjs.org");
+	});
+});
+
+describe("isOnRegistry", () => {
+	const target: RegistryTarget = { name: "@s/a", version: "1.2.0", registry: "https://r.test" };
+	const respond = (status: number, body: unknown = {}) => jest.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
+
+	it("looks up the package document and finds the version in it", async () => {
+		const fetchFn = respond(200, { versions: { "1.1.0": {}, "1.2.0": {} } });
+		expect(await isOnRegistry(target, fetchFn)).toBe(true);
+		expect(fetchFn).toHaveBeenCalledWith("https://r.test/@s%2fa", expect.anything());
+	});
+
+	it("counts a missing version, a missing package, or a failed lookup as not listed", async () => {
+		expect(await isOnRegistry(target, respond(200, { versions: { "1.1.0": {} } }))).toBe(false);
+		expect(await isOnRegistry(target, respond(404))).toBe(false);
+		expect(await isOnRegistry(target, (async () => Promise.reject(new Error("offline"))) as typeof fetch)).toBe(false);
+	});
+});
+
+describe("registryTargets", () => {
+	it("lists public packages with their registry and skips private ones", async () => {
+		const { dir } = repo({ ...MONOREPO, "packages/c": { name: "@s/c", version: "0.1.0", publishConfig: { registry: "https://r.test" } } });
+		expect(await registryTargets(dir, {})).toEqual([
+			{ name: "@s/a", version: "1.2.0", registry: "https://registry.npmjs.org" },
+			{ name: "@s/b", version: "2.0.0-beta.1", registry: "https://registry.npmjs.org" },
+			{ name: "@s/c", version: "0.1.0", registry: "https://r.test" },
+		]);
+	});
+});
+
 describe("runPublish", () => {
 	it("tags, pushes, and creates a release per package, with changelog notes", async () => {
 		const { dir, origin } = repo(MONOREPO);
@@ -189,13 +258,31 @@ describe("runPublish", () => {
 		expect(again.out).toEqual(expect.arrayContaining(["  – Pushing tags  origin already has them", "  – GitHub releases  every tag already has one"]));
 	});
 
-	it("stops before tagging when publishing fails", async () => {
+	it("stops before tagging when publishing fails and a version never reaches the registry", async () => {
 		const { dir, origin } = repo(MONOREPO);
-		const d = deps(fakeGithub(), 7);
+		const d = deps(fakeGithub(), 7, (target) => target.name === "@s/a");
 		expect(await runPublish(dir, [], true, d)).toBe(7);
 		expect(git(dir, "tag", "--list")).toBe("");
 		expect(originTags(origin)).toEqual([]);
-		expect(d.err).toEqual(["  ✖ Publishing failed  changesets exited with 7"]);
+		expect(d.waited).toEqual(REGISTRY_RETRY_MS.filter((ms) => ms > 0));
+		expect(d.looked.at(-1)).toEqual(["@s/b@2.0.0-beta.1"]);
+		expect(d.err).toEqual(["  ▲ changesets exited with 7  checking the registry", "  ✖ Publishing failed  not on the registry: @s/b@2.0.0-beta.1"]);
+	});
+
+	it("finishes the release when publishing fails but every version shows up on the registry", async () => {
+		const { dir, origin } = repo(MONOREPO);
+		const github = fakeGithub();
+		const d = deps(github, 1, (target, check) => target.name === "@s/a" || check > 0);
+
+		expect(await runPublish(dir, [], true, d)).toBe(0);
+		expect(d.looked).toEqual([["@s/a@1.2.0", "@s/b@2.0.0-beta.1"], ["@s/b@2.0.0-beta.1"]]);
+		expect(d.waited).toEqual([REGISTRY_RETRY_MS[1]]);
+		expect(originTags(origin)).toEqual(["@s/a@1.2.0", "@s/b@2.0.0-beta.1"]);
+		expect(github.created).toHaveLength(2);
+		expect(d.out).toEqual(
+			expect.arrayContaining(["  ● Waiting for the registry  1 version not listed yet", "  ✔ Every version is on the registry  finishing the release"]),
+		);
+		expect(d.out).not.toContain("  ✔ Published to the registry");
 	});
 
 	it("publishes only with --no-git-tag", async () => {
