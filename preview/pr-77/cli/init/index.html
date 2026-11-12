@@ -185,7 +185,7 @@ opx init <span class="token parameter variable">--accept</span> js,md,release <s
 </tr>
 </tbody>
 </table>
-<p>opx skips optional peers and any peer your <code>package.json</code> already lists. Where it can't read the installed plugin to find its peers, such as under Yarn Plug'n'Play, it says so; install the packages under <code>peerDependencies</code> in the plugin's <code>package.json</code> yourself.</p>
+<p>opx skips optional peers and any peer your <code>package.json</code> already lists. It never changes a version your project already uses. If that version is outside what the plugin supports, such as TypeScript 7 where lint-ts supports 5 and 6, opx prints a warning that names both and leaves it alone; the plugin may not work until you move to a supported version. npm can also refuse the install over the same conflict. Where it can't read the installed plugin to find its peers, such as under Yarn Plug'n'Play, it says so; install the packages under <code>peerDependencies</code> in the plugin's <code>package.json</code> yourself.</p>
 <p>A peer that npm, pnpm, or bun installs for you isn't added to your <code>package.json</code>, and pnpm keeps it out of your top-level <code>node_modules</code>. Add it yourself if your own code or scripts use it, such as <code>typescript</code> for <code>tsc</code>.</p>
 <h2 id="cleanup" tabindex="-1"><a class="header-anchor" href="#cleanup">Cleanup</a></h2>
 <p>Cleanup is off unless asked for, because it can delete files. Run <code>opx init --cleanup</code> to see what each enabled plugin makes unnecessary. <code>opx init</code> prints those suggestions and does very little itself. It deletes a file only when <strong>all</strong> of these hold:</p>
