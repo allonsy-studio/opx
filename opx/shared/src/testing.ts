@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -34,7 +34,12 @@ export function useScratch(): Scratch {
 	const made: string[] = [];
 
 	afterEach(() => {
-		for (const path of made.splice(0)) rmSync(path, { recursive: true, force: true });
+		const left: string[] = [];
+		for (const path of made.splice(0)) {
+			rmSync(path, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+			if (existsSync(path)) left.push(`${path} (${readdirSync(path).join(", ") || "empty"})`);
+		}
+		if (left.length > 0) throw new Error(`Scratch directories were not removed: ${left.join("; ")}`);
 	});
 
 	const dir = (prefix = "opx-test-"): string => {
@@ -50,6 +55,9 @@ export function useScratch(): Scratch {
 		git("config", "user.email", "t@t.io");
 		git("config", "user.name", "t");
 		git("config", "commit.gpgsign", "false");
+		// No auto gc or maintenance: a background git must not outlive the test and touch the directory after cleanup.
+		git("config", "gc.auto", "0");
+		git("config", "maintenance.auto", "false");
 		if (files) {
 			for (const [name, content] of Object.entries(files)) {
 				mkdirSync(dirname(join(path, name)), { recursive: true });
