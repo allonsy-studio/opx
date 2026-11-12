@@ -1,4 +1,7 @@
-import type { DetectorContext } from "@allons-y/opx";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { intersects, satisfies, valid, validRange } from "semver";
+import type { DetectorContext, PackageJson, PackageManager } from "@allons-y/opx";
 
 import { buildContext } from "./context.js";
 
@@ -69,4 +72,93 @@ export function prereleaseTag(version: string | undefined): string | undefined {
 export function withTag(packages: string[], tag: string | undefined): string[] {
 	// A spec that already names a version or range, such as `pkg@^1.0.0`, keeps it.
 	return tag ? packages.map((pkg) => (pkg.lastIndexOf("@") > 0 ? pkg : `${pkg}@${tag}`)) : packages;
+}
+
+/** Package managers that install a package's peer dependencies themselves, by default. */
+const INSTALLS_PEERS: ReadonlySet<PackageManager> = new Set(["npm", "pnpm", "bun"]);
+
+/**
+ * Whether a package manager installs peer dependencies without being asked.
+ *
+ * @param pm - The package manager.
+ * @returns `false` for Yarn, which only warns about a missing peer.
+ */
+export function installsPeers(pm: PackageManager): boolean {
+	return INSTALLS_PEERS.has(pm);
+}
+
+/** Quote an install spec for a command line when it holds spaces or shell characters, as `^5 || ^6` does. */
+export function quoteSpec(spec: string): string {
+	return /[\s|<>&]/.test(spec) ? `"${spec}"` : spec;
+}
+
+/** Split a command into arguments, keeping a double-quoted spec together. */
+export function splitCommand(cmd: string): string[] {
+	return (cmd.match(/"[^"]*"|\S+/g) ?? []).map((part) => part.replace(/^"|"$/g, ""));
+}
+
+/** Find an installed package's manifest the way Node resolves it, looking in each parent `node_modules`. */
+function readInstalled(cwd: string, pkg: string): PackageJson & { peerDependenciesMeta?: Record<string, { optional?: boolean }> } | undefined {
+	for (let dir = resolve(cwd); ; dir = dirname(dir)) {
+		const file = join(dir, "node_modules", ...pkg.split("/"), "package.json");
+		if (existsSync(file)) return JSON.parse(readFileSync(file, "utf8"));
+		if (dirname(dir) === dir) return undefined;
+	}
+}
+
+/** A peer the project already has that a plugin doesn't support. opx only reports it. */
+export type PeerConflict = {
+	/** The plugin that declares the peer. */
+	plugin: string;
+	/** The peer's package name. */
+	peer: string;
+	/** The version installed, or the project's declared range when nothing is installed to read. */
+	found: string;
+	/** The range the plugin supports. */
+	range: string;
+};
+
+/** Whether what the project has fits a plugin's range; unparseable ranges, such as tags, count as fitting. */
+function fits(cwd: string, peer: string, declared: string, range: string): boolean {
+	const installed = readInstalled(cwd, peer)?.version;
+	if (installed && valid(installed)) return satisfies(installed, range, { includePrerelease: true });
+	return !validRange(declared) || !validRange(range) || intersects(declared, range, { includePrerelease: true });
+}
+
+/**
+ * The peer dependencies of installed plugins that the host doesn't list yet,
+ * and the ones it lists that a plugin doesn't support.
+ *
+ * The plugin's `peerDependencies` are the one place its supported ranges live,
+ * so the package manager resolves the newest version each range allows. A peer
+ * the project already has is never changed, only reported.
+ *
+ * @param cwd - The repository root.
+ * @param plugins - Installed plugin package names.
+ * @param hostPkg - The host's `package.json`.
+ * @returns Install specs, the project's peers a plugin doesn't support, and the plugins whose manifest couldn't be found, such as under Plug'n'Play.
+ */
+export function missingPeers(cwd: string, plugins: string[], hostPkg: PackageJson): { specs: string[]; conflicts: PeerConflict[]; unreadable: string[] } {
+	const have = { ...hostPkg.dependencies, ...hostPkg.devDependencies };
+	const specs: string[] = [];
+	const conflicts: PeerConflict[] = [];
+	const unreadable: string[] = [];
+	for (const plugin of plugins) {
+		const manifest = readInstalled(cwd, plugin);
+		if (!manifest) {
+			unreadable.push(plugin);
+			continue;
+		}
+		for (const [name, range] of Object.entries(manifest.peerDependencies ?? {})) {
+			if (manifest.peerDependenciesMeta?.[name]?.optional) continue;
+			const declared = have[name];
+			if (declared === undefined) {
+				const spec = `${name}@${range}`;
+				if (!specs.includes(spec)) specs.push(spec);
+			} else if (!fits(cwd, name, declared, range)) {
+				conflicts.push({ plugin, peer: name, found: readInstalled(cwd, name)?.version ?? declared, range });
+			}
+		}
+	}
+	return { specs, conflicts, unreadable };
 }

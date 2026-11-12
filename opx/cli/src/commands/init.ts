@@ -4,7 +4,7 @@ import { join } from "node:path";
 import * as p from "@clack/prompts";
 import type { Command } from "commander";
 import type { Detector, DetectorContext, Logger, PackageJson } from "@allons-y/opx";
-import { CLI_NAME, prereleaseTag, withTag } from "../plugin-kit.js";
+import { CLI_NAME, installsPeers, missingPeers, prereleaseTag, quoteSpec, splitCommand, withTag, type PeerConflict } from "../plugin-kit.js";
 
 import {
 	configPath,
@@ -20,6 +20,7 @@ import {
 	writeConfig,
 	writeState,
 	type OpxConfig,
+	type PackageManagerInfo,
 } from "@allons-y/opx";
 
 import { applyCleanup, describePlan, planCleanup } from "../cleanup.js";
@@ -100,7 +101,7 @@ export type InstallRunner = (cmd: string, cwd: string) => Promise<void> | void;
 
 export const runInstall: InstallRunner = async (cmd, cwd) => {
 	const { execFileSync } = await import("node:child_process");
-	const [bin, ...args] = cmd.split(" ");
+	const [bin, ...args] = splitCommand(cmd);
 	if (bin) execFileSync(bin, args, { cwd, stdio: "inherit" });
 };
 
@@ -191,7 +192,7 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 
 	for (const suggestion of remaining) {
 		const choice = await p.select({
-			message: `Enable ${suggestion.shortName} (${suggestion.pkg})? — ${suggestion.reason}${suggestion.requires.length > 0 ? ` Requires ${suggestion.requires.join(", ")}.` : ""}`,
+			message: `Enable ${suggestion.shortName} (${suggestion.pkg})? — ${suggestion.reason}`,
 			options: [
 				{ value: "yes", label: "Yes — enable now" },
 				{ value: "no", label: "No — never (decline)" },
@@ -205,7 +206,6 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 		if (choice === "yes") {
 			accepted.push(suggestion);
 			if (!suggestion.installed) installCandidates.push(suggestion.pkg);
-			installCandidates.push(...suggestion.requires.filter((dep) => !hasDependency(ctx.hostPkg, dep) && !installCandidates.includes(dep)));
 			// if (suggestion.shortName === "json") {
 			// 	const dialects = await p.multiselect({
 			// 		message: "Also lint JSON variants? (.json is always included)",
@@ -262,10 +262,20 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 			});
 			if (!p.isCancel(confirmed) && confirmed) {
 				await install(cmd, cwd);
+				const peers = planPeers(cwd, pm, accepted, ctx.hostPkg);
+				if (peers.cmd) {
+					p.log.info(`Installing peer dependencies, which ${pm.name} doesn't install itself:\n  ${peers.cmd}`);
+					await install(peers.cmd, cwd);
+				}
+				if (peers.unreadable.length > 0) p.log.warn(peers.hint);
 			} else {
 				p.log.info(`Run when ready: ${cmd}`);
 			}
 		}
+	}
+
+	for (const c of planPeers(cwd, inspectPackageManager(cwd, ctx.hostPkg), accepted, ctx.hostPkg).conflicts) {
+		p.log.warn(`${describeConflict(c)}.\n  ${CONFLICT_HINT}`);
 	}
 
 	// Scaffold a composable root eslint.config.js so editors and a plain
@@ -315,10 +325,37 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	p.outro("Setup complete.");
 }
 
-/** Whether the host lists `dep` in its dependencies or devDependencies. */
-function hasDependency(pkg: PackageJson, dep: string): boolean {
-	return dep in (pkg.dependencies ?? {}) || dep in (pkg.devDependencies ?? {});
+/**
+ * What a package manager needs beyond the plugins themselves: their peer
+ * dependencies, read from the installed plugins. Only managers that don't
+ * install peers themselves need the command. A peer the project already has
+ * is never changed; one a plugin doesn't support is reported.
+ */
+function planPeers(
+	cwd: string,
+	pm: PackageManagerInfo,
+	accepted: Suggestion[],
+	hostPkg: PackageJson,
+): { cmd: string; conflicts: PeerConflict[]; unreadable: string[]; hint: string } {
+	const none = { cmd: "", conflicts: [] as PeerConflict[], unreadable: [] as string[], hint: "" };
+	if (accepted.length === 0) return none;
+	const { specs, conflicts, unreadable } = missingPeers(cwd, accepted.map((s) => s.pkg), hostPkg);
+	const installs = pm.certain && !installsPeers(pm.name);
+	return {
+		cmd: installs ? installCommand(pm.name, specs.map(quoteSpec), pm) : "",
+		conflicts,
+		unreadable: installs ? unreadable : [],
+		hint: `Couldn't read ${unreadable.join(", ")} to find its peer dependencies. Install the ones listed under peerDependencies in its package.json.`,
+	};
 }
+
+/** The line that reports a peer the project has but a plugin doesn't support. */
+function describeConflict(c: PeerConflict): string {
+	return `${c.peer} ${c.found} is outside ${c.range}, which ${c.plugin} supports`;
+}
+
+/** What to do about a peer opx left alone. */
+const CONFLICT_HINT = "opx doesn't change the versions your project uses. Move to a supported version, or expect the plugin not to work with it.";
 
 /** Drops every message, so loading plugins for cleanup never warns about ones that are not installed. */
 const SILENT: Logger = { info() {}, warn() {}, error() {}, debug() {} };
@@ -367,8 +404,7 @@ export async function runReport(cwd: string, options: CleanupOptions = {}): Prom
 	} else {
 		console.log(`${CLI_NAME}: detected file types that match these built-in detectors (\`${CLI_NAME} init --yes\` sets them all up):`);
 		for (const s of remaining) {
-			const install = [s.pkg, ...s.requires.filter((dep) => !hasDependency(hostPkg, dep))].join(" ");
-			console.log(`  - ${s.shortName}: install ${install}, then run \`${CLI_NAME} enable ${s.shortName}\``);
+			console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
 		}
 	}
 
@@ -433,23 +469,39 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 	if (pairLintJs(cwd, ctx.hostPkg, accepted, nextConfig, missing)) {
 		hint(`Upgrading ${LINT_JS} too: its 0.x releases also lint TypeScript`);
 	}
-	if (missing.length > 0) {
-		const pm = inspectPackageManager(cwd, ctx.hostPkg);
+	const pm = inspectPackageManager(cwd, ctx.hostPkg);
+	if (missing.length > 0 || (accepted.length > 0 && pm.certain && !installsPeers(pm.name))) {
 		const cmd = installCommand(pm.name, withTag(missing, options.tag), pm);
 		if (!pm.certain) {
 			console.log(`  ${colors.yellow("▲")} Not sure which package manager to use ${colors.dim(`(${pm.reason})`)}`);
 			hint(`Run the one you use: ${cmd}`);
 		} else {
-			console.log(`  ${colors.cyan("●")} Installing ${missing.join(", ")}`);
+			let running = cmd;
 			try {
-				await install(cmd, cwd);
-				ok("Installed packages", cmd);
+				if (missing.length > 0) {
+					console.log(`  ${colors.cyan("●")} Installing ${missing.join(", ")}`);
+					await install(cmd, cwd);
+					ok("Installed packages", cmd);
+				}
+				const peers = planPeers(cwd, pm, accepted, ctx.hostPkg);
+				if (peers.cmd) {
+					running = peers.cmd;
+					console.log(`  ${colors.cyan("●")} Installing peer dependencies ${colors.dim(`(${pm.name} doesn't install them itself)`)}`);
+					await install(peers.cmd, cwd);
+					ok("Installed peer dependencies", peers.cmd);
+				}
+				if (peers.unreadable.length > 0) console.log(`  ${colors.yellow("▲")} ${peers.hint}`);
 			} catch {
 				console.error(`  ${colors.red("✖")} Install failed`);
-				console.error(`    ${colors.dim(`Run it yourself, then \`${CLI_NAME} lint\`: ${cmd}`)}`);
+				console.error(`    ${colors.dim(`Run it yourself, then \`${CLI_NAME} lint\`: ${running}`)}`);
 				return 1;
 			}
 		}
+	}
+
+	for (const c of planPeers(cwd, pm, accepted, ctx.hostPkg).conflicts) {
+		console.log(`  ${colors.yellow("▲")} ${describeConflict(c)}`);
+		hint(CONFLICT_HINT);
 	}
 
 	if (scaffoldEslintConfig(cwd, Object.keys(nextConfig.lint ?? {}))) ok("Wrote eslint.config.js");

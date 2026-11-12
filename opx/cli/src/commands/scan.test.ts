@@ -128,12 +128,6 @@ describe("runScan", () => {
 			expect(out).toContain("[not installed]");
 		});
 
-		it("names the packages a suggestion needs the project to install", () => {
-			runScan(ctx({ fileTypes: [".ts"] }), flags({ report: true }));
-			expect(printed()).toContain("ts (@allons-y/opx-lint-ts)");
-			expect(printed()).toContain("Requires typescript.");
-		});
-
 		it("says so when nothing is enabled and nothing matches", () => {
 			runScan(ctx({ fileTypes: [] }), flags({ report: true }));
 			expect(printed()).toContain("(none)");

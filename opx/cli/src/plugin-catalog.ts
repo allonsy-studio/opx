@@ -19,8 +19,6 @@ export type PluginCatalogEntry = {
 	 * alone (e.g. `release`, `test`).
 	 */
 	readonly extensions: readonly string[];
-	/** Packages the host must install itself, such as a plugin's peer dependencies. */
-	readonly requires?: readonly string[];
 	/** Why the plugin is suggested when no file implies it. */
 	readonly reason?: string;
 };
@@ -39,7 +37,6 @@ export const PLUGIN_CATALOG = [
 		shortName: "ts",
 		packages: ["@allons-y/opx-lint-ts"],
 		extensions: [".ts", ".tsx", ".mts", ".cts"],
-		requires: ["typescript"],
 	},
 	{
 		shortName: "md",

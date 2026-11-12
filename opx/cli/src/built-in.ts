@@ -119,8 +119,6 @@ export type Suggestion = {
 	reason: string;
 	/** Whether the host already depends on `pkg`. */
 	installed: boolean;
-	/** Packages the host must install itself for the plugin to run, such as `typescript`. */
-	requires: string[];
 };
 
 /**
@@ -137,7 +135,6 @@ export function virtualDetectors(fileTypes: Set<string>, hostPkg: PackageJson): 
 			pkg,
 			reason: "reason" in entry ? entry.reason : `Files matching ${entry.shortName} found in the committed tree.`,
 			installed: pkg in deps,
-			requires: "requires" in entry ? [...entry.requires] : [],
 		})),
 	);
 }
