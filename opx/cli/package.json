@@ -5,7 +5,7 @@
 		"registry": "https://registry.npmjs.org/"
 	},
 	"name": "@allons-y/opx-cli",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "opx CLI (bin: opx) — scans the committed tree, suggests language tooling, drives the opx engine.",
 	"license": "Apache-2.0",
 	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
