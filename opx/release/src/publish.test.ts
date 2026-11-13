@@ -14,9 +14,11 @@ import {
 	REGISTRY_RETRY_MS,
 	registryFor,
 	registryTargets,
+	runNpm,
 	releaseTargets,
 	resolveSettings,
 	runPublish,
+	type NpmRunner,
 	type PublishDeps,
 	type RegistryTarget,
 } from "./publish.js";
@@ -105,7 +107,7 @@ function deps(
 			return code;
 		},
 		github: () => github,
-		onRegistry: async (target) => {
+		onRegistry: async (_cwd, target) => {
 			const check = waited.length;
 			(looked[check] ??= []).push(`${target.name}@${target.version}`);
 			return listed(target, check);
@@ -191,27 +193,65 @@ describe("releaseTargets", () => {
 });
 
 describe("registryFor", () => {
-	it("uses publishConfig, then npm_config_registry, then npm, without a trailing slash", () => {
-		expect(registryFor({ publishConfig: { registry: "https://npm.pkg.github.com/" } }, { npm_config_registry: "https://r.test" })).toBe("https://npm.pkg.github.com");
-		expect(registryFor({}, { npm_config_registry: "https://r.test/" })).toBe("https://r.test");
-		expect(registryFor({}, {})).toBe("https://registry.npmjs.org");
+	const npm = { url: "https://registry.npmjs.org" };
+
+	it("prefers the scope's registry, from publishConfig and then the environment", () => {
+		const scoped = { "@s:registry": "https://scoped.test", registry: "https://plain.test" };
+		expect(registryFor({ name: "@s/a", publishConfig: scoped }, {})).toEqual({ url: "https://scoped.test", scope: "@s" });
+		expect(registryFor({ name: "@s/a", publishConfig: { registry: "https://plain.test" } }, { "npm_config_@s:registry": "https://env.test" })).toEqual({
+			url: "https://env.test",
+			scope: "@s",
+		});
+	});
+
+	it("ignores scoped settings for another scope or an unscoped package", () => {
+		expect(registryFor({ name: "@t/a", publishConfig: { "@s:registry": "https://scoped.test" } }, {})).toEqual(npm);
+		expect(registryFor({ name: "a" }, { "npm_config_@s:registry": "https://env.test" })).toEqual(npm);
+	});
+
+	it("falls back to publishConfig.registry, then npm_config_registry, then npm", () => {
+		expect(registryFor({ name: "a", publishConfig: { registry: "https://plain.test" } }, { npm_config_registry: "https://env.test" })).toEqual({ url: "https://plain.test" });
+		expect(registryFor({ name: "a" }, { npm_config_registry: "https://env.test" })).toEqual({ url: "https://env.test" });
+		expect(registryFor({ name: "a" }, {})).toEqual(npm);
+	});
+
+	it("treats npm and Yarn's registries, with or without a slash, as npm", () => {
+		for (const registry of ["https://registry.npmjs.org/", "https://registry.yarnpkg.com", "https://registry.yarnpkg.com/"]) {
+			expect(registryFor({ name: "a", publishConfig: { registry } }, {})).toEqual(npm);
+		}
 	});
 });
 
 describe("isOnRegistry", () => {
-	const target: RegistryTarget = { name: "@s/a", version: "1.2.0", registry: "https://r.test" };
-	const respond = (status: number, body: unknown = {}) => jest.fn(async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
+	const target: RegistryTarget = { name: "@s/a", version: "1.2.0", registry: { url: "https://r.test" } };
+	const replying = (output: string | undefined) => jest.fn<NpmRunner>(async () => output);
 
-	it("looks up the package document and finds the version in it", async () => {
-		const fetchFn = respond(200, { versions: { "1.1.0": {}, "1.2.0": {} } });
-		expect(await isOnRegistry(target, fetchFn)).toBe(true);
-		expect(fetchFn).toHaveBeenCalledWith("https://r.test/@s%2fa", expect.anything());
+	it("asks npm view for the exact version on the package's registry, in the project", async () => {
+		const npm = replying('"1.2.0"');
+		expect(await isOnRegistry("/repo", target, npm)).toBe(true);
+		expect(npm).toHaveBeenCalledWith(["view", "@s/a@1.2.0", "version", "--json", "--registry=https://r.test"], "/repo");
 	});
 
-	it("counts a missing version, a missing package, or a failed lookup as not listed", async () => {
-		expect(await isOnRegistry(target, respond(200, { versions: { "1.1.0": {} } }))).toBe(false);
-		expect(await isOnRegistry(target, respond(404))).toBe(false);
-		expect(await isOnRegistry(target, (async () => Promise.reject(new Error("offline"))) as typeof fetch)).toBe(false);
+	it("passes a scoped registry under the scope's own flag", async () => {
+		const npm = replying('"1.2.0"');
+		await isOnRegistry("/repo", { ...target, registry: { url: "https://scoped.test", scope: "@s" } }, npm);
+		expect(npm).toHaveBeenCalledWith(["view", "@s/a@1.2.0", "version", "--json", "--@s:registry=https://scoped.test"], "/repo");
+	});
+
+	it("reads a version from a list, as newer npm prints it", async () => {
+		expect(await isOnRegistry("/repo", target, replying('["1.2.0"]'))).toBe(true);
+	});
+
+	it("counts no output, a failed lookup, another version, or unreadable output as not listed", async () => {
+		for (const output of ["", undefined, '"1.1.0"', "not json"]) expect(await isOnRegistry("/repo", target, replying(output))).toBe(false);
+	});
+});
+
+describe("runNpm", () => {
+	it("returns npm's output, or undefined when npm fails", async () => {
+		const dir = scratch.dir("opx-npm-");
+		expect(await runNpm(["--version"], dir)).toMatch(/^\d+\.\d+\.\d+/);
+		expect(await runNpm(["not-a-command"], dir)).toBeUndefined();
 	});
 });
 
@@ -219,9 +259,9 @@ describe("registryTargets", () => {
 	it("lists public packages with their registry and skips private ones", async () => {
 		const { dir } = repo({ ...MONOREPO, "packages/c": { name: "@s/c", version: "0.1.0", publishConfig: { registry: "https://r.test" } } });
 		expect(await registryTargets(dir, {})).toEqual([
-			{ name: "@s/a", version: "1.2.0", registry: "https://registry.npmjs.org" },
-			{ name: "@s/b", version: "2.0.0-beta.1", registry: "https://registry.npmjs.org" },
-			{ name: "@s/c", version: "0.1.0", registry: "https://r.test" },
+			{ name: "@s/a", version: "1.2.0", registry: { url: "https://registry.npmjs.org" } },
+			{ name: "@s/b", version: "2.0.0-beta.1", registry: { url: "https://registry.npmjs.org" } },
+			{ name: "@s/c", version: "0.1.0", registry: { url: "https://r.test" } },
 		]);
 	});
 });

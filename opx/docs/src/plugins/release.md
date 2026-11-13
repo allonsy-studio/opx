@@ -193,7 +193,7 @@ Run snapshots on a branch or in CI, and don't commit the version bump. Set `"sna
 
 Each step skips what's already done, so after a failure, run it again and it finishes the rest.
 
-When changesets fails, opx checks the registry before giving up. npm can reject a version it's still processing from a run that just finished, so if every public version shows up on the registry within about a minute, the release goes on to tags and GitHub releases. opx looks for each version on its package's `publishConfig.registry`, then `npm_config_registry`, then npm, the same order changesets uses.
+When changesets fails, opx checks the registry before giving up. npm can reject a version it's still processing from a run that just finished, so if every public version shows up on the registry within about a minute, the release goes on to tags and GitHub releases. opx asks `npm view` for each version on the registry changesets published it to: the package scope's registry, then `publishConfig.registry`, then `npm_config_registry`, then npm. npm runs in the project, so it uses the project's `.npmrc` and works with a registry that needs a login.
 
 A run ends with a summary:
 

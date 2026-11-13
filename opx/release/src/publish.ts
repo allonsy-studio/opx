@@ -1,7 +1,9 @@
+import { execFile } from "node:child_process";
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
+import { promisify } from "node:util";
 
 import { read as readConfig } from "@changesets/config";
 import { shouldSkipPackage } from "@changesets/should-skip-package";
@@ -85,32 +87,65 @@ export function resolveSettings(cwd: string, config: unknown, args: Pick<Publish
 /** A package version that should have a tag and a GitHub release. */
 export type ReleaseTarget = { name: string; version: string; dir: string; tag: string; prerelease: boolean };
 
+/** Where a package publishes. `scope` is set when a scoped registry (`@scope:registry`) applies. */
+export type Registry = { url: string; scope?: string };
+
 /** A public package version that should be on a registry. */
-export type RegistryTarget = { name: string; version: string; registry: string };
+export type RegistryTarget = { name: string; version: string; registry: Registry };
 
 /** The registry changesets publishes to when nothing else is set. */
 const NPM_REGISTRY = "https://registry.npmjs.org";
 
+/** Registries changesets treats as npm itself. */
+const DEFAULT_REGISTRIES = new Set([NPM_REGISTRY, `${NPM_REGISTRY}/`, "https://registry.yarnpkg.com", "https://registry.yarnpkg.com/"]);
+
 /** How long to wait between registry checks after a failed publish; about a minute in all. */
 export const REGISTRY_RETRY_MS = [0, 10_000, 20_000, 30_000];
 
-/** A package's registry, found as changesets finds it: `publishConfig.registry`, then `npm_config_registry`, then npm. */
-export function registryFor(packageJson: { publishConfig?: { registry?: string } }, env: NodeJS.ProcessEnv = process.env): string {
-	return (packageJson.publishConfig?.registry ?? env.npm_config_registry ?? NPM_REGISTRY).replace(/\/+$/, "");
+/**
+ * A package's registry, found the way changesets finds it: the scope's registry from
+ * `publishConfig` or `npm_config_<scope>:registry`, then `publishConfig.registry`, then
+ * `npm_config_registry`, then npm.
+ */
+export function registryFor(packageJson: { name: string; publishConfig?: Record<string, unknown> }, env: NodeJS.ProcessEnv = process.env): Registry {
+	const config = packageJson.publishConfig ?? {};
+	if (packageJson.name.startsWith("@")) {
+		const scope = packageJson.name.split("/")[0];
+		const scoped = config[`${scope}:registry`] || env[`npm_config_${scope}:registry`];
+		if (typeof scoped === "string" && scoped) return { url: scoped, scope };
+	}
+	const url = config.registry || env.npm_config_registry;
+	return { url: typeof url === "string" && url && !DEFAULT_REGISTRIES.has(url) ? url : NPM_REGISTRY };
 }
 
-/**
- * Whether a version is listed on its registry. A lookup that fails counts as not listed.
- * @param fetchFn - Injected in tests.
- */
-export async function isOnRegistry(target: RegistryTarget, fetchFn: typeof fetch = fetch): Promise<boolean> {
+/** Runs npm in a folder; returns its output, or `undefined` when npm fails. */
+export type NpmRunner = (args: string[], cwd: string) => Promise<string | undefined>;
+
+const execFileAsync = promisify(execFile);
+
+/** Run npm in `cwd`, so it reads that project's `.npmrc`. Windows needs the `.cmd` shim and a shell. */
+export const runNpm: NpmRunner = async (args, cwd) => {
+	const windows = process.platform === "win32";
 	try {
-		const response = await fetchFn(`${target.registry}/${target.name.replace("/", "%2f")}`, {
-			headers: { accept: "application/vnd.npm.install-v1+json; q=1.0, application/json; q=0.8" },
-		});
-		if (!response.ok) return false;
-		const body = (await response.json()) as { versions?: Record<string, unknown> };
-		return Boolean(body.versions && target.version in body.versions);
+		const { stdout } = await execFileAsync(windows ? "npm.cmd" : "npm", args, { cwd, shell: windows, encoding: "utf8" });
+		return stdout;
+	} catch {
+		return undefined;
+	}
+};
+
+/**
+ * Whether a version is on its registry, asked with `npm view` against the registry changesets
+ * published to. A lookup that fails counts as not listed.
+ * @param npm - Injected in tests.
+ */
+export async function isOnRegistry(cwd: string, target: RegistryTarget, npm: NpmRunner = runNpm): Promise<boolean> {
+	const { url, scope } = target.registry;
+	const output = await npm(["view", `${target.name}@${target.version}`, "version", "--json", `--${scope ? `${scope}:` : ""}registry=${url}`], cwd);
+	if (!output?.trim()) return false;
+	try {
+		const listed: unknown = JSON.parse(output);
+		return Array.isArray(listed) ? listed.includes(target.version) : listed === target.version;
 	} catch {
 		return false;
 	}
@@ -122,7 +157,7 @@ export async function registryTargets(cwd: string, env: NodeJS.ProcessEnv = proc
 	const config = await readConfig(cwd, packages);
 	return packages.packages
 		.filter((pkg) => !shouldSkipPackage(pkg, { ignore: config.ignore, allowPrivatePackages: false }))
-		.map((pkg) => ({ name: pkg.packageJson.name, version: pkg.packageJson.version, registry: registryFor(pkg.packageJson as { publishConfig?: { registry?: string } }, env) }))
+		.map((pkg) => ({ name: pkg.packageJson.name, version: pkg.packageJson.version, registry: registryFor(pkg.packageJson as { name: string; publishConfig?: Record<string, unknown> }, env) }))
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -199,7 +234,7 @@ export type PublishDeps = {
 	/** A GitHub client, or why there isn't one. */
 	github: (cwd: string) => GitHubClient | { reason: string };
 	/** Whether a version is listed on its registry. */
-	onRegistry: (target: RegistryTarget) => Promise<boolean>;
+	onRegistry: (cwd: string, target: RegistryTarget) => Promise<boolean>;
 	/** Pause between registry checks. */
 	wait: (ms: number) => Promise<void>;
 };
@@ -239,7 +274,7 @@ async function missingFromRegistry(cwd: string, deps: PublishDeps): Promise<stri
 			deps.ui.step("Waiting for the registry", `${plural(missing.length, "version")} not listed yet`);
 			await deps.wait(delay);
 		}
-		const listed = await Promise.all(missing.map((target) => deps.onRegistry(target)));
+		const listed = await Promise.all(missing.map((target) => deps.onRegistry(cwd, target)));
 		missing = missing.filter((_, i) => !listed[i]);
 	}
 	return missing.map((target) => `${target.name}@${target.version}`);
