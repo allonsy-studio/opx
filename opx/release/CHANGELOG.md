@@ -1,5 +1,13 @@
 # @allons-y/opx-release
 
+## 0.1.1
+
+### Patch Changes
+
+- 5d2d6c5: `opx release publish` checks the registry when changesets fails, and finishes the release when every version is already there. A push right after a release no longer fails because npm is still processing the version the last run published.
+- Updated dependencies [4f4eddf]
+  - @allons-y/opx@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

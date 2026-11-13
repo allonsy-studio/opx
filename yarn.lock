@@ -260,7 +260,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@allons-y/opx-release@workspace:opx/release"
   dependencies:
-    "@allons-y/opx": "npm:^0.1.0"
+    "@allons-y/opx": "npm:^0.1.1"
     "@changesets/cli": "npm:2.31.1"
     "@changesets/config": "npm:3.1.4"
     "@changesets/get-github-info": "npm:0.8.0"
@@ -282,7 +282,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@allons-y/opx@npm:^0.1.0, @allons-y/opx@workspace:opx/engine":
+"@allons-y/opx@npm:^0.1.0, @allons-y/opx@npm:^0.1.1, @allons-y/opx@workspace:opx/engine":
   version: 0.0.0-use.local
   resolution: "@allons-y/opx@workspace:opx/engine"
   languageName: unknown
