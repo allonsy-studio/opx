@@ -8,8 +8,34 @@ import { join } from "node:path";
  */
 const POST_COMMIT_LINE = '( if [ -f .pnp.cjs ]; then yarn opx hook post-commit; else PATH="node_modules/.bin:$PATH" opx hook post-commit; fi >/dev/null 2>&1 & ) || true';
 
-/** The line earlier versions wrote, upgraded in place. */
-const LEGACY_POST_COMMIT_LINE = '( PATH="node_modules/.bin:$PATH" opx hook post-commit >/dev/null 2>&1 & ) || true';
+/** The lines earlier versions wrote, newest first, upgraded in place. */
+const LEGACY_POST_COMMIT_LINES = [
+	'( PATH="node_modules/.bin:$PATH" opx hook post-commit >/dev/null 2>&1 & ) || true',
+	"( npx --no-install opx hook post-commit >/dev/null 2>&1 & ) || true",
+];
+
+/** A top-level `exit`, which stops any line after it from running. */
+const TOP_LEVEL_EXIT = /^exit(\s|$)/;
+
+/**
+ * Swap the line an earlier version wrote for the current one, moving it above
+ * a top-level `exit` that the first versions appended it after.
+ *
+ * @returns the upgraded hook, or undefined when it has no earlier line.
+ */
+function upgradeLegacyLine(existing: string): string | undefined {
+	const lines = existing.split("\n");
+	const at = lines.findIndex((line) => LEGACY_POST_COMMIT_LINES.includes(line.trim()));
+	if (at === -1) return undefined;
+	const exitAt = lines.slice(0, at).findIndex((line) => TOP_LEVEL_EXIT.test(line));
+	if (exitAt === -1) {
+		lines[at] = POST_COMMIT_LINE;
+	} else {
+		lines.splice(at, 1);
+		lines.splice(exitAt, 0, POST_COMMIT_LINE);
+	}
+	return lines.join("\n");
+}
 
 const POST_COMMIT = `#!/usr/bin/env sh
 ${POST_COMMIT_LINE}
@@ -36,8 +62,9 @@ export function installPostCommitHook(cwd: string): HookInstallResult {
 
 	if (existsSync(path)) {
 		const existing = readFileSync(path, "utf8");
-		if (existing.includes(LEGACY_POST_COMMIT_LINE)) {
-			writeFileSync(path, existing.replace(LEGACY_POST_COMMIT_LINE, POST_COMMIT_LINE), "utf8");
+		const upgraded = upgradeLegacyLine(existing);
+		if (upgraded !== undefined) {
+			writeFileSync(path, upgraded, "utf8");
 			return { created: false, path };
 		}
 		if (existing.includes("opx hook post-commit")) {
@@ -45,7 +72,7 @@ export function installPostCommitHook(cwd: string): HookInstallResult {
 		}
 		// Insert above a trailing top-level exit, which would otherwise stop our line from running.
 		const lines = existing.trimEnd().split("\n");
-		const at = /^exit(\s|$)/.test(lines.at(-1) ?? "") ? lines.length - 1 : lines.length;
+		const at = TOP_LEVEL_EXIT.test(lines.at(-1) ?? "") ? lines.length - 1 : lines.length;
 		lines.splice(at, 0, POST_COMMIT_LINE);
 		writeFileSync(path, `${lines.join("\n")}\n`, "utf8");
 		chmodSync(path, 0o755);

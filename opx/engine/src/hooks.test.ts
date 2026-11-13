@@ -142,6 +142,27 @@ describe("the post-commit hook", () => {
 		expect(contents.startsWith("#!/usr/bin/env sh\necho mine\n")).toBe(true);
 		expect(contents.endsWith("exit 0\n")).toBe(true);
 	});
+
+	const npx = "( npx --no-install opx hook post-commit >/dev/null 2>&1 & ) || true";
+
+	it("upgrades the npx line the first versions wrote, and leaves the hook's other lines alone", () => {
+		const dir = tmpDir();
+		mkdirSync(join(dir, ".husky"));
+		const lint = "npx --no-install opx lint || true";
+		writeFileSync(join(dir, ".husky", "post-commit"), `#!/usr/bin/env sh\n${lint}\n${npx}\n`);
+		expect(installPostCommitHook(dir).created).toBe(false);
+		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8").split("\n");
+		expect(lines).toEqual(["#!/usr/bin/env sh", lint, expect.stringContaining("yarn opx hook post-commit"), ""]);
+	});
+
+	it("moves an npx line that was appended after a trailing exit above it, so it runs", () => {
+		const dir = tmpDir();
+		mkdirSync(join(dir, ".husky"));
+		writeFileSync(join(dir, ".husky", "post-commit"), `#!/usr/bin/env sh\necho mine\nexit 0\n${npx}\n`);
+		installPostCommitHook(dir);
+		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8").split("\n");
+		expect(lines).toEqual(["#!/usr/bin/env sh", "echo mine", expect.stringContaining("yarn opx hook post-commit"), "exit 0", ""]);
+	});
 });
 
 describe("ensureGitignored", () => {
