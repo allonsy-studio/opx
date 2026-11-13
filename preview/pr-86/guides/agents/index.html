@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Use opx with an AI agent · opx</title>
+		<meta name="color-scheme" content="light dark">
+		<meta name="description" content="Set up and run opx from an AI coding agent with no prompts.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/preview/pr-86/assets/css/main.css">
+		<script src="https://kit.fontawesome.com/42e99b4632.js" crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<a class="studio-banner" href="https://allons-y.studio">
+			<img src="/opx/preview/pr-86/assets/img/oss-banner.svg" alt="Brought to you by Allons-y Studio" width="1600" height="64">
+		</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/preview/pr-86/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/preview/pr-86/pagefind/pagefind-ui.css">
+<script src="/opx/preview/pr-86/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/preview/pr-86/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/preview/pr-86/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-86/config/">Configuring opx</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-86/concepts/">How it works</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-86/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/preview/pr-86/cli/init/">opx init</a></li>
+				<li><a href="/opx/preview/pr-86/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/preview/pr-86/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/preview/pr-86/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/preview/pr-86/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/preview/pr-86/cli/build/">opx build</a></li>
+				<li><a href="/opx/preview/pr-86/cli/release/">opx release</a></li>
+				<li><a href="/opx/preview/pr-86/cli/hook/">opx hook</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-86/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/preview/pr-86/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/preview/pr-86/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/preview/pr-86/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/preview/pr-86/plugins/lint-ts/">lint-ts</a></li>
+				<li><a href="/opx/preview/pr-86/plugins/release/">release</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-86/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/preview/pr-86/guides/compose-eslint/">Custom ESLint settings</a></li>
+				<li><a href="/opx/preview/pr-86/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/preview/pr-86/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/preview/pr-86/guides/agents/" aria-current="page">Use opx with an AI agent</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-86/api/">API</a>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">Use opx with an AI agent</h1>
+		<p>opx never prompts without a terminal, prints actionable errors, and exits with a clear code, so an agent can adopt it in a few commands.</p>
+<h2 id="set-up" tabindex="-1"><a class="header-anchor" href="#set-up">Set up</a></h2>
+<ol>
+<li>
+<p>Install the CLI with the project's package manager.</p>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-cli</code></pre>
+</li>
+<li>
+<p>Look at what opx would do.</p>
+<pre class="language-sh"><code class="language-sh">opx scan <span class="token parameter variable">--json</span></code></pre>
+<p><code>suggestions</code> lists matching plugins and <code>packageManager</code> says which manager opx will use. <code>install</code> and <code>setup</code> are the commands that add what's missing, or <code>null</code> when there is nothing to do. See <a href="../../cli/scan/"><code>opx scan</code></a>.</p>
+</li>
+<li>
+<p>Set everything up with one command.</p>
+<pre class="language-sh"><code class="language-sh">opx init <span class="token parameter variable">--yes</span>                   <span class="token comment"># every plugin your files match</span>
+opx init <span class="token parameter variable">--accept</span> js,md,release  <span class="token comment"># exactly these</span></code></pre>
+<p>This installs packages, writes <code>.opx/config.json</code>, scaffolds <code>eslint.config.js</code>, adds a <code>lint</code> script, and installs the git hook. <code>--yes</code> never enables <code>release</code>, so name it when the project publishes. See <a href="../../cli/init/#without-prompts">Without prompts</a>.</p>
+</li>
+<li>
+<p>Check that it works.</p>
+<pre class="language-sh"><code class="language-sh">opx lint</code></pre>
+</li>
+<li>
+<p>Commit <code>.opx/config.json</code>, <code>eslint.config.js</code>, <code>package.json</code>, the lockfile, and <code>.husky/</code>.</p>
+</li>
+</ol>
+<h2 id="day-to-day" tabindex="-1"><a class="header-anchor" href="#day-to-day">Day to day</a></h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lint</td>
+<td><code>opx lint</code> (exit <code>0</code> clean, <code>1</code> problems)</td>
+</tr>
+<tr>
+<td>Fix what can be fixed</td>
+<td><code>opx lint --fix</code></td>
+</tr>
+<tr>
+<td>Check for plugins you haven't enabled</td>
+<td><code>opx scan --strict</code> (exit <code>1</code> if any)</td>
+</tr>
+<tr>
+<td>Turn a plugin on or off</td>
+<td><code>opx enable &lt;name&gt;</code>, <code>opx disable &lt;name&gt;</code></td>
+</tr>
+<tr>
+<td>Record a release note</td>
+<td><code>opx release add --type patch --pkg &lt;name&gt; --summary &quot;&lt;text&gt;&quot;</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="rules-of-thumb" tabindex="-1"><a class="header-anchor" href="#rules-of-thumb">Rules of thumb</a></h2>
+<ul>
+<li>Read exit codes, not output text. Errors print to stderr; add <code>--debug</code> for a stack trace.</li>
+<li>When a command can't prompt, its message names the flags that replace the prompt.</li>
+<li>Don't edit <code>.opx/state.json</code>; it's local bookkeeping.</li>
+<li>After <code>opx enable</code>, run <code>opx lint</code> and confirm the plugin's group appears in the output.</li>
+<li>If <code>init</code> can't tell which package manager to use, it prints the install command instead of running it. Run it yourself.</li>
+<li>Cleanup (<code>--cleanup</code>) only prints advice without a terminal. Make those changes yourself, one at a time.</li>
+</ul>
+<p>The docs site also publishes an <a href="/opx/preview/pr-86/llms.txt"><code>llms.txt</code></a> index of every page.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<div class="site-footer-brand">
+				<p class="site-footer-title">opx</p>
+				<p>The optionally opinionated front-end toolkit.</p>
+				<p class="site-footer-meta"><a href="https://github.com/allonsy-studio/opx/blob/main/LICENSE">Licensed under Apache-2.0</a></p>
+			</div>
+			<div>
+				<p class="site-footer-title">Project</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a></li>
+					<li><a href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a></li>
+				</ul>
+			</div>
+			<div>
+				<p class="site-footer-title">Help</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx/issues">Report an issue</a></li>
+					<li><a href="https://github.com/allonsy-studio/opx/blob/main/.github/CONTRIBUTING.md">Contributing guide</a></li>
+				</ul>
+			</div>
+			<div class="site-footer-studio">
+				<a href="https://allons-y.studio">
+					<picture>
+						<source media="(prefers-color-scheme: dark)" srcset="/opx/preview/pr-86/assets/img/oss-footer-dark.svg">
+						<img src="/opx/preview/pr-86/assets/img/oss-footer-light.svg" alt="Brought to you by Allons-y Studio" width="440" height="75">
+					</picture>
+				</a>
+			</div>
+		</footer>
+	</body>
+</html>
