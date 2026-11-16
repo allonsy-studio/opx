@@ -23,13 +23,13 @@ opx <command> [options]
 | Command | What it does |
 |---|---|
 | `opx scan` | Scan the committed tree and report which detectors would activate. |
-| `opx init` | Interactive setup (`--yes` or `--accept js,md` skips the prompts): pick detectors, install packages, wire a `lint` script and post-commit hook, and, with `--cleanup`, show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
+| `opx init` | Interactive setup (`--yes` or `--accept js,md` skips the prompts): pick detectors, install packages, wire a `lint` script, the post-commit hook, and the git hooks your plugins declare, and, with `--cleanup`, show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
 | `opx enable <name>` | Enable a detector by short name (`js`, `ts`, `md`, `json`, ...) or package id. First-party ids resolve to their short name; a third-party id goes under the tasks its detectors declare, or pass `--task lint\|build`. |
-| `opx disable <name>` | Disable a detector (also accepts `--task`). |
+| `opx disable <name>` | Disable a detector (also accepts `--task`). Removes the git hook lines opx wrote for it. |
 | `opx lint [paths...]` | Run every enabled lint detector. `--fix` auto-fixes where supported. |
 | `opx build [paths...]` | Run every enabled build detector. |
 | `opx release [args...]` | Drive the release flow; forwards subcommands to the releaser (changesets). |
-| `opx hook` | Internal — invoked by the post-commit git hook. |
+| `opx hook <name>` | Internal — invoked by git hooks. Runs every enabled plugin that declared the hook `<name>` and exits with the first failure's code. |
 
 Run `opx <command> --help` for per-command flags.
 
@@ -39,7 +39,7 @@ opx is built to be driven by an agent with no human in the loop. It never prompt
 
 1. Install the CLI with the project's package manager: `yarn add --dev @allons-y/opx-cli`.
 2. Run `opx scan --json`. `suggestions` lists matching plugins, `install` and `setup` are the commands to run, and `packageManager` says which manager opx will use.
-3. Run `opx init --yes` to set up every plugin your files match, or `opx init --accept js,md,release` to choose. It installs packages, writes `.opx/config.json`, scaffolds `eslint.config.js`, adds a `lint` script, and installs the git hook.
+3. Run `opx init --yes` to set up every plugin your files match, or `opx init --accept js,md,release` to choose. It installs packages, writes `.opx/config.json`, scaffolds `eslint.config.js`, adds a `lint` script, and installs the git hooks.
 4. Run `opx lint`. Exit `0` is clean and `1` means problems; `opx lint --fix` applies fixes.
 5. Commit `.opx/config.json`, `eslint.config.js`, `package.json`, the lockfile, and `.husky/`.
 

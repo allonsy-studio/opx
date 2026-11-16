@@ -4,6 +4,7 @@ export type {
 	DetectorContext,
 	DetectorDescription,
 	DetectorId,
+	HookDeclaration,
 	Logger,
 	DynamicTask,
 	DynamicTaskConfig,
@@ -39,6 +40,8 @@ export { detectPackageManager, inspectPackageManager, installCommand, uninstallC
 export type { ResolvedTool } from "./resolver.js";
 export { packageEntry, resolvePackageEntry, resolveTool } from "./resolver.js";
 export { filterPathsByExtension } from "./paths.js";
-export type { HookInstallResult } from "./hooks.js";
-export { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
+export type { HookInstallResult, HookRemoveResult } from "./hooks.js";
+export { POST_COMMIT_LINE, ensureGitignored, ensureOpxIgnored, hookLine, installHook, removeHook } from "./hooks.js";
+export type { HookPlan } from "./hook-plan.js";
+export { planHooks } from "./hook-plan.js";
 export { createConsoleLogger } from "./logger.js";

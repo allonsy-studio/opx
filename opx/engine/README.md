@@ -42,7 +42,10 @@ import {
   loadPlugins,
   normalizeDetectorId,
   installCommand,
-  installPostCommitHook,
+  installHook,
+  removeHook,
+  hookLine,
+  planHooks,
   ensureGitignored,
   defaultSkipUntilDate,
 } from "@allons-y/opx";
@@ -61,6 +64,16 @@ export const myDetector: Detector = {
   run: async (ctx, args) => 0,
 };
 ```
+
+### Git hooks
+
+A detector can declare git hooks with `hooks`, a map from hook name to `{ args, blocking? }`. `args` are the `opx` arguments the hook runs, normally `["hook", "<name>"]`, and `blocking: true` makes a failure stop the commit or push:
+
+```ts
+hooks: { "commit-msg": { args: ["hook", "commit-msg"], blocking: true } },
+```
+
+Hosts install them with `installHook(cwd, name, line)`, where `line` comes from `hookLine(args, blocking)`, and take them out with `removeHook`. `planHooks(detectors)` merges what several detectors declare into one line per hook. `installHook` appends to an existing husky hook above a trailing `exit`, upgrades lines earlier versions wrote, and leaves the hook alone when the line is already there. `removeHook` removes only a line opx wrote. The command is Plug'n'Play aware: it runs `yarn opx …` when `.pnp.cjs` exists and `node_modules/.bin/opx` otherwise. During `opx hook <name>`, `ctx.hook` holds the hook's name.
 
 ### The runner contract
 

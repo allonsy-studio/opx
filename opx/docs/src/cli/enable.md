@@ -32,6 +32,7 @@ opx enable <name> [--task <tasks...>]
 - Running it when nothing would change prints a message and exits `0`. A plugin that already points at a config file counts as enabled and keeps its path.
 - A newly enabled plugin follows the others in its task: when they all point at the same config file, such as `./eslint.config.js`, it points there too. Otherwise it's set to `true`.
 - After enabling a lint plugin, opx prints any import & spread lines your own `eslint.config.js` still needs. It never edits that file.
+- If the plugin declares [git hooks](../../guides/writing-a-detector/#installing-git-hooks), opx installs them into `.husky/` and prints a line for each: `✔ .husky/commit-msg created`, or `– .husky/pre-push already set up`. An existing hook keeps its other lines.
 - Enabling `ts` next to a 0.x `@allons-y/opx-lint-js` prints the command to upgrade it, because 0.x also lints TypeScript. See [Move from lint-js 0.x](../../plugins/lint-ts/#move-from-lint-js-0x).
 
 ## Examples

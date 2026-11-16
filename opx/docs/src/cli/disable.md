@@ -28,6 +28,7 @@ opx disable <name> [--task <tasks...>]
 - `release` is a static task: it sets the top-level `release` boolean and ignores `--task`.
 - Unknown names, and `--task` values a plugin doesn't provide, print an error and exit `1`.
 - Running it when nothing would change prints a message and exits `0`.
+- Removes the [git hook](../../guides/writing-a-detector/#installing-git-hooks) lines opx wrote for the plugin, and nothing else in those hooks. A hook file left with only opx's own boilerplate is deleted. A hook another enabled plugin still declares stays, rewritten if that changes whether it blocks. The `post-commit` nudge from `opx init` is never removed.
 
 ## Examples
 

@@ -14,7 +14,8 @@ import {
 	ensureOpxIgnored,
 	inspectPackageManager,
 	installCommand,
-	installPostCommitHook,
+	installHook,
+	POST_COMMIT_LINE,
 	readConfig,
 	readState,
 	writeConfig,
@@ -27,6 +28,7 @@ import { applyCleanup, describePlan, planCleanup } from "../cleanup.js";
 import { buildContext, readHostPackage } from "../context.js";
 import { load as loadDetectors, virtualDetectors, type Suggestion } from "../built-in.js";
 import { colors } from "../colors.js";
+import { describeHook, installHooks } from "../git-hooks.js";
 import { PLUGIN_CATALOG } from "../plugin-catalog.js";
 import { eslintConfigHint, scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { LINT_JS, LINT_JS_UPGRADE, lintJsLintsTypeScript } from "../lint-js-version.js";
@@ -310,10 +312,11 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	}
 
 	// Install husky post-commit hook + gitignore .opx/
-	const hookResult = installPostCommitHook(cwd);
+	const hookResult = installHook(cwd, "post-commit", POST_COMMIT_LINE);
 	if (hookResult.created) {
 		p.log.success(`Installed git hook at ${hookResult.path}`);
 	}
+	await installPluginHooks(cwd, options.detectors ?? loadDetectors, (line) => p.log.info(line.trimStart()));
 	if (ensureOpxIgnored(cwd)) {
 		p.log.success(`Updated .gitignore to ignore local .${CLI_NAME}/ files (config.json stays tracked)`);
 	}
@@ -359,6 +362,18 @@ const CONFLICT_HINT = "opx doesn't change the versions your project uses. Move t
 
 /** Drops every message, so loading plugins for cleanup never warns about ones that are not installed. */
 const SILENT: Logger = { info() {}, warn() {}, error() {}, debug() {} };
+
+/**
+ * Install the git hooks the enabled plugins declare and report each one.
+ *
+ * @param cwd - The repository root.
+ * @param load - Loads the enabled plugins' detectors.
+ * @param print - Writes one status line.
+ */
+async function installPluginHooks(cwd: string, load: DetectorLoader, print: (line: string) => void): Promise<void> {
+	const detectors = await load(buildContext({ cwd, logger: SILENT }));
+	for (const report of installHooks(cwd, detectors)) print(describeHook(report));
+}
 
 /**
  * Show what the enabled plugins suggest dropping, and offer to delete empty files.
@@ -525,8 +540,9 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 		}
 	}
 
-	const hookResult = installPostCommitHook(cwd);
+	const hookResult = installHook(cwd, "post-commit", POST_COMMIT_LINE);
 	if (hookResult.created) ok("Installed git hook", hookResult.path);
+	await installPluginHooks(cwd, options.detectors ?? loadDetectors, (line) => console.log(line));
 	if (ensureOpxIgnored(cwd)) ok("Updated .gitignore", `ignores local .${CLI_NAME}/ files`);
 
 	if (options.cleanup) {

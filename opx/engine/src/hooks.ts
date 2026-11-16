@@ -1,14 +1,29 @@
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-/**
- * The hook command. Runs the local binary directly, since starting through `npx`
- * adds about a second. Yarn Plug'n'Play has no `node_modules/.bin`, so there it
- * runs through `yarn`.
- */
-const POST_COMMIT_LINE = '( if [ -f .pnp.cjs ]; then yarn opx hook post-commit; else PATH="node_modules/.bin:$PATH" opx hook post-commit; fi >/dev/null 2>&1 & ) || true';
+/** What opx runs for a hook: the local binary directly, since `npx` adds about a second. */
+const runner = (args: string): string => `if [ -f .pnp.cjs ]; then yarn opx ${args}; else PATH="node_modules/.bin:$PATH" opx ${args}; fi`;
 
-/** The lines earlier versions wrote, newest first, upgraded in place. */
+/**
+ * The line that runs `opx` with `args` from a git hook.
+ *
+ * Yarn Plug'n'Play has no `node_modules/.bin`, so there it runs through `yarn`.
+ * A background line discards its output and never fails the git operation. A
+ * blocking line runs in the foreground, forwards git's arguments, and exits with
+ * `opx`'s code, so a failure stops the commit or push.
+ *
+ * @param args - The `opx` arguments, such as `["hook", "commit-msg"]`.
+ * @param blocking - Whether a failure should stop the git operation.
+ */
+export function hookLine(args: string[], blocking = false): string {
+	const command = args.join(" ");
+	return blocking ? `${runner(`${command} "$@"`)} || exit $?` : `( ${runner(command)} >/dev/null 2>&1 & ) || true`;
+}
+
+/** The post-commit nudge's line. */
+export const POST_COMMIT_LINE = hookLine(["hook", "post-commit"]);
+
+/** The lines earlier versions wrote for `post-commit`, newest first, upgraded in place. */
 const LEGACY_POST_COMMIT_LINES = [
 	'( PATH="node_modules/.bin:$PATH" opx hook post-commit >/dev/null 2>&1 & ) || true',
 	"( npx --no-install opx hook post-commit >/dev/null 2>&1 & ) || true",
@@ -17,71 +32,135 @@ const LEGACY_POST_COMMIT_LINES = [
 /** A top-level `exit`, which stops any line after it from running. */
 const TOP_LEVEL_EXIT = /^exit(\s|$)/;
 
+/** The `opx` command a line runs, such as `opx hook commit-msg`, which names the hook it belongs to. */
+const COMMAND = /\bopx [^\s;"&|)>]+(?: [^\s;"&|)>]+)*/;
+
+/** A line in the form opx writes, so opx may replace or remove it and leaves hand-written lines alone. */
+const OPX_LINE = /^\(? ?if \[ -f \.pnp\.cjs \]; then yarn opx /;
+
+/** The `opx` command in a line, or undefined. */
+const commandOf = (line: string): string | undefined => COMMAND.exec(line)?.[0];
+
+/** Whether `line` is one opx wrote for the same command as `line`. */
+const isOurs = (line: string, target: string): boolean => OPX_LINE.test(line.trim()) && commandOf(line) === commandOf(target);
+
+/** The hook file a name maps to. */
+const hookPath = (cwd: string, name: string): string => join(cwd, ".husky", name);
+
 /**
- * Swap the line an earlier version wrote for the current one, moving it above
- * a top-level `exit` that the first versions appended it after.
+ * Swap a line an earlier version wrote for `line`, moving it above a top-level
+ * `exit` that the first versions appended it after.
  *
  * @returns the upgraded hook, or undefined when it has no earlier line.
  */
-function upgradeLegacyLine(existing: string): string | undefined {
+function upgradeLegacyLine(existing: string, line: string): string | undefined {
 	const lines = existing.split("\n");
-	const at = lines.findIndex((line) => LEGACY_POST_COMMIT_LINES.includes(line.trim()));
+	const at = lines.findIndex((l) => LEGACY_POST_COMMIT_LINES.includes(l.trim()));
 	if (at === -1) return undefined;
-	const exitAt = lines.slice(0, at).findIndex((line) => TOP_LEVEL_EXIT.test(line));
+	const exitAt = lines.slice(0, at).findIndex((l) => TOP_LEVEL_EXIT.test(l));
 	if (exitAt === -1) {
-		lines[at] = POST_COMMIT_LINE;
+		lines[at] = line;
 	} else {
 		lines.splice(at, 1);
-		lines.splice(exitAt, 0, POST_COMMIT_LINE);
+		lines.splice(exitAt, 0, line);
 	}
 	return lines.join("\n");
 }
 
-const POST_COMMIT = `#!/usr/bin/env sh
-${POST_COMMIT_LINE}
-exit 0
-`;
-
-/** The outcome of {@link installPostCommitHook}. */
+/** The outcome of {@link installHook}. */
 export type HookInstallResult = {
 	/** Whether a new hook file was written, rather than found or extended. */
 	created: boolean;
+	/** Whether the hook file changed: created, extended, or upgraded. */
+	changed: boolean;
 	/** The hook file's path. */
 	path: string;
 };
 
 /**
- * Install the husky post-commit hook that nudges the user about new file types
- * after each commit. Runs in a backgrounded subshell and always exits 0, so it
- * never blocks the commit.
+ * Install a line into a husky hook, creating the hook when it is missing.
+ *
+ * Appends to an existing hook, above a trailing top-level `exit`. Leaves the
+ * hook alone when it already runs the same `opx` command, and upgrades or
+ * replaces a line opx wrote earlier, such as an older `post-commit` line or the
+ * same hook with a different `blocking` setting.
+ *
+ * @param cwd - The repository root.
+ * @param name - The git hook, such as `commit-msg`.
+ * @param line - The line to run, from {@link hookLine}.
  */
-export function installPostCommitHook(cwd: string): HookInstallResult {
-	const dir = join(cwd, ".husky");
-	mkdirSync(dir, { recursive: true });
-	const path = join(dir, "post-commit");
+export function installHook(cwd: string, name: string, line: string): HookInstallResult {
+	mkdirSync(join(cwd, ".husky"), { recursive: true });
+	const path = hookPath(cwd, name);
 
-	if (existsSync(path)) {
-		const existing = readFileSync(path, "utf8");
-		const upgraded = upgradeLegacyLine(existing);
-		if (upgraded !== undefined) {
-			writeFileSync(path, upgraded, "utf8");
-			return { created: false, path };
-		}
-		if (existing.includes("opx hook post-commit")) {
-			return { created: false, path };
-		}
-		// Insert above a trailing top-level exit, which would otherwise stop our line from running.
-		const lines = existing.trimEnd().split("\n");
-		const at = TOP_LEVEL_EXIT.test(lines.at(-1) ?? "") ? lines.length - 1 : lines.length;
-		lines.splice(at, 0, POST_COMMIT_LINE);
-		writeFileSync(path, `${lines.join("\n")}\n`, "utf8");
+	if (!existsSync(path)) {
+		writeFileSync(path, `#!/usr/bin/env sh\n${line}\nexit 0\n`, "utf8");
 		chmodSync(path, 0o755);
-		return { created: false, path };
+		return { created: true, changed: true, path };
 	}
 
-	writeFileSync(path, POST_COMMIT, "utf8");
+	const existing = readFileSync(path, "utf8");
+	const lines = existing.split("\n");
+	if (lines.some((l) => l.trim() === line)) return { created: false, changed: false, path };
+
+	const stale = lines.findIndex((l) => isOurs(l, line));
+	if (stale !== -1) {
+		lines[stale] = line;
+		writeFileSync(path, lines.join("\n"), "utf8");
+		return { created: false, changed: true, path };
+	}
+	const upgraded = name === "post-commit" ? upgradeLegacyLine(existing, line) : undefined;
+	if (upgraded !== undefined) {
+		writeFileSync(path, upgraded, "utf8");
+		return { created: false, changed: true, path };
+	}
+	const command = commandOf(line);
+	if (command && existing.includes(command)) return { created: false, changed: false, path };
+
+	// Insert above a trailing top-level exit, which would otherwise stop our line from running.
+	const trimmed = existing.trimEnd().split("\n");
+	const at = TOP_LEVEL_EXIT.test(trimmed.at(-1) ?? "") ? trimmed.length - 1 : trimmed.length;
+	trimmed.splice(at, 0, line);
+	writeFileSync(path, `${trimmed.join("\n")}\n`, "utf8");
 	chmodSync(path, 0o755);
-	return { created: true, path };
+	return { created: false, changed: true, path };
+}
+
+/** The outcome of {@link removeHook}. */
+export type HookRemoveResult = {
+	/** Whether opx's line was found and removed. */
+	removed: boolean;
+	/** Whether the hook file was deleted because nothing but opx's boilerplate was left. */
+	deleted: boolean;
+	/** The hook file's path. */
+	path: string;
+};
+
+/**
+ * Remove the line opx wrote for a hook, leaving every other line alone.
+ *
+ * Deletes the file only when what remains is the shebang, blank lines, and a
+ * trailing `exit 0`, the file opx creates.
+ *
+ * @param cwd - The repository root.
+ * @param name - The git hook, such as `commit-msg`.
+ * @param line - A line from {@link hookLine} for the hook; either `blocking` form matches.
+ */
+export function removeHook(cwd: string, name: string, line: string): HookRemoveResult {
+	const path = hookPath(cwd, name);
+	if (!existsSync(path)) return { removed: false, deleted: false, path };
+
+	const lines = readFileSync(path, "utf8").split("\n");
+	const kept = lines.filter((l) => !isOurs(l, line));
+	if (kept.length === lines.length) return { removed: false, deleted: false, path };
+
+	const rest = kept.filter((l) => l.trim() !== "" && !l.startsWith("#!") && l.trim() !== "exit 0");
+	if (rest.length === 0) {
+		rmSync(path);
+		return { removed: true, deleted: true, path };
+	}
+	writeFileSync(path, kept.join("\n"), "utf8");
+	return { removed: true, deleted: false, path };
 }
 
 /**
