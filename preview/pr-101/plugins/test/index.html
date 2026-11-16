@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>test · opx</title>
+		<meta name="color-scheme" content="light dark">
+		<meta name="description" content="Run node --test, with c8 coverage and thresholds.">
+		<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%232346d4%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27monospace%27 font-size=%2714%27 font-weight=%27700%27 fill=%27white%27 text-anchor=%27middle%27%3Eopx%3C/text%3E%3C/svg%3E">
+		<link rel="stylesheet" href="/opx/preview/pr-101/assets/css/main.css">
+		<script src="https://kit.fontawesome.com/42e99b4632.js" crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<a class="skip-link" href="#main">Skip to content</a>
+		<a class="studio-banner" href="https://allons-y.studio">
+			<img src="/opx/preview/pr-101/assets/img/oss-banner.svg" alt="Brought to you by Allons-y Studio" width="1600" height="64">
+		</a>
+		<header class="site-header">
+			<a class="site-title" href="/opx/preview/pr-101/">opx</a>
+			<p class="site-tagline">The optionally opinionated front-end toolkit</p>
+			<a class="site-link" href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a>
+			<a class="site-link" href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a>
+		</header>
+		<div class="docs-shell">
+	<aside class="docs-sidebar">
+		<div id="search" class="docs-search" role="search"></div>
+<link rel="stylesheet" href="/opx/preview/pr-101/pagefind/pagefind-ui.css">
+<script src="/opx/preview/pr-101/pagefind/pagefind-ui.js" defer=""></script>
+<script>
+	window.addEventListener("DOMContentLoaded", () => {
+		if (typeof PagefindUI === "undefined") return;
+		new PagefindUI({
+			element: "#search",
+			showImages: false,
+			baseUrl: "/opx/preview/pr-101/",
+			translations: { placeholder: "Search the docs" },
+		});
+	});
+</script>
+
+		<nav class="sidebar-nav" aria-label="Documentation">
+	<ul>
+		<li>
+			<a href="/opx/preview/pr-101/getting-started/">Getting started</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-101/config/">Configuring opx</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-101/concepts/">How it works</a>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-101/cli/">CLI</a>
+			<ul>
+				<li><a href="/opx/preview/pr-101/cli/init/">opx init</a></li>
+				<li><a href="/opx/preview/pr-101/cli/scan/">opx scan</a></li>
+				<li><a href="/opx/preview/pr-101/cli/enable/">opx enable</a></li>
+				<li><a href="/opx/preview/pr-101/cli/disable/">opx disable</a></li>
+				<li><a href="/opx/preview/pr-101/cli/lint/">opx lint</a></li>
+				<li><a href="/opx/preview/pr-101/cli/build/">opx build</a></li>
+				<li><a href="/opx/preview/pr-101/cli/release/">opx release</a></li>
+				<li><a href="/opx/preview/pr-101/cli/hook/">opx hook</a></li>
+				<li><a href="/opx/preview/pr-101/cli/test/">opx test</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-101/plugins/">Plugins</a>
+			<ul>
+				<li><a href="/opx/preview/pr-101/plugins/lint-js/">lint-js</a></li>
+				<li><a href="/opx/preview/pr-101/plugins/lint-json/">lint-json</a></li>
+				<li><a href="/opx/preview/pr-101/plugins/lint-md/">lint-md</a></li>
+				<li><a href="/opx/preview/pr-101/plugins/lint-ts/">lint-ts</a></li>
+				<li><a href="/opx/preview/pr-101/plugins/release/">release</a></li>
+				<li><a href="/opx/preview/pr-101/plugins/test/" aria-current="page">test</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-101/guides/">Guides</a>
+			<ul>
+				<li><a href="/opx/preview/pr-101/guides/compose-eslint/">Custom ESLint settings</a></li>
+				<li><a href="/opx/preview/pr-101/guides/ci/">Use opx in CI</a></li>
+				<li><a href="/opx/preview/pr-101/guides/writing-a-detector/">Writing a detector</a></li>
+				<li><a href="/opx/preview/pr-101/guides/agents/">Use opx with an AI agent</a></li>
+			</ul>
+		</li>
+		<li>
+			<a href="/opx/preview/pr-101/api/">API</a>
+		</li>
+	</ul>
+</nav>
+
+	</aside>
+	<main id="main" class="docs-content" data-pagefind-body="">
+		<h1 data-pagefind-meta="title">test</h1>
+		<p><code>@allons-y/opx-test</code> runs your tests with Node's built-in test runner behind <code>opx test</code>, and adds coverage through <a href="https://github.com/bcoe/c8"><code>c8</code></a> with thresholds you set in <code>.opx/config.json</code>.</p>
+<h2 id="install" tabindex="-1"><a class="header-anchor" href="#install">Install</a></h2>
+<pre class="language-sh"><code class="language-sh"><span class="token function">yarn</span> <span class="token function">add</span> <span class="token parameter variable">--dev</span> @allons-y/opx-test
+<span class="token function">yarn</span> opx <span class="token builtin class-name">enable</span> <span class="token builtin class-name">test</span></code></pre>
+<p><code>opx enable test</code> sets <code>&quot;test&quot;: true</code> in <code>.opx/config.json</code>.</p>
+<h2 id="run" tabindex="-1"><a class="header-anchor" href="#run">Run</a></h2>
+<pre class="language-sh"><code class="language-sh">opx <span class="token builtin class-name">test</span>                          <span class="token comment"># node --test</span>
+opx <span class="token builtin class-name">test</span> src/a.test.js            <span class="token comment"># paths and flags go to node --test</span>
+opx <span class="token builtin class-name">test</span> <span class="token parameter variable">--coverage</span>               <span class="token comment"># wrap node --test in c8 and check the thresholds</span></code></pre>
+<p><code>opx test</code> runs <code>node --test</code> in the repository root with Node's <code>spec</code> reporter, unless you pass your own <code>--test-reporter</code>. Every argument except <code>--coverage</code> goes to <code>node --test</code>, so <code>--test-name-pattern</code>, <code>--watch</code>, and test paths work as <a href="https://nodejs.org/api/test.html#running-tests-from-the-command-line">Node documents</a>.</p>
+<p>It exits with <code>node --test</code>'s own exit code when a test fails, and <code>1</code> when tests pass but coverage falls short or <code>c8</code> can't run.</p>
+<h2 id="coverage" tabindex="-1"><a class="header-anchor" href="#coverage">Coverage</a></h2>
+<p><code>--coverage</code> runs the tests under <a href="https://github.com/bcoe/c8"><code>c8</code></a>, which the plugin bundles, and writes a <code>json-summary</code> report to <code>coverage/</code>. opx reads the totals and compares them with the thresholds you set. Without <code>--coverage</code>, thresholds are not checked.</p>
+<pre class="language-json"><code class="language-json"><span class="token punctuation">{</span>
+  <span class="token property">"version"</span><span class="token operator">:</span> <span class="token number">1</span><span class="token punctuation">,</span>
+  <span class="token property">"test"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"coverage"</span><span class="token operator">:</span> <span class="token punctuation">{</span> <span class="token property">"lines"</span><span class="token operator">:</span> <span class="token number">98</span><span class="token punctuation">,</span> <span class="token property">"branches"</span><span class="token operator">:</span> <span class="token number">94</span> <span class="token punctuation">}</span> <span class="token punctuation">}</span>
+<span class="token punctuation">}</span></code></pre>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>coverage.lines</code></td>
+<td>Minimum percentage of lines covered</td>
+</tr>
+<tr>
+<td><code>coverage.statements</code></td>
+<td>Minimum percentage of statements covered</td>
+</tr>
+<tr>
+<td><code>coverage.functions</code></td>
+<td>Minimum percentage of functions covered</td>
+</tr>
+<tr>
+<td><code>coverage.branches</code></td>
+<td>Minimum percentage of branches covered</td>
+</tr>
+</tbody>
+</table>
+<p>Each is a number from 0 to 100, and a metric you leave out isn't checked. With no thresholds, <code>--coverage</code> prints the table and passes. A value that isn't a percentage is ignored with a warning.</p>
+<p>Settings turn the task on, so you don't also need <code>&quot;test&quot;: true</code>.</p>
+<p>c8 reads your own <code>.c8rc.json</code> for <code>include</code>, <code>exclude</code>, and similar options. opx sets the reporter and the report folder itself, so leave <code>reporter</code> and <code>reportsDir</code> alone.</p>
+<p>Because the plugin bundles c8, you don't install it. If your project already depends on <code>c8</code>, opx uses your copy.</p>
+
+	</main>
+</div>
+
+		<footer class="site-footer">
+			<div class="site-footer-brand">
+				<p class="site-footer-title">opx</p>
+				<p>The optionally opinionated front-end toolkit.</p>
+				<p class="site-footer-meta"><a href="https://github.com/allonsy-studio/opx/blob/main/LICENSE">Licensed under Apache-2.0</a></p>
+			</div>
+			<div>
+				<p class="site-footer-title">Project</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx"><span class="fa-brands fa-github" aria-hidden="true"></span>GitHub</a></li>
+					<li><a href="https://www.npmjs.com/package/@allons-y/opx-cli"><span class="fa-brands fa-npm" aria-hidden="true"></span>npm</a></li>
+				</ul>
+			</div>
+			<div>
+				<p class="site-footer-title">Help</p>
+				<ul>
+					<li><a href="https://github.com/allonsy-studio/opx/issues">Report an issue</a></li>
+					<li><a href="https://github.com/allonsy-studio/opx/blob/main/.github/CONTRIBUTING.md">Contributing guide</a></li>
+				</ul>
+			</div>
+			<div class="site-footer-studio">
+				<a href="https://allons-y.studio">
+					<picture>
+						<source media="(prefers-color-scheme: dark)" srcset="/opx/preview/pr-101/assets/img/oss-footer-dark.svg">
+						<img src="/opx/preview/pr-101/assets/img/oss-footer-light.svg" alt="Brought to you by Allons-y Studio" width="440" height="75">
+					</picture>
+				</a>
+			</div>
+		</footer>
+	</body>
+</html>
