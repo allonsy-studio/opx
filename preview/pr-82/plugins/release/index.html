@@ -223,7 +223,9 @@ migration: Replace <span class="token code-snippet code keyword">`run`</span> wi
 <li><strong>Push</strong> the tags <code>origin</code> doesn't have.</li>
 <li><strong>Create a GitHub release</strong> for each tag that has none, with that version's changelog notes. Versions with a prerelease tag, such as <code>2.0.0-beta.1</code>, become GitHub prereleases.</li>
 </ol>
-<p>Each step skips what's already done, so after a failure, run it again and it finishes the rest. A run ends with a summary:</p>
+<p>Each step skips what's already done, so after a failure, run it again and it finishes the rest.</p>
+<p>When changesets fails, opx checks the registry before giving up. npm can reject a version it's still processing from a run that just finished, so if every public version shows up on the registry within about a minute, the release goes on to tags and GitHub releases. opx asks <code>npm view</code> for each version on the registry changesets published it to: the package scope's registry, then <code>publishConfig.registry</code>, then <code>npm_config_registry</code>, then npm. npm runs in the project, so it uses the project's <code>.npmrc</code> and works with a registry that needs a login.</p>
+<p>A run ends with a summary:</p>
 <pre class="language-text"><code class="language-text">  opx release · publish
 
   ● Publishing with changesets
