@@ -40,6 +40,7 @@ describe("@allons-y/opx-lint-json cleanup", () => {
 	});
 
 	it("says which version of each package it ships", () => {
-		for (const s of d.cleanup!(ctx).filter((s) => s.kind === "dependency")) expect(s.reason).toMatch(/ at \d+\.\d+\.\d+/);
+		for (const s of d.cleanup!(ctx).filter((s) => s.kind === "dependency"))
+			expect(s.reason).toMatch(/ at \d+\.\d+\.\d+/);
 	});
 });

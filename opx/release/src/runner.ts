@@ -53,7 +53,8 @@ export function init(ctx: DetectorContext): boolean {
 	writeFileSync(configFile, `${JSON.stringify(config, null, 2)}\n`, "utf8");
 
 	const readme = join(dir, "README.md");
-	if (!existsSync(readme)) writeFileSync(readme, changesetReadme(ctx.pkgManager ?? detectPackageManager(ctx.cwd, ctx.hostPkg)), "utf8");
+	if (!existsSync(readme))
+		writeFileSync(readme, changesetReadme(ctx.pkgManager ?? detectPackageManager(ctx.cwd, ctx.hostPkg)), "utf8");
 
 	return true;
 }
@@ -71,7 +72,10 @@ export function parseInitArgs(args: string[]): InitOptions {
 		if (args[i] === "--changelog") parsed.changelog = true;
 		else if (args[i] === "--date") parsed.releaseDate = true;
 		else if (args[i] === "--maintainer") {
-			const handles = (args[++i] ?? "").split(",").map((s) => s.trim().replace(/^@/, "")).filter(Boolean);
+			const handles = (args[++i] ?? "")
+				.split(",")
+				.map((s) => s.trim().replace(/^@/, ""))
+				.filter(Boolean);
 			parsed.maintainers.push(...handles);
 		}
 	}
@@ -87,7 +91,8 @@ export function useCustomChangelog(cwd: string, maintainers: string[] = [], rele
 	const configFile = join(cwd, ".changeset", "config.json");
 	const config = JSON.parse(readFileSync(configFile, "utf8")) as Record<string, unknown>;
 	const [name, existing] = Array.isArray(config.changelog) ? config.changelog : [];
-	const options: Record<string, unknown> = name === CUSTOM_CHANGELOG && existing && typeof existing === "object" ? { ...existing } : {};
+	const options: Record<string, unknown> =
+		name === CUSTOM_CHANGELOG && existing && typeof existing === "object" ? { ...existing } : {};
 	if (typeof options.repo !== "string" || !options.repo) {
 		const repo = detectRepo(cwd);
 		if (repo) options.repo = repo;
@@ -102,8 +107,14 @@ export function useCustomChangelog(cwd: string, maintainers: string[] = [], rele
 /** Whether `.changeset/config.json` uses the custom changelog with `releaseDate: true`. */
 export function releaseDateEnabled(cwd: string): boolean {
 	try {
-		const { changelog } = JSON.parse(readFileSync(join(cwd, ".changeset", "config.json"), "utf8")) as { changelog?: unknown };
-		return Array.isArray(changelog) && changelog[0] === CUSTOM_CHANGELOG && (changelog[1] as { releaseDate?: unknown } | undefined)?.releaseDate === true;
+		const { changelog } = JSON.parse(readFileSync(join(cwd, ".changeset", "config.json"), "utf8")) as {
+			changelog?: unknown;
+		};
+		return (
+			Array.isArray(changelog) &&
+			changelog[0] === CUSTOM_CHANGELOG &&
+			(changelog[1] as { releaseDate?: unknown } | undefined)?.releaseDate === true
+		);
 	} catch {
 		return false;
 	}
@@ -131,7 +142,11 @@ export function stampReleaseDates(bumped: Array<{ dir: string; version: string }
 		const escaped = version.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 		const heading = new RegExp(`^## ${escaped}[ \\t]*(\\r?\\n)(?!\\s*(?:📅 )?_Released )`, "m");
 		if (!heading.test(source)) continue;
-		writeFileSync(file, source.replace(heading, (line, eol: string) => `${line}${eol}📅 _Released ${date}_${eol}`), "utf8");
+		writeFileSync(
+			file,
+			source.replace(heading, (line, eol: string) => `${line}${eol}📅 _Released ${date}_${eol}`),
+			"utf8",
+		);
 		stamped.push(file);
 	}
 	return stamped;
@@ -143,7 +158,20 @@ function gitHead(cwd: string): string | undefined {
 	return result.status === 0 ? result.stdout.trim() : undefined;
 }
 
-const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MONTHS = [
+	"January",
+	"February",
+	"March",
+	"April",
+	"May",
+	"June",
+	"July",
+	"August",
+	"September",
+	"October",
+	"November",
+	"December",
+];
 
 /** Format a date as `8 November 2026`, in UTC, the same in every locale. */
 export function formatReleaseDate(date: Date): string {
@@ -166,14 +194,18 @@ async function runVersion(ctx: DetectorContext, args: string[], ui: Ui): Promise
 	const code = await runChangeset(ctx.cwd, args, ui);
 	if (code !== 0 || !stamp) return code;
 	const after = await packageVersions(ctx.cwd);
-	const bumped = [...after].filter(([dir, version]) => before.get(dir) !== version).map(([dir, version]) => ({ dir, version }));
+	const bumped = [...after]
+		.filter(([dir, version]) => before.get(dir) !== version)
+		.map(([dir, version]) => ({ dir, version }));
 	const files = stampReleaseDates(bumped, formatReleaseDate(new Date()));
 	if (files.length === 0) return 0;
 	ui.ok(`Added release dates to ${files.length} changelog${files.length === 1 ? "" : "s"}`);
 	const headAfter = gitHead(ctx.cwd);
 	if (headBefore && headAfter && headBefore !== headAfter) {
 		const added = spawnSync("git", ["add", "--", ...files], { cwd: ctx.cwd });
-		const amended = added.status === 0 && spawnSync("git", ["commit", "--amend", "--no-edit", "--no-verify"], { cwd: ctx.cwd }).status === 0;
+		const amended =
+			added.status === 0 &&
+			spawnSync("git", ["commit", "--amend", "--no-edit", "--no-verify"], { cwd: ctx.cwd }).status === 0;
 		if (!amended) ui.warn("Couldn't add the release dates to changesets' commit", "commit them yourself");
 	}
 	return 0;
@@ -205,7 +237,11 @@ export async function runRelease(ctx: DetectorContext, args: string[]): Promise<
 		if (options.changelog || options.releaseDate) {
 			const repo = useCustomChangelog(ctx.cwd, options.maintainers, options.releaseDate);
 			ui.ok("Switched to the readable changelog format", CUSTOM_CHANGELOG);
-			if (!repo) ui.warn("No GitHub repository in package.json", "set `repo` in the changelog options, or GITHUB_REPOSITORY");
+			if (!repo)
+				ui.warn(
+					"No GitHub repository in package.json",
+					"set `repo` in the changelog options, or GITHUB_REPOSITORY",
+				);
 			ui.hint("`opx release version` now needs GITHUB_TOKEN to look up pull requests and authors.");
 		} else if (!created) {
 			ui.skip("Changesets is already set up", ".changeset/config.json");

@@ -42,18 +42,25 @@ export const fooDetector: Detector = {
 export default fooDetector;
 ```
 
-| Field | Purpose |
-| --- | --- |
-| `id` | The package name |
-| `shortName` | The key users put in `.opx/config.json` and pass to `opx enable` |
-| `concern` | `lint`, `build`, `test`, or `release`. A command only runs detectors for its own concern. |
-| `fileTypes` | Extensions the detector handles |
-| `detect(ctx)` | Whether the plugin applies to this repository |
-| `describe(ctx)` | A summary and the tools it bundles |
-| `cleanup(ctx)` | Optional. What the project can drop now that your plugin is enabled. See [Suggesting cleanup](#suggesting-cleanup). |
-| `run(ctx, args)` | Does the work and returns an exit code. `args` are the paths the user passed. |
+| Field            | Purpose                                                                                                             |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `id`             | The package name                                                                                                    |
+| `shortName`      | The key users put in `.opx/config.json` and pass to `opx enable`                                                    |
+| `concern`        | `lint`, `build`, `test`, or `release`. A command only runs detectors for its own concern.                           |
+| `phase`          | Optional. `format` or `check` (the default). See [Phases](#phases).                                                 |
+| `fileTypes`      | Extensions the detector handles                                                                                     |
+| `detect(ctx)`    | Whether the plugin applies to this repository                                                                       |
+| `describe(ctx)`  | A summary and the tools it bundles                                                                                  |
+| `cleanup(ctx)`   | Optional. What the project can drop now that your plugin is enabled. See [Suggesting cleanup](#suggesting-cleanup). |
+| `run(ctx, args)` | Does the work and returns an exit code. `args` are the paths the user passed.                                       |
 
 Write report output through `ctx.write()` rather than `process.stdout`, so opx can group output from concurrent detectors. Read `ctx.fix` to know whether `--fix` was passed, and `ctx.config` for the user's settings.
+
+## Phases
+
+A detector that rewrites files, such as a formatter, sets `phase: "format"`. A command runs every `format` detector first, one at a time, on the same paths. Detectors without a phase, or with `phase: "check"`, run after them, concurrently. They then see the formatted files, so a linter doesn't report layout a formatter is about to change.
+
+A `format` detector writes when `ctx.fix` is set (`opx lint --fix`) and only checks otherwise, returning a non-zero exit code when a file needs formatting. Every detector runs even when an earlier one fails.
 
 ## Suggesting cleanup
 
@@ -73,11 +80,11 @@ cleanup: (ctx) => [
 ],
 ```
 
-| `kind` | `target` is |
-| --- | --- |
-| `dependency` | A package name |
-| `file` | A path from the repository root |
-| `setting` | A top-level `package.json` key |
+| `kind`       | `target` is                     |
+| ------------ | ------------------------------- |
+| `dependency` | A package name                  |
+| `file`       | A path from the repository root |
+| `setting`    | A top-level `package.json` key  |
 
 `command` is optional, for a `file` or `setting` where the tool can do the conversion itself. It is a program and its arguments, printed as `Run: …`. opx never runs it, and drops one that is not a non-empty list of strings. Dependencies need none; opx builds the `remove` command for the project's package manager.
 

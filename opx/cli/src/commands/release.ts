@@ -21,7 +21,8 @@ export async function runReleaseCommand(ctx: DetectorContext, args: string[]): P
 	reportLoadFailures(failures);
 
 	if (detectors.length === 0) {
-		if (failures.length === 0) console.log(`${CLI_NAME}: no releaser is detected. Run \`${CLI_NAME} init\` to set one up.`);
+		if (failures.length === 0)
+			console.log(`${CLI_NAME}: no releaser is detected. Run \`${CLI_NAME} init\` to set one up.`);
 		return failures.length > 0 ? 1 : 0;
 	}
 

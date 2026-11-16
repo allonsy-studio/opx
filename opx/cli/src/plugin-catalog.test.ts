@@ -1,4 +1,4 @@
-import { PLUGIN_CATALOG, isShipped, isStaticTask, tasksFor } from "./plugin-catalog.js";
+import { PLUGIN_CATALOG, isShipped, isStaticTask, loaderEntry, tasksFor } from "./plugin-catalog.js";
 
 describe("PLUGIN_CATALOG", () => {
 	it("gives every entry at least one package", () => {
@@ -30,6 +30,18 @@ describe("task helpers", () => {
 		expect(tasksFor("js")).toEqual(["lint"]);
 		expect(tasksFor("ts")).toEqual(["lint"]);
 		expect(tasksFor("somethingElse")).toEqual([]);
+	});
+
+	it("gives format the lint task even though its package isn't named opx-lint-*", () => {
+		expect(tasksFor("format")).toEqual(["lint"]);
+	});
+
+	it("loads catalog plugins by the package the catalog names, and others by convention", () => {
+		expect(loaderEntry("lint", "format")).toBe("@allons-y/opx-format");
+		expect(loaderEntry("lint", "js")).toBe("lint-js");
+		expect(loaderEntry("build", "format")).toBe("build-format");
+		expect(loaderEntry("lint", "css")).toBe("lint-css");
+		expect(loaderEntry("lint", "@acme/opx-plugin-x")).toBe("@acme/opx-plugin-x");
 	});
 
 	it("identifies static tasks and shipped plugins", () => {

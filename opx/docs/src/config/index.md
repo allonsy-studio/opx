@@ -11,24 +11,24 @@ opx reads `.opx/config.json` from the repository root. [`opx init`](../cli/init/
 
 ```json
 {
-  "$schema": "https://unpkg.com/@allons-y/opx/schema/config.json",
-  "version": 1,
-  "lint": { "js": true, "json": true, "md": true },
-  "release": true,
-  "test": false
+	"$schema": "https://unpkg.com/@allons-y/opx/schema/config.json",
+	"version": 1,
+	"lint": { "js": true, "json": true, "md": true },
+	"release": true,
+	"test": false
 }
 ```
 
 ## Keys
 
-| Key | Type | Description |
-| --- | --- | --- |
-| `$schema` | string | Optional. Enables editor validation and completion. |
-| `version` | `1` | Required. The config format version. |
-| `lint` | object | Lint plugins, keyed by short name |
-| `build` | object | Build plugins, keyed by short name |
-| `release` | plugin setting | Enables the release plugin |
-| `test` | plugin setting | Reserved for a future test plugin |
+| Key       | Type           | Description                                         |
+| --------- | -------------- | --------------------------------------------------- |
+| `$schema` | string         | Optional. Enables editor validation and completion. |
+| `version` | `1`            | Required. The config format version.                |
+| `lint`    | object         | Lint plugins, keyed by short name                   |
+| `build`   | object         | Build plugins, keyed by short name                  |
+| `release` | plugin setting | Enables the release plugin                          |
+| `test`    | plugin setting | Reserved for a future test plugin                   |
 
 Short names must be lowercase letters and digits (`js`, `md`).
 
@@ -38,12 +38,12 @@ No other top-level keys are allowed. When a command such as `opx enable` or `opx
 
 Wherever a plugin is configured, the value can be any one of:
 
-| Value | Meaning |
-| --- | --- |
-| `true` | Enabled with defaults |
-| `false` | Disabled |
+| Value         | Meaning                                                                 |
+| ------------- | ----------------------------------------------------------------------- |
+| `true`        | Enabled with defaults                                                   |
+| `false`       | Disabled                                                                |
 | `"./path.js"` | Enabled, using your own config file. Resolved from the repository root. |
-| `{ ... }` | Enabled, with inline settings the plugin understands |
+| `{ ... }`     | Enabled, with inline settings the plugin understands                    |
 
 ### Examples
 
@@ -51,15 +51,15 @@ Use your own ESLint flat config for JavaScript, and lint JSONC and JSON5 too:
 
 ```json
 {
-  "version": 1,
-  "lint": {
-    "js": "./eslint.config.js",
-    "json": { "dialects": ["jsonc", "json5"] }
-  }
+	"version": 1,
+	"lint": {
+		"js": "./eslint.config.js",
+		"json": { "dialects": ["jsonc", "json5"] }
+	}
 }
 ```
 
-The settings each plugin understands are documented on its page: [js](../plugins/lint-js/), [ts](../plugins/lint-ts/), [json](../plugins/lint-json/), [md](../plugins/lint-md/), [release](../plugins/release/).
+The settings each plugin understands are documented on its page: [format](../plugins/format/), [js](../plugins/lint-js/), [ts](../plugins/lint-ts/), [json](../plugins/lint-json/), [md](../plugins/lint-md/), [release](../plugins/release/).
 
 ## Defaults & errors
 
@@ -72,11 +72,11 @@ The settings each plugin understands are documented on its page: [js](../plugins
 
 ```json
 {
-  "version": 1,
-  "lastScanCommit": "a1b2c3d",
-  "deferrals": {
-    "md": { "branch": "main", "skipUntilDate": "2026-10-07", "reason": "later" }
-  }
+	"version": 1,
+	"lastScanCommit": "a1b2c3d",
+	"deferrals": {
+		"md": { "branch": "main", "skipUntilDate": "2026-10-07", "reason": "later" }
+	}
 }
 ```
 

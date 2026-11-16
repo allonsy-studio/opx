@@ -21,6 +21,10 @@ export type PluginCatalogEntry = {
 	readonly extensions: readonly string[];
 	/** Why the plugin is suggested when no file implies it. */
 	readonly reason?: string;
+	/** Dynamic tasks the plugin provides when its package name doesn't say (`opx-lint-*` implies `lint`). */
+	readonly tasks?: readonly TaskKind[];
+	/** Suggested whenever any plugin for this task is suggested, instead of being suggested on its own. */
+	readonly companionOf?: TaskKind;
 };
 
 /**
@@ -47,6 +51,14 @@ export const PLUGIN_CATALOG = [
 		shortName: "json",
 		packages: ["@allons-y/opx-lint-json"],
 		extensions: [".json", ".jsonc", ".json5"],
+	},
+	{
+		shortName: "format",
+		packages: ["@allons-y/opx-format"],
+		extensions: [],
+		tasks: ["lint"],
+		companionOf: "lint",
+		reason: "Prettier formats every file type opx lints, so the linters can leave layout alone.",
 	},
 	{
 		shortName: "release",
@@ -89,10 +101,25 @@ export function isPackageId(name: string): boolean {
  * (`opx-lint-*` → lint, `opx-build-*` → build). Unknown names get none.
  */
 export function tasksFor(name: string): TaskKind[] {
-	const entry = PLUGIN_CATALOG.find((e) => e.shortName === name);
+	const entry: PluginCatalogEntry | undefined = PLUGIN_CATALOG.find((e) => e.shortName === name);
 	if (!entry) return [];
-	const tasks: TaskKind[] = [];
-	if (entry.packages.some((pkg) => pkg.includes("/opx-lint-"))) tasks.push("lint");
-	if (entry.packages.some((pkg) => pkg.includes("/opx-build-"))) tasks.push("build");
-	return tasks;
+	const tasks = new Set<TaskKind>(entry.tasks);
+	if (entry.packages.some((pkg) => pkg.includes("/opx-lint-"))) tasks.add("lint");
+	if (entry.packages.some((pkg) => pkg.includes("/opx-build-"))) tasks.add("build");
+	return [...tasks];
+}
+
+/**
+ * The entry the loader looks up for a short name in a task: the name itself,
+ * `<task>-<name>` for a catalog plugin, or the catalog's package when it isn't named that way.
+ *
+ * @param task - The task whose config lists the name.
+ * @param name - A short name or package id from the config.
+ * @returns What to pass to the plugin loader.
+ */
+export function loaderEntry(task: TaskKind, name: string): string {
+	if (isPackageId(name)) return name;
+	const entry: PluginCatalogEntry | undefined = PLUGIN_CATALOG.find((e) => e.shortName === name);
+	const named = entry?.packages.find((pkg) => !pkg.includes(`/opx-${task}-`));
+	return entry && entry.tasks?.includes(task) && named ? named : `${task}-${name}`;
 }

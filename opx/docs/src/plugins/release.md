@@ -61,7 +61,7 @@ This sets `changelog` in `.changeset/config.json` and leaves every other field a
 
 ```json
 {
-  "changelog": ["@allons-y/opx-release/changelog", { "repo": "acme/widgets" }]
+	"changelog": ["@allons-y/opx-release/changelog", { "repo": "acme/widgets" }]
 }
 ```
 
@@ -71,12 +71,12 @@ Each entry reads like a sentence, with the PR (or commit) link and any thanks af
 - Fix crash on empty config. (📝 [#12](https://github.com/acme/widgets/pull/12)) — thanks [@alice](https://github.com/alice)!
 ```
 
-| Option | Description |
-|---|---|
-| `repo` | `owner/repo` the links point at. Defaults to `GITHUB_REPOSITORY`. |
-| `maintainers` | Handles that are never thanked (case-insensitive). Everyone else is, except bots such as Renovate and Dependabot. Defaults to the `author` and `contributors` in your workspace root's `package.json`. |
-| `disableThanks` | `true` drops the thanks for everyone. |
-| `releaseDate` | `true` adds a `📅 _Released 8 November 2026_` line under each new version heading. `init --date` sets it. |
+| Option          | Description                                                                                                                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `repo`          | `owner/repo` the links point at. Defaults to `GITHUB_REPOSITORY`.                                                                                                                                      |
+| `maintainers`   | Handles that are never thanked (case-insensitive). Everyone else is, except bots such as Renovate and Dependabot. Defaults to the `author` and `contributors` in your workspace root's `package.json`. |
+| `disableThanks` | `true` drops the thanks for everyone.                                                                                                                                                                  |
+| `releaseDate`   | `true` adds a `📅 _Released 8 November 2026_` line under each new version heading. `init --date` sets it.                                                                                              |
 
 Maintainers come from GitHub noreply emails (`1234+octocat@users.noreply.github.com`) or `https://github.com/octocat` URLs in `author` and `contributors`. A person with neither is skipped. To list them yourself, pass `--maintainer <handle>` to `init` or set `maintainers`; an explicit list replaces the default.
 
@@ -113,11 +113,11 @@ renders as:
 
 - ✨ Rename the `run` option to `exec`. Closes [#4](https://github.com/acme/widgets/issues/4). (📝 [#7](https://github.com/acme/widgets/pull/7))
 
-  ```js
-  widgets({ exec: true });
-  ```
+    ```js
+    widgets({ exec: true });
+    ```
 
-  **To upgrade:** Replace `run` with `exec` in your config.
+    **To upgrade:** Replace `run` with `exec` in your config.
 ````
 
 A dependency bump shows the old and new versions, with a link to the diff between their tags:
@@ -142,11 +142,11 @@ Add these to the root `package.json` so contributors and CI run the same command
 
 ```json
 {
-  "scripts": {
-    "changeset": "opx release add",
-    "version": "opx release version && yarn install --mode update-lockfile",
-    "release": "yarn build && opx release publish"
-  }
+	"scripts": {
+		"changeset": "opx release add",
+		"version": "opx release version && yarn install --mode update-lockfile",
+		"release": "yarn build && opx release publish"
+	}
 }
 ```
 
@@ -221,15 +221,15 @@ Every step is on by default. Turn steps off in `.opx/config.json`, where `releas
 
 ```json
 {
-  "release": { "githubReleases": false }
+	"release": { "githubReleases": false }
 }
 ```
 
-| Setting | Flag | Default | What it does |
-|---|---|---|---|
-| `push` | `--no-push` | `true` | Push new tags to `origin`. Without it, no GitHub release is made, because a release needs its tag on GitHub. |
-| `githubReleases` | `--no-github-release` | `true` | Create a GitHub release for each new tag. |
-| `action` | `--action`, `--no-action` | on when `action.yml` exists | Release a GitHub Action (below). |
+| Setting          | Flag                      | Default                     | What it does                                                                                                 |
+| ---------------- | ------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `push`           | `--no-push`               | `true`                      | Push new tags to `origin`. Without it, no GitHub release is made, because a release needs its tag on GitHub. |
+| `githubReleases` | `--no-github-release`     | `true`                      | Create a GitHub release for each new tag.                                                                    |
+| `action`         | `--action`, `--no-action` | on when `action.yml` exists | Release a GitHub Action (below).                                                                             |
 
 A flag wins over the setting for that run. Changesets' own publish flags, such as `--tag`, `--otp`, and `--no-git-tag`, pass through; `--no-git-tag` publishes and stops.
 
@@ -245,7 +245,7 @@ Build before publishing; the `release` script under [Scripts](#scripts) does. Ot
 
 ```json
 {
-  "release": { "action": { "dist": "build", "majorTag": false } }
+	"release": { "action": { "dist": "build", "majorTag": false } }
 }
 ```
 
@@ -258,34 +258,34 @@ An Action repository has one package. When git has no identity, as in a fresh CI
 ```yaml
 name: Release
 on:
-  push:
-    branches: [main]
+    push:
+        branches: [main]
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
-  release:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write       # version commits and tags
-      pull-requests: write  # the release pull request
-      id-token: write       # npm trusted publishing
-    steps:
-      - uses: actions/checkout@v6
-      - run: corepack enable
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-          cache: yarn
-      - run: yarn install --immutable
-      - uses: changesets/action@v1
-        with:
-          version: yarn run version
-          publish: yarn release
-          title: "chore(release): version packages"
-          commit: "chore(release): version packages"
-          commitMode: github-api
-          createGithubReleases: false  # opx release publish makes them
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write # version commits and tags
+            pull-requests: write # the release pull request
+            id-token: write # npm trusted publishing
+        steps:
+            - uses: actions/checkout@v6
+            - run: corepack enable
+            - uses: actions/setup-node@v6
+              with:
+                  node-version-file: .nvmrc
+                  cache: yarn
+            - run: yarn install --immutable
+            - uses: changesets/action@v1
+              with:
+                  version: yarn run version
+                  publish: yarn release
+                  title: "chore(release): version packages"
+                  commit: "chore(release): version packages"
+                  commitMode: github-api
+                  createGithubReleases: false # opx release publish makes them
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 `title` and `commit` give the release pull request and its commit a Conventional Commits message instead of the action's default, "Version Packages". The workflow's token must be allowed to create pull requests (Settings → Actions → General). Or use a GitHub App token, so CI runs on the release pull request; this repository's [release workflow](https://github.com/allonsy-studio/opx/blob/main/.github/workflows/release.yml) does that.

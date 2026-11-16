@@ -1,16 +1,10 @@
+import base from "@allons-y/opx-format/prettier";
+
 /** @type {import('prettier').Config} */
 export default {
-	printWidth: 800,
-	tabWidth: 4,
-	useTabs: true,
+	...base,
 	overrides: [
-		{
-			files: "*.json",
-			options: {
-				tabWidth: 2,
-				useTabs: false,
-			},
-		},
+		...(base.overrides ?? []),
 		{
 			files: ".github/**/*.yml",
 			options: {

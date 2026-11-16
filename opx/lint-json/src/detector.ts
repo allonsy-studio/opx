@@ -29,7 +29,12 @@ export default {
 	},
 
 	cleanup(ctx: DetectorContext) {
-		return eslintCleanup(ctx, { id: "@allons-y/opx-lint-json", shortName: "json", bundledDeps: BUNDLED_DEPS, from: import.meta.url });
+		return eslintCleanup(ctx, {
+			id: "@allons-y/opx-lint-json",
+			shortName: "json",
+			bundledDeps: BUNDLED_DEPS,
+			from: import.meta.url,
+		});
 	},
 
 	async run(ctx: DetectorContext, args: string[]): Promise<number> {

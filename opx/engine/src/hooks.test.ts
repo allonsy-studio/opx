@@ -62,7 +62,9 @@ describe("installPostCommitHook", () => {
 		mkdirSync(join(dir, ".husky"), { recursive: true });
 		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\nexit 0\n", "utf8");
 		installPostCommitHook(dir);
-		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8").trimEnd().split("\n");
+		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8")
+			.trimEnd()
+			.split("\n");
 		expect(lines.at(-1)).toBe("exit 0");
 		expect(lines.findIndex((line) => line.includes("opx hook post-commit"))).toBe(lines.length - 2);
 		rmSync(dir, { recursive: true });
@@ -73,7 +75,9 @@ describe("installPostCommitHook", () => {
 		mkdirSync(join(dir, ".husky"), { recursive: true });
 		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\nif false; then\n  exit 1\nfi\n", "utf8");
 		installPostCommitHook(dir);
-		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8").trimEnd().split("\n");
+		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8")
+			.trimEnd()
+			.split("\n");
 		expect(lines.at(-1)).toContain("opx hook post-commit");
 		expect(lines.at(-2)).toBe("fi");
 		rmSync(dir, { recursive: true });
@@ -88,7 +92,10 @@ describe("installPostCommitHook", () => {
 	itPosix("makes an existing hook executable when it adds the line", () => {
 		const dir = tmp();
 		mkdirSync(join(dir, ".husky"), { recursive: true });
-		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", { encoding: "utf8", mode: 0o644 });
+		writeFileSync(join(dir, ".husky", "post-commit"), "#!/usr/bin/env sh\necho hi\n", {
+			encoding: "utf8",
+			mode: 0o644,
+		});
 		expect(mode(installPostCommitHook(dir).path)).toBe(0o755);
 		rmSync(dir, { recursive: true });
 	});
@@ -107,14 +114,19 @@ describe("the post-commit hook", () => {
 		const record = join(dir, "called");
 		mkdirSync(fake);
 		mkdirSync(join(dir, "node_modules", ".bin"), { recursive: true });
-		const fakes: [string, string][] = [[join(fake, "yarn"), "yarn"], [join(dir, "node_modules", ".bin", "opx"), "opx"]];
+		const fakes: [string, string][] = [
+			[join(fake, "yarn"), "yarn"],
+			[join(dir, "node_modules", ".bin", "opx"), "opx"],
+		];
 		for (const [path, name] of fakes) {
 			// Write then rename, so the test never reads a half-written record.
 			writeFileSync(path, `#!/bin/sh\necho "${name} $*" > "${record}.tmp" && mv "${record}.tmp" "${record}"\n`);
 			chmodSync(path, 0o755);
 		}
 		const hook = installPostCommitHook(dir).path;
-		expect(spawnSync("sh", [hook], { cwd: dir, env: { ...process.env, PATH: `${fake}:${process.env.PATH}` } }).status).toBe(0);
+		expect(
+			spawnSync("sh", [hook], { cwd: dir, env: { ...process.env, PATH: `${fake}:${process.env.PATH}` } }).status,
+		).toBe(0);
 		// The hook runs opx in the background; wait for it.
 		for (let i = 0; i < 50 && !existsSync(record); i++) await new Promise((r) => setTimeout(r, 100));
 		return readFileSync(record, "utf8").trim();
@@ -161,7 +173,13 @@ describe("the post-commit hook", () => {
 		writeFileSync(join(dir, ".husky", "post-commit"), `#!/usr/bin/env sh\necho mine\nexit 0\n${npx}\n`);
 		installPostCommitHook(dir);
 		const lines = readFileSync(join(dir, ".husky", "post-commit"), "utf8").split("\n");
-		expect(lines).toEqual(["#!/usr/bin/env sh", "echo mine", expect.stringContaining("yarn opx hook post-commit"), "exit 0", ""]);
+		expect(lines).toEqual([
+			"#!/usr/bin/env sh",
+			"echo mine",
+			expect.stringContaining("yarn opx hook post-commit"),
+			"exit 0",
+			"",
+		]);
 	});
 });
 

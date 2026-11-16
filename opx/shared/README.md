@@ -19,8 +19,8 @@ run with the others.
   type declarations. The published package carries its own copy and has no
   runtime dependency on a shared package.
 
-| File | Used by |
-|---|---|
+| File                   | Used by                                      |
+| ---------------------- | -------------------------------------------- |
 | `src/eslint-runner.ts` | `lint-js`, `lint-json`, `lint-md`, `lint-ts` |
 
 To opt a package out, for example when a better tool comes along to lint its

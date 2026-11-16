@@ -19,10 +19,10 @@ yarn opx enable md
 
 ## Covers
 
-| Files | Language mode |
-| --- | --- |
-| `.md` | `markdown/commonmark` |
-| `.mdx` | `markdown/gfm` |
+| Files  | Language mode         |
+| ------ | --------------------- |
+| `.md`  | `markdown/commonmark` |
+| `.mdx` | `markdown/gfm`        |
 
 GitHub pull request and issue templates (`.github/PULL_REQUEST_TEMPLATE*`, `.github/ISSUE_TEMPLATE/**`) are ignored, because their task lists and placeholders trip Markdown rules. So are `CHANGELOG.md` files, which changesets generates with bracketed commit hashes.
 
@@ -32,8 +32,8 @@ Replace the bundled config with your own flat config:
 
 ```json
 {
-  "version": 1,
-  "lint": { "md": "./eslint.markdown.config.js" }
+	"version": 1,
+	"lint": { "md": "./eslint.markdown.config.js" }
 }
 ```
 

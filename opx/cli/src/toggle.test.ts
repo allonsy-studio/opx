@@ -12,7 +12,10 @@ describe("toggle", () => {
 
 	it("keeps release settings when enabling, since they already turn it on", () => {
 		const config = { ...base(), release: { githubReleases: false } };
-		expect(toggle(config, "release", true, {})).toMatchObject({ config, message: expect.stringContaining("already enabled") });
+		expect(toggle(config, "release", true, {})).toMatchObject({
+			config,
+			message: expect.stringContaining("already enabled"),
+		});
 	});
 
 	it("sets the boolean for the release task", () => {
@@ -45,17 +48,28 @@ describe("toggle", () => {
 	});
 
 	it("errors when a loaded plugin declares no lint or build concern", () => {
-		expect(toggle(base(), "@acme/opx-plugin-x", true, {}, undefined, [])).toMatchObject({ error: expect.stringContaining("no lint or build") });
+		expect(toggle(base(), "@acme/opx-plugin-x", true, {}, undefined, [])).toMatchObject({
+			error: expect.stringContaining("no lint or build"),
+		});
 	});
 
 	it("writes an installed short name under its package id", () => {
 		const hostPkg = { devDependencies: { "opx-plugin-foo": "1" } };
-		expect(toggle(base(), "foo", true, hostPkg, ["lint"])).toMatchObject({ config: { lint: { "opx-plugin-foo": true } } });
+		expect(toggle(base(), "foo", true, hostPkg, ["lint"])).toMatchObject({
+			config: { lint: { "opx-plugin-foo": true } },
+		});
 	});
 
 	it("disables a third-party id wherever it is set", () => {
-		const config = { ...base(), lint: { "@acme/opx-plugin-x": true, js: true }, build: { "@acme/opx-plugin-x": true } };
-		expect(toggle(config, "@acme/opx-plugin-x", false, {})).toMatchObject({ config: { lint: { js: true }, build: {} }, message: 'disabled "@acme/opx-plugin-x" in lint, build.' });
+		const config = {
+			...base(),
+			lint: { "@acme/opx-plugin-x": true, js: true },
+			build: { "@acme/opx-plugin-x": true },
+		};
+		expect(toggle(config, "@acme/opx-plugin-x", false, {})).toMatchObject({
+			config: { lint: { js: true }, build: {} },
+			message: 'disabled "@acme/opx-plugin-x" in lint, build.',
+		});
 	});
 
 	it("clears a package-id entry left by an earlier enable when disabling by id", () => {
@@ -64,7 +78,9 @@ describe("toggle", () => {
 	});
 
 	it("reports disabling an unset third-party id as a no-op", () => {
-		expect(toggle(base(), "@acme/opx-plugin-x", false, {})).toMatchObject({ message: expect.stringContaining("already disabled") });
+		expect(toggle(base(), "@acme/opx-plugin-x", false, {})).toMatchObject({
+			message: expect.stringContaining("already disabled"),
+		});
 	});
 
 	it("rejects a requested task the plugin does not provide", () => {
@@ -78,30 +94,61 @@ describe("toggle", () => {
 
 	it("reports no-ops without changing the config", () => {
 		const config = { ...base(), lint: { js: true } };
-		expect(toggle(config, "js", true, {})).toMatchObject({ config, message: expect.stringContaining("already enabled") });
+		expect(toggle(config, "js", true, {})).toMatchObject({
+			config,
+			message: expect.stringContaining("already enabled"),
+		});
 		expect(toggle(base(), "js", false, {})).toMatchObject({ message: expect.stringContaining("already disabled") });
-		expect(toggle({ ...base(), release: true }, "release", true, {})).toMatchObject({ message: expect.stringContaining("already enabled") });
+		expect(toggle({ ...base(), release: true }, "release", true, {})).toMatchObject({
+			message: expect.stringContaining("already enabled"),
+		});
 	});
 
 	it("points a new plugin at the config file the others share", () => {
 		const config = { ...base(), lint: { js: "./eslint.config.js", md: "./eslint.config.js", json: false } };
 		const result = toggle(config, "ts", true, {});
-		expect(result).toMatchObject({ config: { lint: { ts: "./eslint.config.js" } }, message: expect.stringContaining("lint uses ./eslint.config.js") });
+		expect(result).toMatchObject({
+			config: { lint: { ts: "./eslint.config.js" } },
+			message: expect.stringContaining("lint uses ./eslint.config.js"),
+		});
+	});
+
+	it("enables format with true, not the ESLint config the others share", () => {
+		const config = { ...base(), lint: { js: "./eslint.config.js", ts: "./eslint.config.js" } };
+		expect(toggle(config, "format", true, {})).toMatchObject({
+			config: { lint: { format: true, js: "./eslint.config.js" } },
+		});
+	});
+
+	it("doesn't count format when deciding whether the other plugins share a config", () => {
+		const config = { ...base(), lint: { format: true, js: "./eslint.config.js" } };
+		expect(toggle(config, "ts", true, {})).toMatchObject({ config: { lint: { ts: "./eslint.config.js" } } });
 	});
 
 	it("enables with true when the other plugins disagree", () => {
 		const config = { ...base(), lint: { js: "./eslint.config.js", md: true } };
-		expect(toggle(config, "ts", true, {})).toMatchObject({ config: { lint: { ts: true } }, message: 'enabled "ts" in lint.' });
+		expect(toggle(config, "ts", true, {})).toMatchObject({
+			config: { lint: { ts: true } },
+			message: 'enabled "ts" in lint.',
+		});
 	});
 
 	it("keeps a plugin's config path when it is enabled again", () => {
 		const config = { ...base(), lint: { js: "./eslint.config.js" } };
-		expect(toggle(config, "js", true, {})).toMatchObject({ config, message: expect.stringContaining("already enabled") });
+		expect(toggle(config, "js", true, {})).toMatchObject({
+			config,
+			message: expect.stringContaining("already enabled"),
+		});
 	});
 
 	it("disables a plugin and preserves the others", () => {
 		const config = { ...base(), lint: { js: true, md: true } };
-		expect(toggle(config, "js", false, {})).toMatchObject({ config: { lint: { md: true } }, message: 'disabled "js" in lint.' });
-		expect(toggle({ ...base(), release: true }, "release", false, {})).toMatchObject({ config: { release: false } });
+		expect(toggle(config, "js", false, {})).toMatchObject({
+			config: { lint: { md: true } },
+			message: 'disabled "js" in lint.',
+		});
+		expect(toggle({ ...base(), release: true }, "release", false, {})).toMatchObject({
+			config: { release: false },
+		});
 	});
 });

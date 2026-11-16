@@ -10,7 +10,7 @@ yarn add --dev @allons-y/opx-cli
 npm i -D @allons-y/opx-cli
 ```
 
-This installs the `opx` binary. The CLI is intentionally tiny — detector packages (`@allons-y/opx-lint-js`, `@allons-y/opx-lint-ts`, `@allons-y/opx-lint-md`, `@allons-y/opx-lint-json`, ...) are loaded on demand and are not pre-installed.
+This installs the `opx` binary. The CLI is intentionally tiny — detector packages (`@allons-y/opx-format`, `@allons-y/opx-lint-js`, `@allons-y/opx-lint-ts`, `@allons-y/opx-lint-md`, `@allons-y/opx-lint-json`, ...) are loaded on demand and are not pre-installed.
 
 ## Usage
 
@@ -20,16 +20,16 @@ opx <command> [options]
 
 ### Commands
 
-| Command | What it does |
-|---|---|
-| `opx scan` | Scan the committed tree and report which detectors would activate. |
-| `opx init` | Interactive setup (`--yes` or `--accept js,md` skips the prompts): pick detectors, install packages, wire a `lint` script and post-commit hook, and, with `--cleanup`, show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
-| `opx enable <name>` | Enable a detector by short name (`js`, `ts`, `md`, `json`, ...) or package id. First-party ids resolve to their short name; a third-party id goes under the tasks its detectors declare, or pass `--task lint\|build`. |
-| `opx disable <name>` | Disable a detector (also accepts `--task`). |
-| `opx lint [paths...]` | Run every enabled lint detector. `--fix` auto-fixes where supported. |
-| `opx build [paths...]` | Run every enabled build detector. |
-| `opx release [args...]` | Drive the release flow; forwards subcommands to the releaser (changesets). |
-| `opx hook` | Internal — invoked by the post-commit git hook. |
+| Command                 | What it does                                                                                                                                                                                                                                                       |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `opx scan`              | Scan the committed tree and report which detectors would activate.                                                                                                                                                                                                 |
+| `opx init`              | Interactive setup (`--yes` or `--accept js,md` skips the prompts): pick detectors, install packages, wire a `lint` script and post-commit hook, and, with `--cleanup`, show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
+| `opx enable <name>`     | Enable a detector by short name (`js`, `ts`, `md`, `json`, ...) or package id. First-party ids resolve to their short name; a third-party id goes under the tasks its detectors declare, or pass `--task lint\|build`.                                             |
+| `opx disable <name>`    | Disable a detector (also accepts `--task`).                                                                                                                                                                                                                        |
+| `opx lint [paths...]`   | Run every enabled lint detector. `--fix` auto-fixes where supported.                                                                                                                                                                                               |
+| `opx build [paths...]`  | Run every enabled build detector.                                                                                                                                                                                                                                  |
+| `opx release [args...]` | Drive the release flow; forwards subcommands to the releaser (changesets).                                                                                                                                                                                         |
+| `opx hook`              | Internal — invoked by the post-commit git hook.                                                                                                                                                                                                                    |
 
 Run `opx <command> --help` for per-command flags.
 
@@ -51,12 +51,12 @@ Don't hand-edit `.opx/state.json`. Use `opx enable <name>` and `opx disable <nam
 
 ```json
 {
-  "version": 1,
-  "lint": {
-    "js": true,
-    "json": true
-  },
-  "release": true
+	"version": 1,
+	"lint": {
+		"js": true,
+		"json": true
+	},
+	"release": true
 }
 ```
 

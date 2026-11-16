@@ -1,4 +1,11 @@
-import { inspectPackageManager, installCommand, loadPlugins, readConfig, type Logger, type PackageJson } from "@allons-y/opx";
+import {
+	inspectPackageManager,
+	installCommand,
+	loadPlugins,
+	readConfig,
+	type Logger,
+	type PackageJson,
+} from "@allons-y/opx";
 
 import { readHostPackage } from "./context.js";
 import { eslintConfigHint } from "./eslint-scaffold.js";
@@ -37,11 +44,18 @@ export const readConcerns: ConcernReader = async (id, cwd, hostPkg) => {
  * @param concernsOf - Reads a third-party plugin's tasks; injectable for tests.
  * @returns `0` on success (including no-ops), `1` for an invalid request.
  */
-export async function runToggleCommand(cwd: string, name: string, enable: boolean, tasks?: TaskKind[], concernsOf: ConcernReader = readConcerns): Promise<number> {
+export async function runToggleCommand(
+	cwd: string,
+	name: string,
+	enable: boolean,
+	tasks?: TaskKind[],
+	concernsOf: ConcernReader = readConcerns,
+): Promise<number> {
 	const config = readConfig(cwd);
 	const hostPkg = readHostPackage(cwd);
 	const target = resolveTarget(name, hostPkg);
-	const concerns = enable && target.kind === "package" && !tasks?.length ? await concernsOf(target.name, cwd, hostPkg) : undefined;
+	const concerns =
+		enable && target.kind === "package" && !tasks?.length ? await concernsOf(target.name, cwd, hostPkg) : undefined;
 	const result = toggle(config, name, enable, hostPkg, tasks, concerns);
 	if ("error" in result) {
 		console.error(`${CLI_NAME}: ${result.error}`);
@@ -55,7 +69,9 @@ export async function runToggleCommand(cwd: string, name: string, enable: boolea
 		if (hint) console.log(`${CLI_NAME}: ${hint}`);
 		if (key === "ts" && lintJsLintsTypeScript(cwd, hostPkg)) {
 			const cmd = installCommand(inspectPackageManager(cwd, hostPkg).name, [LINT_JS_UPGRADE]);
-			console.log(`${CLI_NAME}: your @allons-y/opx-lint-js is a 0.x release, which also lints TypeScript, so .ts files would be linted twice. Upgrade it:\n  ${cmd}`);
+			console.log(
+				`${CLI_NAME}: your @allons-y/opx-lint-js is a 0.x release, which also lints TypeScript, so .ts files would be linted twice. Upgrade it:\n  ${cmd}`,
+			);
 		}
 	}
 	return 0;

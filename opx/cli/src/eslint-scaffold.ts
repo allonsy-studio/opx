@@ -71,7 +71,9 @@ export function scaffoldEslintConfig(cwd: string, shortNames: string[]): string 
 
 /** Whether a module already declares `name`, as an import, a named import, or a variable. */
 function declares(text: string, name: string): boolean {
-	const declaration = new RegExp(`\\b(?:import|const|let|var)\\s+(?:\\*\\s+as\\s+)?${name}\\b|\\bas\\s+${name}\\b|import\\s*\\{[^}]*\\b${name}\\b[^}]*\\}`);
+	const declaration = new RegExp(
+		`\\b(?:import|const|let|var)\\s+(?:\\*\\s+as\\s+)?${name}\\b|\\bas\\s+${name}\\b|import\\s*\\{[^}]*\\b${name}\\b[^}]*\\}`,
+	);
 	return declaration.test(text);
 }
 

@@ -34,7 +34,14 @@ const COMMAND_FILES = /(?:^|\/)(?:package\.json|\.husky\/[^/]+|[^/]*lint-?staged
 /** Lockfiles name every installed package, so they say nothing about use. */
 const LOCKFILES = /(?:^|\/)(?:package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml)$/;
 const MAX_SCAN_BYTES = 512 * 1024;
-const DEPENDENCY_FIELDS = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies", "resolutions", "overrides"];
+const DEPENDENCY_FIELDS = [
+	"dependencies",
+	"devDependencies",
+	"peerDependencies",
+	"optionalDependencies",
+	"resolutions",
+	"overrides",
+];
 
 const escape = (text: string): string => text.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
 
@@ -59,7 +66,11 @@ function isInside(cwd: string, target: string): boolean {
 function isRecoverable(cwd: string, file: string): boolean {
 	try {
 		execFileSync("git", ["ls-files", "--error-unmatch", "--", file], { cwd, stdio: "ignore" });
-		return execFileSync("git", ["status", "--porcelain", "--", file], { cwd, stdio: ["ignore", "pipe", "ignore"] }).toString("utf8").trim() === "";
+		return (
+			execFileSync("git", ["status", "--porcelain", "--", file], { cwd, stdio: ["ignore", "pipe", "ignore"] })
+				.toString("utf8")
+				.trim() === ""
+		);
 	} catch {
 		return false;
 	}
@@ -109,12 +120,20 @@ function withoutDependencies(text: string): string {
  */
 function findUses(cwd: string, files: string[], names: string[]): Map<string, string> {
 	const found = new Map<string, string>();
-	const importOf = (name: string) => new RegExp(String.raw`(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["'\`]${escape(name)}(?:/[^"'\`]*)?["'\`]`);
+	const importOf = (name: string) =>
+		new RegExp(
+			String.raw`(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["'\`]${escape(name)}(?:/[^"'\`]*)?["'\`]`,
+		);
 	const quoted = (name: string) => new RegExp(String.raw`["']${escape(name)}(?:/[^"']*)?["']`);
 	const command = (name: string) => new RegExp(String.raw`(?:^|[\s;&|"'\`/(])${escape(name)}(?=$|[\s;&|"'\`)])`, "m");
 
 	for (const file of files) {
-		if (!(SCANNED.test(file) || /(?:^|\/)\.husky\/[^/]+$/.test(file)) || /(?:^|\/)(?:node_modules|\.yarn)\//.test(file) || LOCKFILES.test(file)) continue;
+		if (
+			!(SCANNED.test(file) || /(?:^|\/)\.husky\/[^/]+$/.test(file)) ||
+			/(?:^|\/)(?:node_modules|\.yarn)\//.test(file) ||
+			LOCKFILES.test(file)
+		)
+			continue;
 		let text: string;
 		try {
 			if (statSync(join(cwd, file)).size > MAX_SCAN_BYTES) continue;
@@ -126,7 +145,12 @@ function findUses(cwd: string, files: string[], names: string[]): Map<string, st
 		const data = /\.(?:json[c5]?|ya?ml)$/.test(file);
 		for (const name of names) {
 			if (found.has(name)) continue;
-			if (importOf(name).test(text) || (data && quoted(name).test(text)) || (COMMAND_FILES.test(file) && command(name).test(text))) found.set(name, file);
+			if (
+				importOf(name).test(text) ||
+				(data && quoted(name).test(text)) ||
+				(COMMAND_FILES.test(file) && command(name).test(text))
+			)
+				found.set(name, file);
 		}
 	}
 	return found;
@@ -139,7 +163,11 @@ function shellWord(word: string): string {
 
 /** A plugin's command, if it is a non-empty list of strings. */
 function validCommand(command: SuggestionCommand | undefined): SuggestionCommand | undefined {
-	return Array.isArray(command?.run) && command.run.length > 0 && command.run.every((part) => typeof part === "string" && part !== "") ? command : undefined;
+	return Array.isArray(command?.run) &&
+		command.run.length > 0 &&
+		command.run.every((part) => typeof part === "string" && part !== "")
+		? command
+		: undefined;
 }
 
 /** What a detector suggests, or nothing if it has no suggestions or fails. */
@@ -178,10 +206,15 @@ export function planCleanup(ctx: DetectorContext, detectors: Detector[]): Cleanu
 		if (suggestion.kind === "dependency") {
 			packages.push(suggestion);
 		} else if (suggestion.kind === "setting") {
-			if (ctx.hostPkg[target] !== undefined) plan.advice.push({ target: `package.json › ${target}`, reason, hint, command });
+			if (ctx.hostPkg[target] !== undefined)
+				plan.advice.push({ target: `package.json › ${target}`, reason, hint, command });
 		} else if (isInside(ctx.cwd, target) && existsSync(join(ctx.cwd, target))) {
 			if (isDeletable(ctx.cwd, target)) plan.delete.push(target);
-			else if (isEmptyFile(ctx.cwd, target)) plan.advice.push({ target, reason: `${reason}; it is empty, so commit or stash it and opx can delete it` });
+			else if (isEmptyFile(ctx.cwd, target))
+				plan.advice.push({
+					target,
+					reason: `${reason}; it is empty, so commit or stash it and opx can delete it`,
+				});
 			else plan.advice.push({ target, reason, hint, command });
 		}
 	}
@@ -197,23 +230,39 @@ function planPackages(ctx: DetectorContext, packages: CleanupSuggestion[], plan:
 
 	for (const suggestion of packages) {
 		if (!host.devDependencies?.[suggestion.target]) continue;
-		const field = ["dependencies", "peerDependencies", "optionalDependencies"].find((name) => host[name]?.[suggestion.target]);
-		if (field) plan.kept.push({ target: suggestion.target, reason: `also listed under ${field}, which removing it would change` });
+		const field = ["dependencies", "peerDependencies", "optionalDependencies"].find(
+			(name) => host[name]?.[suggestion.target],
+		);
+		if (field)
+			plan.kept.push({
+				target: suggestion.target,
+				reason: `also listed under ${field}, which removing it would change`,
+			});
 		else eligible.push(suggestion);
 	}
 	if (eligible.length === 0) return;
 
 	const files = listProjectFiles(ctx.cwd);
 	if (files === null) {
-		for (const { target } of eligible) plan.kept.push({ target, reason: "could not list the project's files to check for use" });
+		for (const { target } of eligible)
+			plan.kept.push({ target, reason: "could not list the project's files to check for use" });
 		return;
 	}
 
-	const uses = findUses(ctx.cwd, files, eligible.map((s) => s.target));
+	const uses = findUses(
+		ctx.cwd,
+		files,
+		eligible.map((s) => s.target),
+	);
 	const unused = eligible.filter((s) => !uses.has(s.target));
-	for (const { target } of eligible) if (uses.has(target)) plan.kept.push({ target, reason: `used by ${uses.get(target)}` });
-	for (const { target, reason, hint } of unused) plan.advice.push({ target, reason: `${reason}; nothing else appears to use it`, hint });
-	plan.command = uninstallCommand(ctx.pkgManager, unused.map((s) => s.target));
+	for (const { target } of eligible)
+		if (uses.has(target)) plan.kept.push({ target, reason: `used by ${uses.get(target)}` });
+	for (const { target, reason, hint } of unused)
+		plan.advice.push({ target, reason: `${reason}; nothing else appears to use it`, hint });
+	plan.command = uninstallCommand(
+		ctx.pkgManager,
+		unused.map((s) => s.target),
+	);
 }
 
 /**
@@ -249,7 +298,10 @@ export function describePlan(plan: CleanupPlan): string[] {
 		for (const { target, reason, hint, command } of plan.advice) {
 			lines.push(`  - ${target}: ${reason}`);
 			if (hint) lines.push(`      ${hint}`);
-			if (command) lines.push(`      Run: ${command.run.map(shellWord).join(" ")}${command.description ? ` (${command.description})` : ""}`);
+			if (command)
+				lines.push(
+					`      Run: ${command.run.map(shellWord).join(" ")}${command.description ? ` (${command.description})` : ""}`,
+				);
 		}
 	}
 	if (plan.command) lines.push(`Drop the unused packages with: ${plan.command}`);

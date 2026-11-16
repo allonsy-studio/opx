@@ -11,7 +11,8 @@ const { execFileSync } = childProcess;
 const mockedExec = jest.fn(childProcess.execFileSync);
 jest.unstable_mockModule("node:child_process", () => ({ ...childProcess, execFileSync: mockedExec }));
 
-const { fileTypesOf, getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } = await import("./scanner.js");
+const { fileTypesOf, getCurrentBranch, getHeadCommit, listFilesInHeadCommit, scanCommittedTree } =
+	await import("./scanner.js");
 
 const scratch = useScratch();
 
@@ -70,7 +71,11 @@ describe("getCurrentBranch", () => {
 	it("asks git for the abbreviated ref, trims it, and falls back to HEAD when it prints nothing", () => {
 		mockedExec.mockReturnValueOnce(Buffer.from("feature\n"));
 		expect(getCurrentBranch("/repo")).toBe("feature");
-		expect(mockedExec).toHaveBeenCalledWith("git", ["rev-parse", "--abbrev-ref", "HEAD"], expect.objectContaining({ cwd: "/repo" }));
+		expect(mockedExec).toHaveBeenCalledWith(
+			"git",
+			["rev-parse", "--abbrev-ref", "HEAD"],
+			expect.objectContaining({ cwd: "/repo" }),
+		);
 
 		mockedExec.mockReturnValueOnce(Buffer.from(""));
 		expect(getCurrentBranch("/repo")).toBe("HEAD");

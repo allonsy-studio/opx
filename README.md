@@ -49,15 +49,16 @@ Full documentation lives in [`opx/docs`](opx/docs) and is built with `yarn docs:
 
 ## Packages
 
-| Package | Description |
-|---|---|
-| [`@allons-y/opx-cli`](opx/cli) | The `opx` binary. Scans the tree, suggests tooling, and drives the detectors. Start here. |
-| [`@allons-y/opx`](opx/engine) | The engine — the `Detector` contract, config/state handling, and the plugin loader. Depend on this only to write a detector or build a host. |
-| [`@allons-y/opx-lint-js`](opx/lint-js) | Lint detector for JavaScript (ESLint + `@stylistic`). |
-| [`@allons-y/opx-lint-json`](opx/lint-json) | Lint detector for JSON / JSONC / JSON5. |
-| [`@allons-y/opx-lint-md`](opx/lint-md) | Lint detector for Markdown. |
-| [`@allons-y/opx-lint-ts`](opx/lint-ts) | Lint detector for TypeScript (ESLint + `@stylistic` + `typescript-eslint`). |
-| [`@allons-y/opx-release`](opx/release) | Release detector — a lightweight [changesets](https://github.com/changesets/changesets) setup and flow. |
+| Package                                    | Description                                                                                                                                  |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@allons-y/opx-cli`](opx/cli)             | The `opx` binary. Scans the tree, suggests tooling, and drives the detectors. Start here.                                                    |
+| [`@allons-y/opx`](opx/engine)              | The engine — the `Detector` contract, config/state handling, and the plugin loader. Depend on this only to write a detector or build a host. |
+| [`@allons-y/opx-format`](opx/format)       | Formatting with Prettier. Runs before the lint plugins, so they check formatted code.                                                        |
+| [`@allons-y/opx-lint-js`](opx/lint-js)     | Lint detector for JavaScript (ESLint).                                                                                                       |
+| [`@allons-y/opx-lint-json`](opx/lint-json) | Lint detector for JSON / JSONC / JSON5.                                                                                                      |
+| [`@allons-y/opx-lint-md`](opx/lint-md)     | Lint detector for Markdown.                                                                                                                  |
+| [`@allons-y/opx-lint-ts`](opx/lint-ts)     | Lint detector for TypeScript (ESLint + `typescript-eslint`).                                                                                 |
+| [`@allons-y/opx-release`](opx/release)     | Release detector — a lightweight [changesets](https://github.com/changesets/changesets) setup and flow.                                      |
 
 ## Quick start
 
@@ -84,16 +85,16 @@ To set up without prompts, for scripts and AI agents, run
 
 ## Commands
 
-| Command | What it does |
-|---|---|
-| `opx scan` | Report which detectors would activate for the committed tree. |
-| `opx init` | Interactive setup (or `--yes` / `--accept js,md` to skip the prompts): pick detectors, install packages, wire scripts and hooks, then show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
-| `opx enable <name>` | Enable a detector by short name (`js`, `json`, `md`, …) or package id. |
-| `opx disable <name>` | Disable a detector. |
-| `opx lint [paths…]` | Run every enabled lint detector. |
-| `opx build [paths…]` | Run every enabled build detector. |
-| `opx release [args…]` | Drive the release flow; forwards subcommands to changesets. |
-| `opx hook` | Internal — invoked by the post-commit git hook. |
+| Command               | What it does                                                                                                                                                                                                                      |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `opx scan`            | Report which detectors would activate for the committed tree.                                                                                                                                                                     |
+| `opx init`            | Interactive setup (or `--yes` / `--accept js,md` to skip the prompts): pick detectors, install packages, wire scripts and hooks, then show what your enabled plugins suggest dropping, deleting only empty files git can restore. |
+| `opx enable <name>`   | Enable a detector by short name (`js`, `json`, `md`, …) or package id.                                                                                                                                                            |
+| `opx disable <name>`  | Disable a detector.                                                                                                                                                                                                               |
+| `opx lint [paths…]`   | Run every enabled lint detector.                                                                                                                                                                                                  |
+| `opx build [paths…]`  | Run every enabled build detector.                                                                                                                                                                                                 |
+| `opx release [args…]` | Drive the release flow; forwards subcommands to changesets.                                                                                                                                                                       |
+| `opx hook`            | Internal — invoked by the post-commit git hook.                                                                                                                                                                                   |
 
 Run `opx <command> --help` for per-command flags. `opx lint --fix` auto-fixes
 where the underlying tool supports it.
@@ -120,11 +121,11 @@ are booleans:
 
 ```json
 {
-  "$schema": "https://unpkg.com/@allons-y/opx/schema/config.json",
-  "version": 1,
-  "lint": { "js": true, "json": true, "md": true },
-  "release": true,
-  "test": false
+	"$schema": "https://unpkg.com/@allons-y/opx/schema/config.json",
+	"version": 1,
+	"lint": { "js": true, "json": true, "md": true },
+	"release": true,
+	"test": false
 }
 ```
 
@@ -145,19 +146,14 @@ import ts from "@allons-y/opx-lint-ts/eslint.config.js";
 import json from "@allons-y/opx-lint-json/eslint.config.js";
 import md from "@allons-y/opx-lint-md/eslint.config.js";
 
-export default [
-	...js,
-	...ts,
-	...json,
-	...md,
-];
+export default [...js, ...ts, ...json, ...md];
 ```
 
 `opx init` scaffolds exactly this file from the detectors you enable (and never
 overwrites an existing one), so editor results match `opx lint`.
 
 Every rule block in these configs is scoped with `files`, so they don't collide
-— the JS/TS formatting rules never touch your `.json` or `.md` files. That same
+— the JS and TS rules never touch your `.json` or `.md` files. That same
 property lets you **mix in third-party configs and plugins**. Flat config is
 just an array evaluated top-to-bottom (last match wins), so append your own:
 
@@ -181,7 +177,7 @@ export default [
 	// …and your own project overrides last (they win).
 	{
 		files: ["**/*.test.ts"],
-		rules: { "@stylistic/quotes": "off" },
+		rules: { "no-unused-vars": "off" },
 	},
 ];
 ```
@@ -217,7 +213,6 @@ yarn test        # run the test suites
 yarn typecheck   # type-check every package
 ```
 
-
 <!-- weaver:contribution:START -->
 <!-- auto-generated by Weaver — do not edit between these markers -->
 
@@ -248,4 +243,3 @@ If you find this plugin useful and would like to buy me a coffee/beer as a small
 </a>
 
 <!-- weaver:funding:END -->
-

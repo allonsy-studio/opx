@@ -50,7 +50,10 @@ beforeEach(() => {
 });
 
 afterAll(() => {
-	for (const [key, value] of [["GITHUB_REPOSITORY", saved.repo], ["npm_package_json", saved.pkg]] as const) {
+	for (const [key, value] of [
+		["GITHUB_REPOSITORY", saved.repo],
+		["npm_package_json", saved.pkg],
+	] as const) {
 		if (value === undefined) delete process.env[key];
 		else process.env[key] = value;
 	}
@@ -75,7 +78,11 @@ describe("packageMaintainers", () => {
 	it("collects author and contributors, without duplicates", () => {
 		const file = pkgJson("people", {
 			author: "Ada <1+ada@users.noreply.github.com>",
-			contributors: [{ name: "Grace", url: "https://github.com/grace" }, "Ada (https://github.com/ada)", "No Handle <x@example.com>"],
+			contributors: [
+				{ name: "Grace", url: "https://github.com/grace" },
+				"Ada (https://github.com/ada)",
+				"No Handle <x@example.com>",
+			],
 		});
 		expect(mod.packageMaintainers(file)).toEqual(["ada", "grace"]);
 	});
@@ -119,7 +126,9 @@ describe("extractMeta", () => {
 
 describe("linkifyIssueRefs", () => {
 	it("links bare refs and keeps existing links", () => {
-		expect(mod.linkifyIssueRefs("See #12 and [#3](x)", "o/r")).toBe("See [#12](https://github.com/o/r/issues/12) and [#3](x)");
+		expect(mod.linkifyIssueRefs("See #12 and [#3](x)", "o/r")).toBe(
+			"See [#12](https://github.com/o/r/issues/12) and [#3](x)",
+		);
 	});
 });
 
@@ -141,12 +150,18 @@ describe("getReleaseLine", () => {
 	});
 
 	it("does not thank maintainers (case-insensitive)", async () => {
-		const out = await changelog.getReleaseLine(cs("pr: 1\nThing."), "patch", { repo: "o/r", maintainers: ["U"] } as ReleaseArgs[2]);
+		const out = await changelog.getReleaseLine(cs("pr: 1\nThing."), "patch", {
+			repo: "o/r",
+			maintainers: ["U"],
+		} as ReleaseArgs[2]);
 		expect(out).toBe(`- Thing. (📝 ${links.pull})`);
 	});
 
 	it("drops thanks entirely with disableThanks", async () => {
-		const out = await changelog.getReleaseLine(cs("pr: 1\nThing."), "patch", { repo: "o/r", disableThanks: true } as ReleaseArgs[2]);
+		const out = await changelog.getReleaseLine(cs("pr: 1\nThing."), "patch", {
+			repo: "o/r",
+			disableThanks: true,
+		} as ReleaseArgs[2]);
 		expect(out).not.toContain("thanks");
 	});
 
@@ -163,7 +178,10 @@ describe("getReleaseLine", () => {
 	});
 
 	it("thanks only external authors from author overrides", async () => {
-		const out = await changelog.getReleaseLine(cs("author: @ada\nauthor: @alice\nThing."), "patch", { repo: "o/r", maintainers: ["ada"] } as ReleaseArgs[2]);
+		const out = await changelog.getReleaseLine(cs("author: @ada\nauthor: @alice\nThing."), "patch", {
+			repo: "o/r",
+			maintainers: ["ada"],
+		} as ReleaseArgs[2]);
 		expect(out).toContain("thanks [@alice](https://github.com/alice)!");
 		expect(out).not.toContain("@ada");
 	});
@@ -176,7 +194,10 @@ describe("getReleaseLine", () => {
 
 	it("lets an explicit maintainers list win over the package", async () => {
 		process.env.npm_package_json = pkgJson("override", { author: "U <u@users.noreply.github.com>" });
-		const out = await changelog.getReleaseLine(cs("pr: 1\nThing."), "patch", { repo: "o/r", maintainers: [] } as ReleaseArgs[2]);
+		const out = await changelog.getReleaseLine(cs("pr: 1\nThing."), "patch", {
+			repo: "o/r",
+			maintainers: [],
+		} as ReleaseArgs[2]);
 		expect(out).toContain("thanks");
 	});
 
@@ -194,27 +215,51 @@ describe("upgrade notes and code", () => {
 	});
 
 	it("renders the upgrade note as an indented paragraph", async () => {
-		const out = await changelog.getReleaseLine(cs("Drop Node 22.\nupgrade:\nUpgrade to Node 24, see #9."), "major", opts);
-		expect(out).toBe("- Drop Node 22.\n\n  **To upgrade:** Upgrade to Node 24, see [#9](https://github.com/o/r/issues/9).");
+		const out = await changelog.getReleaseLine(
+			cs("Drop Node 22.\nupgrade:\nUpgrade to Node 24, see #9."),
+			"major",
+			opts,
+		);
+		expect(out).toBe(
+			"- Drop Node 22.\n\n  **To upgrade:** Upgrade to Node 24, see [#9](https://github.com/o/r/issues/9).",
+		);
 	});
 
 	it("keeps fenced code inside the list item and never links refs in it", async () => {
-		const out = await changelog.getReleaseLine(cs("Add a flag.\n\n```sh\nopx run #1\n\necho done\n```\n\nSee #2."), "minor", opts);
+		const out = await changelog.getReleaseLine(
+			cs("Add a flag.\n\n```sh\nopx run #1\n\necho done\n```\n\nSee #2."),
+			"minor",
+			opts,
+		);
 		expect(out).toBe(
-			["- Add a flag.", "", "  ```sh", "  opx run #1", "  ", "  echo done", "  ```", "", "  See [#2](https://github.com/o/r/issues/2)."].join("\n"),
+			[
+				"- Add a flag.",
+				"",
+				"  ```sh",
+				"  opx run #1",
+				"  ",
+				"  echo done",
+				"  ```",
+				"",
+				"  See [#2](https://github.com/o/r/issues/2).",
+			].join("\n"),
 		);
 	});
 
 	it("keeps emoji in summaries", async () => {
-		expect(await changelog.getReleaseLine(cs("✨ Sparkly new output."), "minor", opts)).toBe("- ✨ Sparkly new output.");
+		expect(await changelog.getReleaseLine(cs("✨ Sparkly new output."), "minor", opts)).toBe(
+			"- ✨ Sparkly new output.",
+		);
 	});
 });
 
 describe("review edge cases", () => {
 	it("never reads metadata from fenced code", () => {
-		const summary = "Run as a non-root user.\n\n```yaml\nservices:\n  app:\n    user: node\ncommit: false\nupgrade: true\n```\n\nauthor: @alice";
+		const summary =
+			"Run as a non-root user.\n\n```yaml\nservices:\n  app:\n    user: node\ncommit: false\nupgrade: true\n```\n\nauthor: @alice";
 		expect(mod.extractMeta(summary)).toEqual({
-			cleaned: "Run as a non-root user.\n\n```yaml\nservices:\n  app:\n    user: node\ncommit: false\nupgrade: true\n```",
+			cleaned:
+				"Run as a non-root user.\n\n```yaml\nservices:\n  app:\n    user: node\ncommit: false\nupgrade: true\n```",
 			pr: undefined,
 			commit: undefined,
 			authors: ["alice"],
@@ -245,10 +290,22 @@ describe("review edge cases", () => {
 	});
 
 	it.each([
-		[["```", "a", "```", "b"], [true, true, true, false]],
-		[["````md", "```js", "x", "```", "````", "y"], [true, true, true, true, true, false]],
-		[["~~~", "```", "~~~"], [true, true, true]],
-		[["```", "```js", "still code", "```"], [true, true, true, true]],
+		[
+			["```", "a", "```", "b"],
+			[true, true, true, false],
+		],
+		[
+			["````md", "```js", "x", "```", "````", "y"],
+			[true, true, true, true, true, false],
+		],
+		[
+			["~~~", "```", "~~~"],
+			[true, true, true],
+		],
+		[
+			["```", "```js", "still code", "```"],
+			[true, true, true, true],
+		],
 	])("marks code lines in %j", (lines, expected) => {
 		expect(mod.codeLines(lines)).toEqual(expected);
 	});
@@ -262,7 +319,10 @@ describe("review edge cases", () => {
 	});
 
 	it("never thanks a bot", async () => {
-		getInfoFromPullRequest.mockResolvedValueOnce({ user: "renovate", links: { ...links, user: "[@renovate](https://github.com/apps/renovate)" } } as never);
+		getInfoFromPullRequest.mockResolvedValueOnce({
+			user: "renovate",
+			links: { ...links, user: "[@renovate](https://github.com/apps/renovate)" },
+		} as never);
 		const out = await changelog.getReleaseLine(cs("pr: 3\nBump a tool."), "patch", opts);
 		expect(out).toBe(`- Bump a tool. (📝 ${links.pull})`);
 	});
@@ -294,10 +354,16 @@ describe("nested workspaces", () => {
 	function tree(): { root: string; nested: string } {
 		const root = mkdtempSync(join(fixtures, "ws-"));
 		mkdirSync(join(root, ".git"));
-		writeFileSync(join(root, "package.json"), JSON.stringify({ workspaces: ["packages/**"], author: "Ada <1+ada@users.noreply.github.com>" }));
+		writeFileSync(
+			join(root, "package.json"),
+			JSON.stringify({ workspaces: ["packages/**"], author: "Ada <1+ada@users.noreply.github.com>" }),
+		);
 		const nested = join(root, "packages", "group", "a");
 		mkdirSync(nested, { recursive: true });
-		writeFileSync(join(nested, "package.json"), JSON.stringify({ name: "a", author: "Grace <grace@users.noreply.github.com>" }));
+		writeFileSync(
+			join(nested, "package.json"),
+			JSON.stringify({ name: "a", author: "Grace <grace@users.noreply.github.com>" }),
+		);
 		return { root, nested };
 	}
 
@@ -319,7 +385,9 @@ describe("nested workspaces", () => {
 		writeFileSync(join(root, "package.json"), JSON.stringify({ author: "Ada <ada@users.noreply.github.com>" }));
 		mkdirSync(join(root, "packages", "a"), { recursive: true });
 		writeFileSync(join(root, "packages", "a", "package.json"), "{}");
-		expect(mod.workspaceRootPackageJson(join(root, "packages", "a", "package.json"))).toBe(join(root, "package.json"));
+		expect(mod.workspaceRootPackageJson(join(root, "packages", "a", "package.json"))).toBe(
+			join(root, "package.json"),
+		);
 	});
 
 	it("stays put outside a workspace and stops at the git root", () => {
@@ -347,9 +415,13 @@ describe("getDependencyReleaseLine", () => {
 	});
 
 	it("puts one dependency on one line, with old → new and a diff link", async () => {
-		const deps = [{ name: "@s/a", oldVersion: "1.0.0-beta.1", newVersion: "1.0.0-beta.2", packageJson: {} }] as unknown as DepArgs[1];
+		const deps = [
+			{ name: "@s/a", oldVersion: "1.0.0-beta.1", newVersion: "1.0.0-beta.2", packageJson: {} },
+		] as unknown as DepArgs[1];
 		const out = await changelog.getDependencyReleaseLine([cs("x", { commit: "abc123" })], deps, opts);
-		expect(out).toBe("- Updated `@s/a` 1.0.0-beta.1 → 1.0.0-beta.2 ([diff](https://github.com/o/r/compare/@s/a@1.0.0-beta.1...@s/a@1.0.0-beta.2))");
+		expect(out).toBe(
+			"- Updated `@s/a` 1.0.0-beta.1 → 1.0.0-beta.2 ([diff](https://github.com/o/r/compare/@s/a@1.0.0-beta.1...@s/a@1.0.0-beta.2))",
+		);
 		expect(getInfo).not.toHaveBeenCalled();
 	});
 

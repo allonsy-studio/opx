@@ -9,29 +9,53 @@ import { applyCleanup, describePlan, planCleanup } from "./cleanup.js";
 
 const git = (dir: string, ...args: string[]): void => void execFileSync("git", args, { cwd: dir, stdio: "ignore" });
 
-const file = (target: string, hint?: string): CleanupSuggestion => ({ kind: "file", target, reason: "not applied", hint });
+const file = (target: string, hint?: string): CleanupSuggestion => ({
+	kind: "file",
+	target,
+	reason: "not applied",
+	hint,
+});
 const pkg = (target: string): CleanupSuggestion => ({ kind: "dependency", target, reason: "bundled by @acme/opx-x" });
-const setting = (target: string): CleanupSuggestion => ({ kind: "setting", target, reason: "not applied", hint: "move it" });
-const plugin = (...suggestions: CleanupSuggestion[]): Detector => ({ cleanup: () => suggestions }) as unknown as Detector;
+const setting = (target: string): CleanupSuggestion => ({
+	kind: "setting",
+	target,
+	reason: "not applied",
+	hint: "move it",
+});
+const plugin = (...suggestions: CleanupSuggestion[]): Detector =>
+	({ cleanup: () => suggestions }) as unknown as Detector;
 const scratch = useScratch();
 const targets = (list: Array<{ target: string }>): string[] => list.map((i) => i.target).sort();
 
 describe("cleanup", () => {
 	/** A repo whose first commit holds the files; empty when none are given. */
 	const make = (files: Record<string, string> = {}): string => scratch.repo(files);
-	const ctx = (cwd: string, hostPkg: PackageJson = {}): DetectorContext => ({ cwd, hostPkg, pkgManager: "yarn" }) as unknown as DetectorContext;
+	const ctx = (cwd: string, hostPkg: PackageJson = {}): DetectorContext =>
+		({ cwd, hostPkg, pkgManager: "yarn" }) as unknown as DetectorContext;
 
 	describe("files", () => {
 		it("deletes only a file that is empty and unchanged in git", () => {
-			const dir = make({ ".eslintrc.json": "{}\n", ".eslintignore": "# nothing yet\n\n", ".eslintrc.yml": "/* x */\n" });
-			const plan = planCleanup(ctx(dir), [plugin(file(".eslintrc.json"), file(".eslintignore"), file(".eslintrc.yml"))]);
+			const dir = make({
+				".eslintrc.json": "{}\n",
+				".eslintignore": "# nothing yet\n\n",
+				".eslintrc.yml": "/* x */\n",
+			});
+			const plan = planCleanup(ctx(dir), [
+				plugin(file(".eslintrc.json"), file(".eslintignore"), file(".eslintrc.yml")),
+			]);
 			expect(plan.delete.sort()).toEqual([".eslintignore", ".eslintrc.json", ".eslintrc.yml"]);
 			expect(plan.advice).toEqual([]);
 		});
 
 		it("keeps a file with content, and passes the plugin's hint on", () => {
-			const dir = make({ ".eslintrc.json": JSON.stringify({ root: true }), ".eslintignore": "node_modules\n", ".eslintrc.js": "module.exports = {};\n" });
-			const plan = planCleanup(ctx(dir), [plugin(file(".eslintrc.json", "migrate it"), file(".eslintignore"), file(".eslintrc.js"))]);
+			const dir = make({
+				".eslintrc.json": JSON.stringify({ root: true }),
+				".eslintignore": "node_modules\n",
+				".eslintrc.js": "module.exports = {};\n",
+			});
+			const plan = planCleanup(ctx(dir), [
+				plugin(file(".eslintrc.json", "migrate it"), file(".eslintignore"), file(".eslintrc.js")),
+			]);
 			expect(plan.delete).toEqual([]);
 			expect(targets(plan.advice)).toEqual([".eslintignore", ".eslintrc.js", ".eslintrc.json"]);
 			expect(plan.advice.find((a) => a.target === ".eslintrc.json")?.hint).toBe("migrate it");
@@ -48,7 +72,12 @@ describe("cleanup", () => {
 		});
 
 		it("says nothing about a suggested file the project does not have", () => {
-			expect(planCleanup(ctx(make()), [plugin(file(".eslintrc"))])).toEqual({ delete: [], advice: [], kept: [], command: "" });
+			expect(planCleanup(ctx(make()), [plugin(file(".eslintrc"))])).toEqual({
+				delete: [],
+				advice: [],
+				kept: [],
+				command: "",
+			});
 		});
 
 		it("ignores paths outside the repository", () => {
@@ -76,18 +105,26 @@ describe("cleanup", () => {
 
 	describe("settings", () => {
 		it("advises on a package.json key only when it is there", () => {
-			const plan = planCleanup(ctx(make(), { eslintConfig: {}, name: "h" }), [plugin(setting("eslintConfig"), setting("eslintIgnore"))]);
-			expect(plan.advice).toEqual([{ target: "package.json › eslintConfig", reason: "not applied", hint: "move it" }]);
+			const plan = planCleanup(ctx(make(), { eslintConfig: {}, name: "h" }), [
+				plugin(setting("eslintConfig"), setting("eslintIgnore")),
+			]);
+			expect(plan.advice).toEqual([
+				{ target: "package.json › eslintConfig", reason: "not applied", hint: "move it" },
+			]);
 			expect(plan.delete).toEqual([]);
 		});
 	});
 
 	describe("packages", () => {
-		const dev = (...names: string[]): PackageJson => ({ devDependencies: Object.fromEntries(names.map((n) => [n, "^1.0.0"])) });
+		const dev = (...names: string[]): PackageJson => ({
+			devDependencies: Object.fromEntries(names.map((n) => [n, "^1.0.0"])),
+		});
 
 		it("advises on unused dev dependencies with one command, and never runs it", () => {
 			const dir = make();
-			const plan = planCleanup(ctx(dir, dev("eslint", "globals", "jest")), [plugin(pkg("eslint"), pkg("globals"), pkg("@eslint/js"))]);
+			const plan = planCleanup(ctx(dir, dev("eslint", "globals", "jest")), [
+				plugin(pkg("eslint"), pkg("globals"), pkg("@eslint/js")),
+			]);
 			expect(targets(plan.advice)).toEqual(["eslint", "globals"]);
 			expect(plan.command).toBe("yarn remove eslint globals");
 			expect(plan.advice[0]?.reason).toContain("bundled by @acme/opx-x");
@@ -126,14 +163,20 @@ describe("cleanup", () => {
 			expect(targets(planCleanup(ctx(hook, dev("eslint")), [plugin(pkg("eslint"))]).kept)).toEqual(["eslint"]);
 
 			const workflow = make({ ".github/workflows/ci.yml": "steps:\n  - run: yarn eslint src\n" });
-			expect(targets(planCleanup(ctx(workflow, dev("eslint")), [plugin(pkg("eslint"))]).kept)).toEqual(["eslint"]);
+			expect(targets(planCleanup(ctx(workflow, dev("eslint")), [plugin(pkg("eslint"))]).kept)).toEqual([
+				"eslint",
+			]);
 
 			const comment = make({ "src/a.js": "// eslint-disable-next-line no-console\nconsole.log(1);\n" });
-			expect(targets(planCleanup(ctx(comment, dev("eslint")), [plugin(pkg("eslint"))]).advice)).toEqual(["eslint"]);
+			expect(targets(planCleanup(ctx(comment, dev("eslint")), [plugin(pkg("eslint"))]).advice)).toEqual([
+				"eslint",
+			]);
 		});
 
 		it("does not count the dependency declaration itself as use", () => {
-			const dir = make({ "package.json": JSON.stringify({ devDependencies: { eslint: "^9" }, peerDependencies: {} }) });
+			const dir = make({
+				"package.json": JSON.stringify({ devDependencies: { eslint: "^9" }, peerDependencies: {} }),
+			});
 			expect(targets(planCleanup(ctx(dir, dev("eslint")), [plugin(pkg("eslint"))]).advice)).toEqual(["eslint"]);
 		});
 
@@ -142,14 +185,21 @@ describe("cleanup", () => {
 			const plan = planCleanup(ctx(make(), hostPkg), [plugin(pkg("eslint"))]);
 			expect(plan.advice).toEqual([]);
 			expect(plan.command).toBe("");
-			expect(plan.kept).toEqual([{ target: "eslint", reason: "also listed under peerDependencies, which removing it would change" }]);
+			expect(plan.kept).toEqual([
+				{ target: "eslint", reason: "also listed under peerDependencies, which removing it would change" },
+			]);
 
-			const prod = planCleanup(ctx(make(), { devDependencies: { globals: "1" }, dependencies: { globals: "1" } }), [plugin(pkg("globals"))]);
+			const prod = planCleanup(
+				ctx(make(), { devDependencies: { globals: "1" }, dependencies: { globals: "1" } }),
+				[plugin(pkg("globals"))],
+			);
 			expect(prod.kept[0]?.reason).toContain("dependencies");
 		});
 
 		it("says nothing about a package the project does not list as a dev dependency", () => {
-			const plan = planCleanup(ctx(make(), { dependencies: { eslint: "^9" } }), [plugin(pkg("eslint"), pkg("globals"))]);
+			const plan = planCleanup(ctx(make(), { dependencies: { eslint: "^9" } }), [
+				plugin(pkg("eslint"), pkg("globals")),
+			]);
 			expect(plan).toEqual({ delete: [], advice: [], kept: [], command: "" });
 		});
 
@@ -164,21 +214,36 @@ describe("cleanup", () => {
 	describe("plugins", () => {
 		it("merges the same suggestion from several plugins", () => {
 			const dir = make({ ".eslintrc": "" });
-			const plan = planCleanup(ctx(dir, { devDependencies: { eslint: "1" } }), [plugin(file(".eslintrc"), pkg("eslint")), plugin(file(".eslintrc"), pkg("eslint"))]);
+			const plan = planCleanup(ctx(dir, { devDependencies: { eslint: "1" } }), [
+				plugin(file(".eslintrc"), pkg("eslint")),
+				plugin(file(".eslintrc"), pkg("eslint")),
+			]);
 			expect(plan.delete).toEqual([".eslintrc"]);
 			expect(plan.advice).toHaveLength(1);
 		});
 
 		it("skips a plugin with no suggestions or one that throws", () => {
-			const broken = { cleanup: () => { throw new Error("boom"); } } as unknown as Detector;
+			const broken = {
+				cleanup: () => {
+					throw new Error("boom");
+				},
+			} as unknown as Detector;
 			const silent = {} as Detector;
-			expect(planCleanup(ctx(make()), [broken, silent])).toEqual({ delete: [], advice: [], kept: [], command: "" });
+			expect(planCleanup(ctx(make()), [broken, silent])).toEqual({
+				delete: [],
+				advice: [],
+				kept: [],
+				command: "",
+			});
 		});
 	});
 
 	describe("commands", () => {
 		const migrate = { run: ["npx", "@eslint/migrate-config", ".eslintrc.json"], description: "Convert it" };
-		const withCommand = (target: string, command: CleanupSuggestion["command"]): CleanupSuggestion => ({ ...file(target), command });
+		const withCommand = (target: string, command: CleanupSuggestion["command"]): CleanupSuggestion => ({
+			...file(target),
+			command,
+		});
 
 		it("passes a plugin's command along on a file that stays", () => {
 			const dir = make({ ".eslintrc.json": '{ "rules": {} }' });
@@ -188,7 +253,9 @@ describe("cleanup", () => {
 
 		it("passes it along on a package.json key", () => {
 			const dir = make();
-			const plan = planCleanup(ctx(dir, { eslintConfig: {} }), [plugin({ ...setting("eslintConfig"), command: migrate })]);
+			const plan = planCleanup(ctx(dir, { eslintConfig: {} }), [
+				plugin({ ...setting("eslintConfig"), command: migrate }),
+			]);
 			expect(plan.advice[0]?.command).toEqual(migrate);
 		});
 
@@ -228,7 +295,10 @@ describe("cleanup", () => {
 		it("lists empty files, advice with hints, the command, and what is kept", () => {
 			const lines = describePlan({
 				delete: [".eslintrc"],
-				advice: [{ target: "eslint", reason: "bundled" }, { target: ".eslintrc.json", reason: "not applied", hint: "migrate it" }],
+				advice: [
+					{ target: "eslint", reason: "bundled" },
+					{ target: ".eslintrc.json", reason: "not applied", hint: "migrate it" },
+				],
 				kept: [{ target: "globals", reason: "used by a.js" }],
 				command: "yarn remove eslint",
 			});
@@ -249,7 +319,14 @@ describe("cleanup", () => {
 			const lines = describePlan({
 				delete: [],
 				advice: [
-					{ target: ".eslintrc.json", reason: "r", command: { run: ["npx", "@eslint/migrate-config", ".eslintrc.json"], description: "Convert it" } },
+					{
+						target: ".eslintrc.json",
+						reason: "r",
+						command: {
+							run: ["npx", "@eslint/migrate-config", ".eslintrc.json"],
+							description: "Convert it",
+						},
+					},
 					{ target: "my file", reason: "r", command: { run: ["npx", "tool", "my file", "it's"] } },
 				],
 				kept: [],

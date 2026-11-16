@@ -42,7 +42,12 @@ describe("createUi", () => {
 		ui.hint("Next: merge it.");
 		ui.warn("Careful");
 		ui.fail("Broke", "exit 1");
-		expect(out).toEqual(["  ✔ Published  1.2.0", "  – GitHub releases  no GITHUB_TOKEN", "  ● Pushing tags", "    Next: merge it."]);
+		expect(out).toEqual([
+			"  ✔ Published  1.2.0",
+			"  – GitHub releases  no GITHUB_TOKEN",
+			"  ● Pushing tags",
+			"    Next: merge it.",
+		]);
 		expect(err).toEqual(["  ▲ Careful", "  ✖ Broke  exit 1"]);
 	});
 
@@ -60,7 +65,13 @@ describe("createUi", () => {
 
 	it("aligns table columns by what they show, ignoring color codes", () => {
 		const { ui, out } = capture({ color: true });
-		ui.table(["Package", "Version"], [[ui.colors.bold("a"), "1.0.0"], ["longer-name", "2.0.0"]]);
+		ui.table(
+			["Package", "Version"],
+			[
+				[ui.colors.bold("a"), "1.0.0"],
+				["longer-name", "2.0.0"],
+			],
+		);
 		const plain = out.map((l) => l.replace(/\x1b\[[0-9;]*m/g, ""));
 		expect(plain).toEqual(["  Package       Version", "  a             1.0.0", "  longer-name   2.0.0"]);
 	});
@@ -76,7 +87,10 @@ describe("uiFor", () => {
 	it("writes lines through the host and problems through its logger", () => {
 		const written: string[] = [];
 		const errors: string[] = [];
-		const ui = uiFor({ write: (chunk) => written.push(chunk), logger: { info() {}, warn() {}, debug() {}, error: (m) => errors.push(m) } });
+		const ui = uiFor({
+			write: (chunk) => written.push(chunk),
+			logger: { info() {}, warn() {}, debug() {}, error: (m) => errors.push(m) },
+		});
 		ui.ok("Done");
 		ui.fail("Broke");
 		expect(written).toEqual([expect.stringMatching(/Done\n$/)]);

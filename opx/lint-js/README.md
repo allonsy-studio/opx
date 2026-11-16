@@ -1,6 +1,6 @@
 # @allons-y/opx-lint-js
 
-opx detector + runner for **JavaScript**. Bundles ESLint with [`@stylistic/eslint-plugin`](https://eslint.style), pre-configured. TypeScript is not covered.
+opx detector + runner for **JavaScript**. Bundles ESLint, pre-configured. TypeScript is not covered. Formatting belongs to [`@allons-y/opx-format`](https://www.npmjs.com/package/@allons-y/opx-format).
 
 ## Install
 
@@ -22,9 +22,9 @@ Requires [`@allons-y/opx-cli`](https://www.npmjs.com/package/@allons-y/opx-cli).
 
 ## What it covers
 
-| File types | Plugins |
-|---|---|
-| `.js`, `.mjs`, `.cjs`, `.jsx` | `@eslint/js`, `@stylistic/eslint-plugin` |
+| File types                    | Plugins      |
+| ----------------------------- | ------------ |
+| `.js`, `.mjs`, `.cjs`, `.jsx` | `@eslint/js` |
 
 The bundled flat config owns both **semantic lint** and **formatting** — there is no separate Prettier step.
 
@@ -32,15 +32,15 @@ The bundled flat config owns both **semantic lint** and **formatting** — there
 
 On top of `@eslint/js` recommended, the bundled config sets these to `error` for `.js`, `.mjs` and `.cjs`:
 
-| Rule | Why |
-|---|---|
-| `no-var`, `prefer-const` | Block-scoped bindings only. |
-| `prefer-arrow-callback`, `object-shorthand` | Arrow callbacks and shorthand properties and methods. |
-| `prefer-template` | Template literals over string concatenation. |
+| Rule                                                          | Why                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `no-var`, `prefer-const`                                      | Block-scoped bindings only.                                              |
+| `prefer-arrow-callback`, `object-shorthand`                   | Arrow callbacks and shorthand properties and methods.                    |
+| `prefer-template`                                             | Template literals over string concatenation.                             |
 | `prefer-spread`, `prefer-rest-params`, `prefer-object-spread` | Spread and rest over `.apply()`, `arguments` and `Object.assign({}, …)`. |
-| `no-unused-vars` with `ignoreRestSiblings` | Lets `const { omit, ...rest } = obj` drop a key without a warning. |
+| `no-unused-vars` with `ignoreRestSiblings`                    | Lets `const { omit, ...rest } = obj` drop a key without a warning.       |
 
-Most of these fix under `opx lint --fix`. `prefer-rest-params` and some `prefer-spread` cases need a manual edit. Two `@stylistic` rules, `template-curly-spacing` (`never`) and `object-curly-spacing` (`always`), keep the fixed output tidy.
+Most of these fix under `opx lint --fix`. `prefer-rest-params` and some `prefer-spread` cases need a manual edit. Run `opx lint --fix` with the format plugin enabled to tidy the fixed output.
 
 Left out on purpose: `no-console`. Build scripts and CLIs write to stdout, so turn it on in your own config where it fits (for example, off for `scripts/`).
 
@@ -61,10 +61,10 @@ To swap in your own ESLint flat config, set `lint.js` in `.opx/config.json`:
 
 ```json
 {
-  "version": 1,
-  "lint": {
-    "js": "./eslint.config.js"
-  }
+	"version": 1,
+	"lint": {
+		"js": "./eslint.config.js"
+	}
 }
 ```
 
@@ -77,10 +77,7 @@ The flat config is exported at `@allons-y/opx-lint-js/eslint.config.js` as a pla
 ```js
 import js from "@allons-y/opx-lint-js/eslint.config.js";
 
-export default [
-  ...js,
-  { files: ["**/*.js"], rules: { "no-console": "warn" } },
-];
+export default [...js, { files: ["**/*.js"], rules: { "no-console": "warn" } }];
 ```
 
 Every block is `files`-scoped, so the JS formatting rules never leak onto other languages — it composes cleanly with `@allons-y/opx-lint-ts`, `@allons-y/opx-lint-json`, `@allons-y/opx-lint-md`, and third-party plugins. `opx init` scaffolds this file for you. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.

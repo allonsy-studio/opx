@@ -56,9 +56,17 @@ describe("runReleaseCommand", () => {
 
 	it("forwards the subcommand + args verbatim, empty included, to the releaser", async () => {
 		const seen: string[][] = [];
-		load.mockResolvedValue({ detectors: [
-			detector({ run: async (_c, args) => { seen.push(args); return 0; } }),
-		], failures: [] });
+		load.mockResolvedValue({
+			detectors: [
+				detector({
+					run: async (_c, args) => {
+						seen.push(args);
+						return 0;
+					},
+				}),
+			],
+			failures: [],
+		});
 
 		const code = await runReleaseCommand(ctx(), ["add", "--empty"]);
 		await runReleaseCommand(ctx(), []);
@@ -77,10 +85,13 @@ describe("runReleaseCommand", () => {
 	});
 
 	it("returns the first non-zero exit code across releasers", async () => {
-		load.mockResolvedValue({ detectors: [
-			detector({ shortName: "ok", run: async () => 0 }),
-			detector({ shortName: "bad", run: async () => 2 }),
-		], failures: [] });
+		load.mockResolvedValue({
+			detectors: [
+				detector({ shortName: "ok", run: async () => 0 }),
+				detector({ shortName: "bad", run: async () => 2 }),
+			],
+			failures: [],
+		});
 
 		const code = await runReleaseCommand(ctx(), ["version"]);
 

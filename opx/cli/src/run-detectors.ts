@@ -3,23 +3,27 @@ import type { Detector, DetectorContext } from "@allons-y/opx";
 import { colors } from "./colors.js";
 
 /**
- * Run detectors concurrently while keeping their output cleanly grouped.
+ * Run detectors in two phases while keeping their output cleanly grouped.
  *
- * Each detector writes into its own buffer (via a per-run `ctx.write`) so the
- * runs never interleave on stdout; once every run settles, the buffers are
- * flushed in detector order behind a colored header. Returns the first non-zero
- * exit code, or 0 if every detector passed.
+ * `format` detectors run first, one at a time, so they finish rewriting files
+ * before any checker reads them. The rest (`check`, the default) then run
+ * concurrently. Each detector writes into its own buffer (via a per-run
+ * `ctx.write`) so runs never interleave on stdout; once every run settles, the
+ * buffers are flushed in run order behind a colored header. Every detector
+ * runs even when an earlier one fails. Returns the first non-zero exit code, or
+ * 0 if every detector passed.
  */
 export async function runDetectorsGrouped(
 	ctx: DetectorContext,
 	detectors: Detector[],
 	args: string[],
 ): Promise<number> {
-	const results = await Promise.all(
-		detectors.map(async (detector) => {
-			let buffer = "";
-			/** Copied by descriptor, not a spread, which would read the context's lazy getters eagerly. */
-			const runCtx = Object.defineProperties({}, {
+	const runOne = async (detector: Detector) => {
+		let buffer = "";
+		/** Copied by descriptor, not a spread, which would read the context's lazy getters eagerly. */
+		const runCtx = Object.defineProperties(
+			{},
+			{
 				...Object.getOwnPropertyDescriptors(ctx),
 				write: {
 					value: (chunk: string) => {
@@ -29,15 +33,21 @@ export async function runDetectorsGrouped(
 					writable: true,
 					configurable: true,
 				},
-			}) as DetectorContext;
-			const code = typeof detector.run === "function" ? await detector.run(runCtx, args) : 0;
-			return { detector, code, output: buffer.trim() };
-		}),
-	);
+			},
+		) as DetectorContext;
+		const code = typeof detector.run === "function" ? await detector.run(runCtx, args) : 0;
+		return { detector, code, output: buffer.trim() };
+	};
+
+	const results: Awaited<ReturnType<typeof runOne>>[] = [];
+	for (const detector of detectors.filter((d) => d.phase === "format")) results.push(await runOne(detector));
+	results.push(...(await Promise.all(detectors.filter((d) => d.phase !== "format").map(runOne))));
 
 	for (const { detector, code, output } of results) {
 		if (output === "") {
-			process.stdout.write(`${colors.green("✔")} ${colors.bold(detector.shortName)} ${colors.dim("— no issues")}\n`);
+			process.stdout.write(
+				`${colors.green("✔")} ${colors.bold(detector.shortName)} ${colors.dim("— no issues")}\n`,
+			);
 			continue;
 		}
 		const mark = code === 0 ? colors.yellow("▸") : colors.red("▸");

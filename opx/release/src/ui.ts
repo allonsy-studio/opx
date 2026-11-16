@@ -46,9 +46,18 @@ export function createUi(options: UiOptions = {}) {
 	const err = options.err ?? ((line: string) => console.error(line));
 	const color = options.color ?? supportsColor();
 	const sym = (options.unicode ?? supportsUnicode()) ? SYMBOLS.unicode : SYMBOLS.ascii;
-	const paint = (open: number, close: number) => (text: string) => (color ? `\x1b[${open}m${text}\x1b[${close}m` : text);
-	const c = { bold: paint(1, 22), dim: paint(2, 22), red: paint(31, 39), green: paint(32, 39), yellow: paint(33, 39), cyan: paint(36, 39) };
-	const line = (symbol: string, text: string, detail?: string) => `  ${symbol} ${text}${detail ? `  ${c.dim(detail)}` : ""}`;
+	const paint = (open: number, close: number) => (text: string) =>
+		color ? `\x1b[${open}m${text}\x1b[${close}m` : text;
+	const c = {
+		bold: paint(1, 22),
+		dim: paint(2, 22),
+		red: paint(31, 39),
+		green: paint(32, 39),
+		yellow: paint(33, 39),
+		cyan: paint(36, 39),
+	};
+	const line = (symbol: string, text: string, detail?: string) =>
+		`  ${symbol} ${text}${detail ? `  ${c.dim(detail)}` : ""}`;
 
 	return {
 		colors: c,
@@ -89,7 +98,9 @@ export function createUi(options: UiOptions = {}) {
 		},
 		/** An aligned table with a dim header row. */
 		table(header: Row, rows: Row[]): void {
-			const widths = header.map((cell, i) => Math.max(visible(cell), ...rows.map((row) => visible(row[i] ?? ""))));
+			const widths = header.map((cell, i) =>
+				Math.max(visible(cell), ...rows.map((row) => visible(row[i] ?? ""))),
+			);
 			const pad = (cell: string, i: number) => cell + " ".repeat(Math.max(0, (widths[i] ?? 0) - visible(cell)));
 			out(`  ${c.dim(header.map(pad).join("   ").trimEnd())}`);
 			for (const row of rows) out(`  ${row.map(pad).join("   ").trimEnd()}`);

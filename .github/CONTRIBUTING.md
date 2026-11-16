@@ -14,28 +14,28 @@ Yarn doesn't run a root `prepare` script on install, so install the git hooks on
 
 opx is a Yarn workspaces monorepo. Each package lives in `opx/<name>`:
 
-| Directory | Package |
-| --- | --- |
-| `opx/engine` | `@allons-y/opx`: the `Detector` contract, config, state, and plugin loader |
-| `opx/cli` | `@allons-y/opx-cli`: the `opx` binary |
-| `opx/lint-js`, `opx/lint-json`, `opx/lint-md`, `opx/lint-ts` | Lint plugins |
-| `opx/release` | The changesets release plugin |
-| `opx/docs` | The documentation site (private, not published) |
-| `opx/shared` | Source shared between packages (private, not published). `scripts/shared.js` copies it into the lint plugins when they are packed |
+| Directory                                                    | Package                                                                                                                           |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `opx/engine`                                                 | `@allons-y/opx`: the `Detector` contract, config, state, and plugin loader                                                        |
+| `opx/cli`                                                    | `@allons-y/opx-cli`: the `opx` binary                                                                                             |
+| `opx/lint-js`, `opx/lint-json`, `opx/lint-md`, `opx/lint-ts` | Lint plugins                                                                                                                      |
+| `opx/release`                                                | The changesets release plugin                                                                                                     |
+| `opx/docs`                                                   | The documentation site (private, not published)                                                                                   |
+| `opx/shared`                                                 | Source shared between packages (private, not published). `scripts/shared.js` copies it into the lint plugins when they are packed |
 
 ## Common commands
 
-| Command | What it does |
-| --- | --- |
-| `yarn build` | Bundle every package to its `bin/` directory. |
-| `yarn typecheck` | Type-check every package. |
-| `yarn test` | Run the Jest test suites. |
-| `yarn coverage` | Run tests with coverage. Locally, prints a table. |
-| `yarn lint` | Lint the repo with opx itself. |
-| `yarn format` | Lint and auto-fix. |
-| `yarn smoke` | Pack the packages, install them into a scratch project, and run the CLI (`scripts/smoke.js`). |
-| `yarn docs:dev` | Build the docs and serve them with live reload. |
-| `yarn docs:build` | Build the docs site. |
+| Command           | What it does                                                                                  |
+| ----------------- | --------------------------------------------------------------------------------------------- |
+| `yarn build`      | Bundle every package to its `bin/` directory.                                                 |
+| `yarn typecheck`  | Type-check every package.                                                                     |
+| `yarn test`       | Run the Jest test suites.                                                                     |
+| `yarn coverage`   | Run tests with coverage. Locally, prints a table.                                             |
+| `yarn lint`       | Lint the repo with opx itself.                                                                |
+| `yarn format`     | Lint and auto-fix.                                                                            |
+| `yarn smoke`      | Pack the packages, install them into a scratch project, and run the CLI (`scripts/smoke.js`). |
+| `yarn docs:dev`   | Build the docs and serve them with live reload.                                               |
+| `yarn docs:build` | Build the docs site.                                                                          |
 
 ## Commit conventions
 

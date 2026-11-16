@@ -21,7 +21,8 @@ export async function runBuildCommand(ctx: DetectorContext, paths: string[]): Pr
 	reportLoadFailures(failures);
 
 	if (detectors.length === 0) {
-		if (failures.length === 0) console.log(`${CLI_NAME}: no builders are detected. Run \`${CLI_NAME} init\` to set them up.`);
+		if (failures.length === 0)
+			console.log(`${CLI_NAME}: no builders are detected. Run \`${CLI_NAME} init\` to set them up.`);
 		return failures.length > 0 ? 1 : 0;
 	}
 

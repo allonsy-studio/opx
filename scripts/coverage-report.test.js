@@ -4,7 +4,16 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, it } from "node:test";
 
-import { combine, describeThresholds, formatPercent, parseLcov, passes, readRoot, readSummaries, renderReport } from "./coverage-report.js";
+import {
+	combine,
+	describeThresholds,
+	formatPercent,
+	parseLcov,
+	passes,
+	readRoot,
+	readSummaries,
+	renderReport,
+} from "./coverage-report.js";
 
 const dirs = [];
 afterEach(() => {
@@ -26,21 +35,34 @@ describe("readSummaries", () => {
 	it("reads each package with a summary, named by its package.json, sorted", () => {
 		const dir = mkdtempSync(join(tmpdir(), "opx-cov-"));
 		dirs.push(dir);
-		for (const [folder, name] of [["release", "@s/release"], ["cli", "@s/cli"], ["docs", "@s/docs"]]) {
+		for (const [folder, name] of [
+			["release", "@s/release"],
+			["cli", "@s/cli"],
+			["docs", "@s/docs"],
+		]) {
 			mkdirSync(join(dir, folder));
 			writeFileSync(join(dir, folder, "package.json"), JSON.stringify({ name }));
 		}
 		for (const folder of ["release", "cli"]) {
 			mkdirSync(join(dir, folder, "coverage"));
-			writeFileSync(join(dir, folder, "coverage", "coverage-summary.json"), JSON.stringify({ total: totals(9, 10) }));
+			writeFileSync(
+				join(dir, folder, "coverage", "coverage-summary.json"),
+				JSON.stringify({ total: totals(9, 10) }),
+			);
 		}
-		assert.deepEqual(readSummaries(dir).map((row) => row.name), ["@s/cli", "@s/release"]);
+		assert.deepEqual(
+			readSummaries(dir).map((row) => row.name),
+			["@s/cli", "@s/release"],
+		);
 	});
 });
 
 describe("combine", () => {
 	it("adds counts, so a big package weighs more than a small one", () => {
-		const combined = combine([{ name: "a", total: totals(90, 100) }, { name: "b", total: totals(10, 10) }]);
+		const combined = combine([
+			{ name: "a", total: totals(90, 100) },
+			{ name: "b", total: totals(10, 10) },
+		]);
 		assert.deepEqual(combined.lines, { covered: 100, total: 110 });
 	});
 });
@@ -86,7 +108,10 @@ describe("renderReport", () => {
 	});
 
 	it("counts nothing to cover as covered", () => {
-		assert.match(renderReport([{ name: "@s/empty", total: totals(0, 0) }], THRESHOLDS), /`@s\/empty` \| 100% \| 100% \| 100% \| 100% \| ✅/);
+		assert.match(
+			renderReport([{ name: "@s/empty", total: totals(0, 0) }], THRESHOLDS),
+			/`@s\/empty` \| 100% \| 100% \| 100% \| 100% \| ✅/,
+		);
 	});
 
 	it("says so when there are no reports", () => {
@@ -96,9 +121,30 @@ describe("renderReport", () => {
 
 describe("parseLcov", () => {
 	it("sums every file's counts and lists the files, with statements following lines", () => {
-		const lcov = ["SF:/r/scripts/a.js", "FNF:2", "FNH:2", "BRF:4", "BRH:3", "LF:10", "LH:9", "end_of_record", "SF:/r/scripts/b.js", "FNF:1", "FNH:0", "LF:5", "LH:5", "end_of_record", ""].join("\n");
+		const lcov = [
+			"SF:/r/scripts/a.js",
+			"FNF:2",
+			"FNH:2",
+			"BRF:4",
+			"BRH:3",
+			"LF:10",
+			"LH:9",
+			"end_of_record",
+			"SF:/r/scripts/b.js",
+			"FNF:1",
+			"FNH:0",
+			"LF:5",
+			"LH:5",
+			"end_of_record",
+			"",
+		].join("\n");
 		assert.deepEqual(parseLcov(lcov), {
-			total: { lines: { total: 15, covered: 14 }, statements: { total: 15, covered: 14 }, branches: { total: 4, covered: 3 }, functions: { total: 3, covered: 2 } },
+			total: {
+				lines: { total: 15, covered: 14 },
+				statements: { total: 15, covered: 14 },
+				branches: { total: 4, covered: 3 },
+				functions: { total: 3, covered: 2 },
+			},
 			files: ["/r/scripts/a.js", "/r/scripts/b.js"],
 		});
 	});
@@ -109,12 +155,25 @@ describe("readRoot", () => {
 	function root(covered) {
 		const dir = mkdtempSync(join(tmpdir(), "opx-cov-root-"));
 		dirs.push(dir);
-		const files = ["scripts/a.js", "scripts/a.test.js", "scripts/b.js", "scripts/smoke.js", "scripts/notes.md", "tools/c.js", "configs/d.js", "opx/e/f.js"];
+		const files = [
+			"scripts/a.js",
+			"scripts/a.test.js",
+			"scripts/b.js",
+			"scripts/smoke.js",
+			"scripts/notes.md",
+			"tools/c.js",
+			"configs/d.js",
+			"opx/e/f.js",
+		];
 		for (const file of files) {
 			mkdirSync(join(dir, file, ".."), { recursive: true });
 			writeFileSync(join(dir, file), "");
 		}
-		if (covered) writeFileSync(join(dir, "coverage.lcov"), covered.map((file) => `SF:${join(dir, file)}\nLF:1\nLH:1\nend_of_record`).join("\n"));
+		if (covered)
+			writeFileSync(
+				join(dir, "coverage.lcov"),
+				covered.map((file) => `SF:${join(dir, file)}\nLF:1\nLH:1\nend_of_record`).join("\n"),
+			);
 		return dir;
 	}
 
@@ -140,7 +199,10 @@ describe("passes", () => {
 
 describe("renderReport with untested files", () => {
 	it("flags a row with untested files and names them under the table", () => {
-		const report = renderReport([{ name: ".", total: totals(99, 100), untested: ["scripts/shared.js"] }], THRESHOLDS);
+		const report = renderReport(
+			[{ name: ".", total: totals(99, 100), untested: ["scripts/shared.js"] }],
+			THRESHOLDS,
+		);
 		assert.match(report, /\| `.` \| 99% \| 99% \| 99% \| 99% \| ❌ \|/);
 		assert.match(report, /⚠️ No tests: `scripts\/shared\.js`\./);
 	});

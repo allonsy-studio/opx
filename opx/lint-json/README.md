@@ -23,20 +23,20 @@ Requires [`@allons-y/opx-cli`](https://www.npmjs.com/package/@allons-y/opx-cli).
 
 ## What it covers
 
-| File type | Language mode | Default |
-|---|---|---|
-| `.json` | `json/json` | always on |
-| `.jsonc` | `json/jsonc` | opt-in |
-| `.json5` | `json/json5` | opt-in |
+| File type | Language mode | Default   |
+| --------- | ------------- | --------- |
+| `.json`   | `json/json`   | always on |
+| `.jsonc`  | `json/jsonc`  | opt-in    |
+| `.json5`  | `json/json5`  | opt-in    |
 
 JSONC and JSON5 are off by default — `opx init` asks whether to enable them and persists the choice in `.opx/config.json`:
 
 ```json
 {
-  "version": 1,
-  "lint": {
-    "json": { "dialects": ["jsonc", "json5"] }
-  }
+	"version": 1,
+	"lint": {
+		"json": { "dialects": ["jsonc", "json5"] }
+	}
 }
 ```
 
@@ -59,10 +59,10 @@ To swap in your own ESLint flat config, set `lint.json` in `.opx/config.json`:
 
 ```json
 {
-  "version": 1,
-  "lint": {
-    "json": "./eslint.json.config.js"
-  }
+	"version": 1,
+	"lint": {
+		"json": "./eslint.json.config.js"
+	}
 }
 ```
 
@@ -76,11 +76,7 @@ The flat config is exported at `@allons-y/opx-lint-json/eslint.config.js` as a p
 import js from "@allons-y/opx-lint-js/eslint.config.js";
 import json from "@allons-y/opx-lint-json/eslint.config.js";
 
-export default [
-  ...js,
-  ...json,
-  { files: ["**/*.json"], rules: { "json/no-empty-keys": "off" } },
-];
+export default [...js, ...json, { files: ["**/*.json"], rules: { "json/no-empty-keys": "off" } }];
 ```
 
 Every block is `files`-scoped, so it composes without clobbering other languages. `opx init` scaffolds this file for you. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.

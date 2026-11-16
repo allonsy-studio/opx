@@ -43,10 +43,14 @@ describe("opxReleaseDetector", () => {
 		it("lists exactly the third-party packages it ships", async () => {
 			const { readFileSync } = await import("node:fs");
 			const { fileURLToPath } = await import("node:url");
-			const pkg = JSON.parse(readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8")) as { dependencies: Record<string, string> };
+			const pkg = JSON.parse(
+				readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8"),
+			) as { dependencies: Record<string, string> };
 			const d = opxReleaseDetector.describe!(ctx(true));
 			expect(d.summary).toMatch(/changesets/i);
-			expect(d.bundledDeps).toEqual(Object.keys(pkg.dependencies).filter((name) => !name.startsWith("@allons-y/")));
+			expect(d.bundledDeps).toEqual(
+				Object.keys(pkg.dependencies).filter((name) => !name.startsWith("@allons-y/")),
+			);
 		});
 	});
 
@@ -54,9 +58,12 @@ describe("opxReleaseDetector", () => {
 		it("pins the tools it ships to exact versions", async () => {
 			const { readFileSync } = await import("node:fs");
 			const { fileURLToPath } = await import("node:url");
-			const pkg = JSON.parse(readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8")) as { dependencies: Record<string, string> };
+			const pkg = JSON.parse(
+				readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8"),
+			) as { dependencies: Record<string, string> };
 			for (const [name, version] of Object.entries(pkg.dependencies)) {
-				if (!name.startsWith("@allons-y/")) expect({ name, version }).toEqual({ name, version: expect.stringMatching(/^\d+\.\d+\.\d+$/) });
+				if (!name.startsWith("@allons-y/"))
+					expect({ name, version }).toEqual({ name, version: expect.stringMatching(/^\d+\.\d+\.\d+$/) });
 			}
 		});
 	});

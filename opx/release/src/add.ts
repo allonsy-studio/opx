@@ -28,7 +28,10 @@ const OTHER_SUBCOMMANDS = new Set(["status", "version", "publish", "pre", "tag",
 
 /** Split a repeatable/comma-separated flag value (`--pkg a,b`) into names. */
 function splitList(value: string | undefined): string[] {
-	return (value ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+	return (value ?? "")
+		.split(",")
+		.map((s) => s.trim())
+		.filter(Boolean);
 }
 
 /**
@@ -96,7 +99,10 @@ export function changesetFromFlags(parsed: ParsedAdd, available: ReleasablePacka
 		throw new Error("`--summary <text>` is required (or pass --empty).");
 	}
 
-	return toChangeset(parsed.pkgs.map((name) => ({ name, type: parsed.type as Bump })), parsed.summary);
+	return toChangeset(
+		parsed.pkgs.map((name) => ({ name, type: parsed.type as Bump })),
+		parsed.summary,
+	);
 }
 
 // ---------------------------------------------------------------------------
@@ -122,7 +128,13 @@ export async function listReleasablePackages(cwd: string): Promise<ReleasablePac
 	const packages = await getPackages(cwd);
 	const config = await readConfig(cwd, packages);
 	return packages.packages
-		.filter((pkg) => !shouldSkipPackage(pkg, { ignore: config.ignore, allowPrivatePackages: config.privatePackages.version }))
+		.filter(
+			(pkg) =>
+				!shouldSkipPackage(pkg, {
+					ignore: config.ignore,
+					allowPrivatePackages: config.privatePackages.version,
+				}),
+		)
 		.map((pkg) => ({ name: pkg.packageJson.name, version: pkg.packageJson.version }))
 		.sort((a, b) => a.name.localeCompare(b.name));
 }

@@ -41,14 +41,14 @@ export function buildContext(options: BuildContextOptions): DetectorContext {
 	return {
 		cwd,
 		get fileTypes() {
-			return fileTypes ??= scanCommittedTree(cwd).fileTypes;
+			return (fileTypes ??= scanCommittedTree(cwd).fileTypes);
 		},
 		hostPkg,
 		pkgManager: detectPackageManager(cwd, hostPkg),
 		config,
 		state,
 		get branch() {
-			return branch ??= getCurrentBranch(cwd);
+			return (branch ??= getCurrentBranch(cwd));
 		},
 		logger,
 		dryRun,

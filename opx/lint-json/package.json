@@ -1,65 +1,65 @@
 {
-	"$schema": "https://www.schemastore.org/package.json",
-	"publishConfig": {
-		"access": "public",
-		"registry": "https://registry.npmjs.org/"
-	},
-	"name": "@allons-y/opx-lint-json",
-	"version": "0.1.0",
-	"description": "opx detector + runner for JSON, JSONC, and JSON5. Bundles ESLint with @eslint/json.",
-	"license": "Apache-2.0",
-	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
-	"homepage": "https://github.com/allonsy-studio/opx#readme",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/allonsy-studio/opx.git",
-		"directory": "opx/lint-json"
-	},
-	"bugs": {
-		"url": "https://github.com/allonsy-studio/opx/issues"
-	},
-	"type": "module",
-	"exports": {
-		".": {
-			"types": "./bin/index.d.ts",
-			"import": "./bin/index.js"
-		},
-		"./eslint.config.js": "./eslint.config.js"
-	},
-	"main": "./bin/index.js",
-	"files": [
-		"bin/",
-		"CHANGELOG.md",
-		"README.md",
-		"package.json",
-		"LICENSE",
-		"eslint.config.js"
-	],
-	"scripts": {
-		"build": "yarn g:build && yarn g:dts",
-		"prepack": "yarn g:inject",
-		"clean": "yarn g:clean",
-		"coverage": "yarn g:coverage",
-		"lint": "eslint . --config ../lint-js/eslint.config.js",
-		"test": "yarn g:test",
-		"typecheck": "yarn g:typecheck"
-	},
-	"types": "./bin/index.d.ts",
-	"dependencies": {
-		"@allons-y/opx": "^0.1.0",
-		"@eslint/compat": "2.1.1",
-		"@eslint/json": "2.1.0",
-		"eslint": "10.11.0"
-	},
-	"keywords": [
-		"opx",
-		"eslint",
-		"linter",
-		"json",
-		"jsonc",
-		"json5"
-	],
-	"engines": {
-		"node": ">=24"
-	}
+  "$schema": "https://www.schemastore.org/package.json",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "name": "@allons-y/opx-lint-json",
+  "version": "0.1.0",
+  "description": "opx detector + runner for JSON, JSONC, and JSON5. Bundles ESLint with @eslint/json.",
+  "license": "Apache-2.0",
+  "author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
+  "homepage": "https://github.com/allonsy-studio/opx#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allonsy-studio/opx.git",
+    "directory": "opx/lint-json"
+  },
+  "bugs": {
+    "url": "https://github.com/allonsy-studio/opx/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./bin/index.d.ts",
+      "import": "./bin/index.js"
+    },
+    "./eslint.config.js": "./eslint.config.js"
+  },
+  "main": "./bin/index.js",
+  "files": [
+    "bin/",
+    "CHANGELOG.md",
+    "README.md",
+    "package.json",
+    "LICENSE",
+    "eslint.config.js"
+  ],
+  "scripts": {
+    "build": "yarn g:build && yarn g:dts",
+    "prepack": "yarn g:inject",
+    "clean": "yarn g:clean",
+    "coverage": "yarn g:coverage",
+    "lint": "eslint . --config ../lint-js/eslint.config.js",
+    "test": "yarn g:test",
+    "typecheck": "yarn g:typecheck"
+  },
+  "types": "./bin/index.d.ts",
+  "dependencies": {
+    "@allons-y/opx": "^0.1.0",
+    "@eslint/compat": "2.1.1",
+    "@eslint/json": "2.1.0",
+    "eslint": "10.11.0"
+  },
+  "keywords": [
+    "opx",
+    "eslint",
+    "linter",
+    "json",
+    "jsonc",
+    "json5"
+  ],
+  "engines": {
+    "node": ">=24"
+  }
 }

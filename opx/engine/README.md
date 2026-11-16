@@ -21,30 +21,30 @@ npm i @allons-y/opx
 
 ```ts
 import type {
-  Detector,
-  DetectorContext,
-  DetectorDescription,
-  OpxConfig,
-  OpxState,
-  Logger,
-  PackageJson,
-  PackageManager,
+	Detector,
+	DetectorContext,
+	DetectorDescription,
+	OpxConfig,
+	OpxState,
+	Logger,
+	PackageJson,
+	PackageManager,
 } from "@allons-y/opx";
 
 import {
-  readConfig,
-  writeConfig,
-  readState,
-  writeState,
-  defaultConfig,
-  defaultState,
-  configPath,
-  loadPlugins,
-  normalizeDetectorId,
-  installCommand,
-  installPostCommitHook,
-  ensureGitignored,
-  defaultSkipUntilDate,
+	readConfig,
+	writeConfig,
+	readState,
+	writeState,
+	defaultConfig,
+	defaultState,
+	configPath,
+	loadPlugins,
+	normalizeDetectorId,
+	installCommand,
+	installPostCommitHook,
+	ensureGitignored,
+	defaultSkipUntilDate,
 } from "@allons-y/opx";
 ```
 

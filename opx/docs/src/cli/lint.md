@@ -18,13 +18,14 @@ opx lint [--fix] [paths...]
 
 ## Options
 
-| Flag | Description |
-| --- | --- |
-| `--fix` | Apply automatic fixes where the underlying tool supports it |
+| Flag    | Description                                                                                                                  |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `--fix` | Apply automatic fixes where the underlying tool supports it. Formatters write their changes; without `--fix` they only check |
 
 ## Behavior
 
-- Each plugin runs as its own pass, concurrently, and its output is printed as a labeled group.
+- Plugins that format, such as [format](../../plugins/format/), run first, one at a time. The rest then run concurrently. Output is printed as labeled groups, formatters first.
+- Every plugin runs even when an earlier one fails, so one run reports everything.
 - Paths are forwarded to every plugin. A plugin skips paths it doesn't handle, so `opx lint README.md` only lints that file with the Markdown plugin.
 - Files ignored by your `.gitignore` are ignored by the linters as well.
 - If no linters are enabled, it prints a hint to run `opx init` and exits `0`.
@@ -32,7 +33,7 @@ opx lint [--fix] [paths...]
 
 ## Exit codes
 
-| Code | Meaning |
-| --- | --- |
-| `0` | Clean, or nothing to lint |
-| `1` | At least one plugin reported errors, or an enabled plugin couldn't be loaded |
+| Code | Meaning                                                                      |
+| ---- | ---------------------------------------------------------------------------- |
+| `0`  | Clean, or nothing to lint                                                    |
+| `1`  | At least one plugin reported errors, or an enabled plugin couldn't be loaded |

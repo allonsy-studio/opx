@@ -18,8 +18,8 @@ opx disable <name> [--task <tasks...>]
 
 ## Options
 
-| Flag | Default | Description |
-| --- | --- | --- |
+| Flag                | Default                        | Description                    |
+| ------------------- | ------------------------------ | ------------------------------ |
 | `--task <tasks...>` | every task the plugin provides | One or more of `lint`, `build` |
 
 ## Behavior

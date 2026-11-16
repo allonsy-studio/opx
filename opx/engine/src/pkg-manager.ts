@@ -32,7 +32,9 @@ export type PackageManagerInfo = {
 
 /** Pick a known manager out of text such as `yarn@4.1.0` or `pnpm/9.0.0 npm/?`. */
 function managerIn(text: unknown): PackageManager | undefined {
-	return typeof text === "string" ? (text.match(/^(npm|yarn|pnpm|bun)[@/]/)?.[1] as PackageManager | undefined) : undefined;
+	return typeof text === "string"
+		? (text.match(/^(npm|yarn|pnpm|bun)[@/]/)?.[1] as PackageManager | undefined)
+		: undefined;
 }
 
 /** Read a `package.json`, or `{}` if there is none. */
@@ -49,7 +51,10 @@ function readPackage(dir: string): PackageJson {
  * names a package manager by its `packageManager` field or a lockfile. Stops at
  * the repository root so a stray lockfile in a parent folder is never used.
  */
-function findSignals(cwd: string, hostPkg: PackageJson): { dir: string; field?: PackageManager; fieldText?: string; lockfiles: PackageManager[] } {
+function findSignals(
+	cwd: string,
+	hostPkg: PackageJson,
+): { dir: string; field?: PackageManager; fieldText?: string; lockfiles: PackageManager[] } {
 	let dir = cwd;
 	let pkg = hostPkg;
 	for (;;) {
@@ -79,7 +84,11 @@ function findSignals(cwd: string, hostPkg: PackageJson): { dir: string; field?: 
  * @param hostPkg - The project's `package.json`.
  * @param env - The environment to read the launcher from.
  */
-export function inspectPackageManager(cwd: string, hostPkg: PackageJson = {}, env: Environment = process.env): PackageManagerInfo {
+export function inspectPackageManager(
+	cwd: string,
+	hostPkg: PackageJson = {},
+	env: Environment = process.env,
+): PackageManagerInfo {
 	const { dir, field, fieldText, lockfiles } = findSignals(cwd, hostPkg);
 	const launcher = managerIn(env.npm_config_user_agent);
 	const distinct = [...new Set(lockfiles)];
@@ -87,11 +96,22 @@ export function inspectPackageManager(cwd: string, hostPkg: PackageJson = {}, en
 	let found: Pick<PackageManagerInfo, "name" | "certain" | "reason">;
 	if (field) {
 		const others = distinct.filter((name) => name !== field);
-		found = { name: field, certain: others.length === 0, reason: others.length === 0 ? "packageManager field" : `packageManager says ${field}, but there is also a ${others.join(" and ")} lockfile` };
+		found = {
+			name: field,
+			certain: others.length === 0,
+			reason:
+				others.length === 0
+					? "packageManager field"
+					: `packageManager says ${field}, but there is also a ${others.join(" and ")} lockfile`,
+		};
 	} else if (distinct.length === 1) {
 		found = { name: distinct[0]!, certain: true, reason: `${distinct[0]} lockfile` };
 	} else if (distinct.length > 1) {
-		found = { name: launcher && distinct.includes(launcher) ? launcher : distinct[0]!, certain: false, reason: `lockfiles for ${distinct.join(" and ")}` };
+		found = {
+			name: launcher && distinct.includes(launcher) ? launcher : distinct[0]!,
+			certain: false,
+			reason: `lockfiles for ${distinct.join(" and ")}`,
+		};
 	} else if (launcher) {
 		found = { name: launcher, certain: true, reason: `run through ${launcher}` };
 	} else {
@@ -114,7 +134,11 @@ export function inspectPackageManager(cwd: string, hostPkg: PackageJson = {}, en
  * @param hostPkg - The project's `package.json`.
  * @param env - The environment to read the launcher from.
  */
-export function detectPackageManager(cwd: string, hostPkg?: PackageJson, env: Environment = process.env): PackageManager {
+export function detectPackageManager(
+	cwd: string,
+	hostPkg?: PackageJson,
+	env: Environment = process.env,
+): PackageManager {
 	return inspectPackageManager(cwd, hostPkg, env).name;
 }
 

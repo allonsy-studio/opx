@@ -24,7 +24,9 @@ function makeCtx(dir: string, json?: unknown): Ctx {
 		cwd: dir,
 		config,
 		fix: false,
-		write: (c: string) => { output += c; },
+		write: (c: string) => {
+			output += c;
+		},
 		fileTypes: new Set(),
 		_output: () => output,
 	} as unknown as Ctx;

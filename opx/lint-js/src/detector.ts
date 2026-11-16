@@ -5,13 +5,13 @@ import { runEslint } from "./runner.js";
 import { JS_EXTENSIONS } from "./extensions.js";
 
 /** The packages this plugin brings with it. */
-const BUNDLED_DEPS = ["eslint", "@eslint/js", "@stylistic/eslint-plugin", "globals"];
+const BUNDLED_DEPS = ["eslint", "@eslint/js", "globals"];
 
 export const opxLintJsDetector: Detector = {
 	concern: "lint",
 	id: "@allons-y/opx-lint-js",
 	shortName: "js",
-	displayName: "JavaScript (ESLint + @stylistic)",
+	displayName: "JavaScript (ESLint)",
 	fileTypes: [...JS_EXTENSIONS],
 
 	detect(ctx: DetectorContext): boolean {
@@ -23,13 +23,18 @@ export const opxLintJsDetector: Detector = {
 
 	describe() {
 		return {
-			summary: "ESLint with @stylistic, configured by opx",
+			summary: "ESLint, configured by opx",
 			bundledDeps: BUNDLED_DEPS,
 		};
 	},
 
 	cleanup(ctx: DetectorContext) {
-		return eslintCleanup(ctx, { id: "@allons-y/opx-lint-js", shortName: "js", bundledDeps: BUNDLED_DEPS, from: import.meta.url });
+		return eslintCleanup(ctx, {
+			id: "@allons-y/opx-lint-js",
+			shortName: "js",
+			bundledDeps: BUNDLED_DEPS,
+			from: import.meta.url,
+		});
 	},
 
 	async run(ctx: DetectorContext, args: string[]): Promise<number> {

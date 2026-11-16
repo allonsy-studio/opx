@@ -66,20 +66,36 @@ export function isActionRepo(cwd: string): boolean {
  * Combine `.opx/config.json` `release` settings, flags, and detection. Flags win, then config,
  * then defaults: push, create GitHub releases, and release as an Action when `action.yml` exists.
  */
-export function resolveSettings(cwd: string, config: unknown, args: Pick<PublishArgs, "push" | "githubReleases" | "action">): ReleaseSettings {
+export function resolveSettings(
+	cwd: string,
+	config: unknown,
+	args: Pick<PublishArgs, "push" | "githubReleases" | "action">,
+): ReleaseSettings {
 	const settings = (typeof config === "object" && config !== null ? config : {}) as {
 		push?: unknown;
 		githubReleases?: unknown;
 		action?: unknown;
 	};
 	const actionConfig = settings.action;
-	const actionOn = args.action ?? (typeof actionConfig === "boolean" ? actionConfig : typeof actionConfig === "object" && actionConfig !== null ? true : isActionRepo(cwd));
-	const actionObject = (typeof actionConfig === "object" && actionConfig !== null ? actionConfig : {}) as { dist?: unknown; majorTag?: unknown };
+	const actionOn =
+		args.action ??
+		(typeof actionConfig === "boolean"
+			? actionConfig
+			: typeof actionConfig === "object" && actionConfig !== null
+				? true
+				: isActionRepo(cwd));
+	const actionObject = (typeof actionConfig === "object" && actionConfig !== null ? actionConfig : {}) as {
+		dist?: unknown;
+		majorTag?: unknown;
+	};
 	return {
 		push: args.push ?? settings.push !== false,
 		githubReleases: args.githubReleases ?? settings.githubReleases !== false,
 		action: actionOn
-			? { dist: typeof actionObject.dist === "string" ? actionObject.dist : "dist", majorTag: actionObject.majorTag !== false }
+			? {
+					dist: typeof actionObject.dist === "string" ? actionObject.dist : "dist",
+					majorTag: actionObject.majorTag !== false,
+				}
 			: false,
 	};
 }
@@ -97,7 +113,12 @@ export type RegistryTarget = { name: string; version: string; registry: Registry
 const NPM_REGISTRY = "https://registry.npmjs.org";
 
 /** Registries changesets treats as npm itself. */
-const DEFAULT_REGISTRIES = new Set([NPM_REGISTRY, `${NPM_REGISTRY}/`, "https://registry.yarnpkg.com", "https://registry.yarnpkg.com/"]);
+const DEFAULT_REGISTRIES = new Set([
+	NPM_REGISTRY,
+	`${NPM_REGISTRY}/`,
+	"https://registry.yarnpkg.com",
+	"https://registry.yarnpkg.com/",
+]);
 
 /** How long to wait between registry checks after a failed publish; about a minute in all. */
 export const REGISTRY_RETRY_MS = [0, 10_000, 20_000, 30_000];
@@ -107,7 +128,10 @@ export const REGISTRY_RETRY_MS = [0, 10_000, 20_000, 30_000];
  * `publishConfig` or `npm_config_<scope>:registry`, then `publishConfig.registry`, then
  * `npm_config_registry`, then npm.
  */
-export function registryFor(packageJson: { name: string; publishConfig?: Record<string, unknown> }, env: NodeJS.ProcessEnv = process.env): Registry {
+export function registryFor(
+	packageJson: { name: string; publishConfig?: Record<string, unknown> },
+	env: NodeJS.ProcessEnv = process.env,
+): Registry {
 	const config = packageJson.publishConfig ?? {};
 	if (packageJson.name.startsWith("@")) {
 		const scope = packageJson.name.split("/")[0];
@@ -127,7 +151,11 @@ const execFileAsync = promisify(execFile);
 export const runNpm: NpmRunner = async (args, cwd) => {
 	const windows = process.platform === "win32";
 	try {
-		const { stdout } = await execFileAsync(windows ? "npm.cmd" : "npm", args, { cwd, shell: windows, encoding: "utf8" });
+		const { stdout } = await execFileAsync(windows ? "npm.cmd" : "npm", args, {
+			cwd,
+			shell: windows,
+			encoding: "utf8",
+		});
 		return stdout;
 	} catch {
 		return undefined;
@@ -141,7 +169,16 @@ export const runNpm: NpmRunner = async (args, cwd) => {
  */
 export async function isOnRegistry(cwd: string, target: RegistryTarget, npm: NpmRunner = runNpm): Promise<boolean> {
 	const { url, scope } = target.registry;
-	const output = await npm(["view", `${target.name}@${target.version}`, "version", "--json", `--${scope ? `${scope}:` : ""}registry=${url}`], cwd);
+	const output = await npm(
+		[
+			"view",
+			`${target.name}@${target.version}`,
+			"version",
+			"--json",
+			`--${scope ? `${scope}:` : ""}registry=${url}`,
+		],
+		cwd,
+	);
 	if (!output?.trim()) return false;
 	try {
 		const listed: unknown = JSON.parse(output);
@@ -157,7 +194,11 @@ export async function registryTargets(cwd: string, env: NodeJS.ProcessEnv = proc
 	const config = await readConfig(cwd, packages);
 	return packages.packages
 		.filter((pkg) => !shouldSkipPackage(pkg, { ignore: config.ignore, allowPrivatePackages: false }))
-		.map((pkg) => ({ name: pkg.packageJson.name, version: pkg.packageJson.version, registry: registryFor(pkg.packageJson as { name: string; publishConfig?: Record<string, unknown> }, env) }))
+		.map((pkg) => ({
+			name: pkg.packageJson.name,
+			version: pkg.packageJson.version,
+			registry: registryFor(pkg.packageJson as { name: string; publishConfig?: Record<string, unknown> }, env),
+		}))
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -171,10 +212,19 @@ export async function releaseTargets(cwd: string): Promise<ReleaseTarget[]> {
 	const config = await readConfig(cwd, packages);
 	const single = packages.tool === "root";
 	return packages.packages
-		.filter((pkg) => !shouldSkipPackage(pkg, { ignore: config.ignore, allowPrivatePackages: config.privatePackages.tag }))
+		.filter(
+			(pkg) =>
+				!shouldSkipPackage(pkg, { ignore: config.ignore, allowPrivatePackages: config.privatePackages.tag }),
+		)
 		.map((pkg) => {
 			const { name, version } = pkg.packageJson;
-			return { name, version, dir: pkg.dir, tag: single ? `v${version}` : `${name}@${version}`, prerelease: version.includes("-") };
+			return {
+				name,
+				version,
+				dir: pkg.dir,
+				tag: single ? `v${version}` : `${name}@${version}`,
+				prerelease: version.includes("-"),
+			};
 		})
 		.sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -198,7 +248,12 @@ const BOT = { name: "github-actions[bot]", email: "41898283+github-actions[bot]@
 /** Git identity variables, falling back to the Actions bot when none is configured. */
 function identity(cwd: string): Record<string, string> {
 	if (git(cwd, ["config", "user.email"]).stdout) return {};
-	return { GIT_AUTHOR_NAME: BOT.name, GIT_AUTHOR_EMAIL: BOT.email, GIT_COMMITTER_NAME: BOT.name, GIT_COMMITTER_EMAIL: BOT.email };
+	return {
+		GIT_AUTHOR_NAME: BOT.name,
+		GIT_AUTHOR_EMAIL: BOT.email,
+		GIT_COMMITTER_NAME: BOT.name,
+		GIT_COMMITTER_EMAIL: BOT.email,
+	};
 }
 
 /**
@@ -211,7 +266,10 @@ export function commitBuild(cwd: string, dist: string, message: string): string 
 	const scratch = mkdtempSync(join(tmpdir(), "opx-release-index-"));
 	const env = { GIT_INDEX_FILE: join(scratch, "index"), ...identity(cwd) };
 	try {
-		const steps: string[][] = [["read-tree", "HEAD"], ["add", "--force", "--", dist]];
+		const steps: string[][] = [
+			["read-tree", "HEAD"],
+			["add", "--force", "--", dist],
+		];
 		for (const args of steps) {
 			const result = git(cwd, args, env);
 			if (!result.ok) throw new Error(`git ${args[0]} failed: ${result.stderr}`);
@@ -289,7 +347,12 @@ async function missingFromRegistry(cwd: string, deps: PublishDeps): Promise<stri
  * @param config - The `release` value from `.opx/config.json`.
  * @returns `0` when every step worked; otherwise the publish exit code, or `1`.
  */
-export async function runPublish(cwd: string, args: string[], config: unknown, deps: PublishDeps = publishDeps): Promise<number> {
+export async function runPublish(
+	cwd: string,
+	args: string[],
+	config: unknown,
+	deps: PublishDeps = publishDeps,
+): Promise<number> {
 	const { ui } = deps;
 	const parsed = parsePublishArgs(args);
 	const settings = resolveSettings(cwd, config, parsed);
@@ -327,9 +390,14 @@ export async function runPublish(cwd: string, args: string[], config: unknown, d
 	const remoteTags = new Set(
 		hasOrigin
 			? git(cwd, ["ls-remote", "--tags", "origin"])
-				.stdout.split("\n")
-				.map((line) => line.split("\t")[1]?.replace(/^refs\/tags\//, "").replace(/\^\{\}$/, ""))
-				.filter((tag): tag is string => Boolean(tag))
+					.stdout.split("\n")
+					.map((line) =>
+						line
+							.split("\t")[1]
+							?.replace(/^refs\/tags\//, "")
+							.replace(/\^\{\}$/, ""),
+					)
+					.filter((tag): tag is string => Boolean(tag))
 			: [],
 	);
 	const hasLocal = (tag: string) => git(cwd, ["rev-parse", "-q", "--verify", `refs/tags/${tag}`]).ok;
@@ -402,7 +470,11 @@ export async function runPublish(cwd: string, args: string[], config: unknown, d
 		const refs = toPush.map((tag) => (tag.startsWith("+") ? `+refs/tags/${tag.slice(1)}` : `refs/tags/${tag}`));
 		const result = git(cwd, ["push", "origin", ...refs]);
 		pushed = result.ok;
-		if (result.ok) ui.ok(`Pushed ${plural(toPush.length, "tag")} to origin`, toPush.map((tag) => tag.replace(/^\+/, "")).join(", "));
+		if (result.ok)
+			ui.ok(
+				`Pushed ${plural(toPush.length, "tag")} to origin`,
+				toPush.map((tag) => tag.replace(/^\+/, "")).join(", "),
+			);
 		else {
 			failed = true;
 			ui.fail("Couldn't push tags", result.stderr.split("\n").pop());
@@ -438,9 +510,16 @@ export async function runPublish(cwd: string, args: string[], config: unknown, d
 					continue;
 				}
 				const changelog = join(target.dir, "CHANGELOG.md");
-				const body = existsSync(changelog) ? changelogSection(readFileSync(changelog, "utf8"), target.version) : "";
+				const body = existsSync(changelog)
+					? changelogSection(readFileSync(changelog, "utf8"), target.version)
+					: "";
 				try {
-					const result = await client.createRelease({ tag: target.tag, name: target.tag, body, prerelease: target.prerelease });
+					const result = await client.createRelease({
+						tag: target.tag,
+						name: target.tag,
+						body,
+						prerelease: target.prerelease,
+					});
 					outcome.release = result.status === "created" ? result.url : "exists";
 					if (result.status === "created") created++;
 				} catch (err) {

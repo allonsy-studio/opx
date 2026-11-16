@@ -20,26 +20,18 @@ export function isValidPluginName(name: string): boolean {
  * Resolve a short slug or fully-qualified package name to a candidate ordered
  * list of package ids to try. The first one that exists in the host's deps wins.
  */
-export function resolvePluginPackageName(
-	entry: string,
-): string[] {
+export function resolvePluginPackageName(entry: string): string[] {
 	if (entry.startsWith("@") || entry.startsWith(COMMUNITY_PREFIX)) {
 		return [entry];
 	}
-	return [
-		`${OFFICIAL_PREFIX}${entry}`,
-		`${COMMUNITY_PREFIX}${entry}`,
-	];
+	return [`${OFFICIAL_PREFIX}${entry}`, `${COMMUNITY_PREFIX}${entry}`];
 }
 
 /**
  * Normalize a detector reference (short or full) to a canonical package id by
  * checking the host's dependencies. Returns null if no candidate is installed.
  */
-export function normalizeDetectorId(
-	entry: string,
-	hostPkg: PackageJson,
-): string | null {
+export function normalizeDetectorId(entry: string, hostPkg: PackageJson): string | null {
 	const deps = {
 		...(hostPkg.dependencies ?? {}),
 		...(hostPkg.devDependencies ?? {}),
@@ -80,10 +72,7 @@ export type LoadOptions = {
  * Returns the loaded plugins in declaration order. Plugins whose default export
  * isn't a Detector (or Detector[]) are skipped with a warning.
  */
-export async function loadPlugins(
-	entries: string[],
-	options: LoadOptions,
-): Promise<LoadedPlugin[]> {
+export async function loadPlugins(entries: string[], options: LoadOptions): Promise<LoadedPlugin[]> {
 	const { hostPkg, cwd, logger } = options;
 	const skip = options.onSkip ?? ((_entry: string, reason: string) => logger.warn(`opx: ${reason}`));
 	const loaded: LoadedPlugin[] = [];
@@ -93,18 +82,26 @@ export async function loadPlugins(
 		const installed = normalizeDetectorId(entry, hostPkg);
 
 		if (!installed) {
-			skip(entry, `"${entry}" is declared in .opx/config.json but no matching package is installed. Tried: ${candidates.join(", ")}. Install one of those packages to enable this detector.`);
+			skip(
+				entry,
+				`"${entry}" is declared in .opx/config.json but no matching package is installed. Tried: ${candidates.join(", ")}. Install one of those packages to enable this detector.`,
+			);
 			continue;
 		}
 
 		if (!isValidPluginName(installed)) {
-			skip(entry, `package "${installed}" does not follow the opx plugin naming convention (opx-plugin-*, @scope/opx-plugin-*, or @allons-y/opx-*). Skipped.`);
+			skip(
+				entry,
+				`package "${installed}" does not follow the opx plugin naming convention (opx-plugin-*, @scope/opx-plugin-*, or @allons-y/opx-*). Skipped.`,
+			);
 			continue;
 		}
 
 		try {
 			// Resolve from the host project, not from wherever the engine is installed.
-			const mod = (await import(resolvePackageEntry(installed, cwd) ?? installed)) as { default?: Detector | Detector[] };
+			const mod = (await import(resolvePackageEntry(installed, cwd) ?? installed)) as {
+				default?: Detector | Detector[];
+			};
 			const def = mod.default;
 			const detectors: Detector[] = Array.isArray(def) ? def : def ? [def] : [];
 			if (detectors.length === 0) {

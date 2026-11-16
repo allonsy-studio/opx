@@ -5,7 +5,10 @@ import { join } from "node:path";
 import { useScratch } from "./testing.js";
 
 const scratch = useScratch();
-const git = (cwd: string, ...args: string[]): string => execFileSync("git", args, { cwd, stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+const git = (cwd: string, ...args: string[]): string =>
+	execFileSync("git", args, { cwd, stdio: ["ignore", "pipe", "ignore"] })
+		.toString()
+		.trim();
 
 describe("useScratch", () => {
 	it("makes empty directories with a prefix", () => {
@@ -47,6 +50,6 @@ describe("useScratch", () => {
 	});
 
 	it("does not sign commits", () => {
-		expect(git(scratch.repo({ "a": "x" }), "config", "commit.gpgsign")).toBe("false");
+		expect(git(scratch.repo({ a: "x" }), "config", "commit.gpgsign")).toBe("false");
 	});
 });

@@ -29,7 +29,19 @@ jest.unstable_mockModule("node:child_process", () => ({
 	spawn,
 }));
 
-const { changesetReadme, CUSTOM_CHANGELOG, detectRepo, formatReleaseDate, init, isSnapshot, parseInitArgs, releaseDateEnabled, runRelease, stampReleaseDates, starterConfig } = await import("./runner.js");
+const {
+	changesetReadme,
+	CUSTOM_CHANGELOG,
+	detectRepo,
+	formatReleaseDate,
+	init,
+	isSnapshot,
+	parseInitArgs,
+	releaseDateEnabled,
+	runRelease,
+	stampReleaseDates,
+	starterConfig,
+} = await import("./runner.js");
 const { parse } = await import("@changesets/config");
 
 function tmp(): string {
@@ -39,7 +51,12 @@ function tmp(): string {
 /** A host that prints the way the CLI does, so console spies see plugin output. */
 const host = {
 	write: (chunk: string) => console.log(chunk.replace(/\n$/, "")),
-	logger: { info: (m: string) => console.log(m), warn: (m: string) => console.warn(m), error: (m: string) => console.error(m), debug: () => {} },
+	logger: {
+		info: (m: string) => console.log(m),
+		warn: (m: string) => console.warn(m),
+		error: (m: string) => console.error(m),
+		debug: () => {},
+	},
 };
 
 function ctx(cwd: string): DetectorContext {
@@ -100,12 +117,32 @@ describe("starter config", () => {
 	});
 
 	it("passes changesets' own validation", () => {
-		const packages = { tool: "yarn", root: { dir: "/r", packageJson: { name: "root", version: "0.0.0" } }, packages: [] };
+		const packages = {
+			tool: "yarn",
+			root: { dir: "/r", packageJson: { name: "root", version: "0.0.0" } },
+			packages: [],
+		};
 		expect(() => parse({ ...starterConfig(), baseBranch: "main" } as never, packages as never)).not.toThrow();
 	});
 
 	it("only uses keys changesets reads, which its validation doesn't check", () => {
-		const known = ["$schema", "changelog", "commit", "fixed", "linked", "access", "baseBranch", "updateInternalDependencies", "ignore", "privatePackages", "bumpVersionsWithWorkspaceProtocolOnly", "snapshot", "prettier", "changedFilePatterns", "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH"];
+		const known = [
+			"$schema",
+			"changelog",
+			"commit",
+			"fixed",
+			"linked",
+			"access",
+			"baseBranch",
+			"updateInternalDependencies",
+			"ignore",
+			"privatePackages",
+			"bumpVersionsWithWorkspaceProtocolOnly",
+			"snapshot",
+			"prettier",
+			"changedFilePatterns",
+			"___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH",
+		];
 		expect(Object.keys(starterConfig()).filter((key) => !known.includes(key))).toEqual([]);
 	});
 
@@ -203,7 +240,6 @@ describe("runRelease", () => {
 		}
 	});
 
-
 	it("resolves to the child's non-zero exit code", async () => {
 		const dir = tmp();
 		try {
@@ -242,8 +278,16 @@ describe("custom changelog opt-in", () => {
 	const readConfig = (dir: string) => JSON.parse(readFileSync(join(dir, ".changeset", "config.json"), "utf8"));
 
 	it("parses --changelog and --maintainer", () => {
-		expect(parseInitArgs(["--changelog", "--maintainer", "@a,b", "--maintainer", "c"])).toEqual({ changelog: true, maintainers: ["a", "b", "c"], releaseDate: false });
-		expect(parseInitArgs(["--changelog", "--date"])).toEqual({ changelog: true, maintainers: [], releaseDate: true });
+		expect(parseInitArgs(["--changelog", "--maintainer", "@a,b", "--maintainer", "c"])).toEqual({
+			changelog: true,
+			maintainers: ["a", "b", "c"],
+			releaseDate: false,
+		});
+		expect(parseInitArgs(["--changelog", "--date"])).toEqual({
+			changelog: true,
+			maintainers: [],
+			releaseDate: true,
+		});
 		expect(parseInitArgs([])).toEqual({ changelog: false, maintainers: [], releaseDate: false });
 	});
 
@@ -269,7 +313,10 @@ describe("custom changelog opt-in", () => {
 		try {
 			mkdirSync(join(dir, ".changeset"));
 			const existing = { repo: "acme/fork", maintainers: ["ada"], disableThanks: true };
-			writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ changelog: [CUSTOM_CHANGELOG, existing] }));
+			writeFileSync(
+				join(dir, ".changeset", "config.json"),
+				JSON.stringify({ changelog: [CUSTOM_CHANGELOG, existing] }),
+			);
 			writeFileSync(join(dir, "package.json"), JSON.stringify({ repository: "github:acme/widgets" }));
 			await runRelease(ctx(dir), ["init", "--changelog", "--date"]);
 			expect(readConfig(dir).changelog).toEqual([CUSTOM_CHANGELOG, { ...existing, releaseDate: true }]);
@@ -284,7 +331,10 @@ describe("custom changelog opt-in", () => {
 		const log = jest.spyOn(console, "log").mockImplementation(() => {});
 		try {
 			mkdirSync(join(dir, ".changeset"));
-			writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ changelog: ["@changesets/changelog-github", { repo: "acme/widgets" }] }));
+			writeFileSync(
+				join(dir, ".changeset", "config.json"),
+				JSON.stringify({ changelog: ["@changesets/changelog-github", { repo: "acme/widgets" }] }),
+			);
 			await runRelease(ctx(dir), ["init", "--changelog"]);
 			expect(readConfig(dir).changelog).toEqual([CUSTOM_CHANGELOG, {}]);
 		} finally {
@@ -334,7 +384,10 @@ describe("custom changelog opt-in", () => {
 		try {
 			writeFileSync(join(dir, "package.json"), JSON.stringify({ repository: "github:acme/widgets" }));
 			expect(await runRelease(ctx(dir), ["init", "--changelog", "--maintainer", "ada"])).toBe(0);
-			expect(readConfig(dir).changelog).toEqual([CUSTOM_CHANGELOG, { repo: "acme/widgets", maintainers: ["ada"] }]);
+			expect(readConfig(dir).changelog).toEqual([
+				CUSTOM_CHANGELOG,
+				{ repo: "acme/widgets", maintainers: ["ada"] },
+			]);
 			expect(spawnCalls).toHaveLength(0);
 		} finally {
 			log.mockRestore();
@@ -348,9 +401,16 @@ describe("custom changelog opt-in", () => {
 		const err = jest.spyOn(console, "error").mockImplementation(() => {});
 		try {
 			mkdirSync(join(dir, ".changeset"));
-			writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ baseBranch: "trunk", ignore: ["docs"], changelog: "x" }));
+			writeFileSync(
+				join(dir, ".changeset", "config.json"),
+				JSON.stringify({ baseBranch: "trunk", ignore: ["docs"], changelog: "x" }),
+			);
 			await runRelease(ctx(dir), ["init", "--changelog"]);
-			expect(readConfig(dir)).toEqual({ baseBranch: "trunk", ignore: ["docs"], changelog: [CUSTOM_CHANGELOG, {}] });
+			expect(readConfig(dir)).toEqual({
+				baseBranch: "trunk",
+				ignore: ["docs"],
+				changelog: [CUSTOM_CHANGELOG, {}],
+			});
 			expect(err).toHaveBeenCalledWith(expect.stringContaining("No GitHub repository"));
 		} finally {
 			log.mockRestore();
@@ -361,13 +421,16 @@ describe("custom changelog opt-in", () => {
 });
 
 describe("release dates", () => {
-	const CHANGELOG = "# pkg\n\n## 1.1.0\n\n### Minor Changes\n\n- New thing.\n\n## 1.0.0\n\n### Major Changes\n\n- First.\n";
+	const CHANGELOG =
+		"# pkg\n\n## 1.1.0\n\n### Minor Changes\n\n- New thing.\n\n## 1.0.0\n\n### Major Changes\n\n- First.\n";
 
 	it("stamps only the new version's heading, once", () => {
 		const dir = tmp();
 		try {
 			writeFileSync(join(dir, "CHANGELOG.md"), CHANGELOG);
-			expect(stampReleaseDates([{ dir, version: "1.1.0" }], "8 November 2026")).toEqual([join(dir, "CHANGELOG.md")]);
+			expect(stampReleaseDates([{ dir, version: "1.1.0" }], "8 November 2026")).toEqual([
+				join(dir, "CHANGELOG.md"),
+			]);
 			expect(stampReleaseDates([{ dir, version: "1.1.0" }], "9 November 2026")).toEqual([]);
 			const out = readFileSync(join(dir, "CHANGELOG.md"), "utf8");
 			expect(out).toContain("## 1.1.0\n\n📅 _Released 8 November 2026_\n\n### Minor Changes");
@@ -381,7 +444,13 @@ describe("release dates", () => {
 		const dir = tmp();
 		try {
 			writeFileSync(join(dir, "CHANGELOG.md"), "# pkg\n\n## 1.0.0-beta.10\n\n- x\n\n## 1.0.0-beta.1\n\n- y\n");
-			stampReleaseDates([{ dir, version: "1.0.0-beta.1" }, { dir: join(dir, "nope"), version: "1.0.0" }], "8 November 2026");
+			stampReleaseDates(
+				[
+					{ dir, version: "1.0.0-beta.1" },
+					{ dir: join(dir, "nope"), version: "1.0.0" },
+				],
+				"8 November 2026",
+			);
 			const out = readFileSync(join(dir, "CHANGELOG.md"), "utf8");
 			expect(out).toContain("## 1.0.0-beta.10\n\n- x");
 			expect(out).toContain("## 1.0.0-beta.1\n\n📅 _Released 8 November 2026_\n");
@@ -403,7 +472,9 @@ describe("release dates", () => {
 		try {
 			writeFileSync(join(dir, "CHANGELOG.md"), "# pkg\r\n\r\n## 1.1.0\r\n\r\n- x\r\n");
 			expect(stampReleaseDates([{ dir, version: "1.1.0" }], "8 November 2026")).toHaveLength(1);
-			expect(readFileSync(join(dir, "CHANGELOG.md"), "utf8")).toBe("# pkg\r\n\r\n## 1.1.0\r\n\r\n📅 _Released 8 November 2026_\r\n\r\n- x\r\n");
+			expect(readFileSync(join(dir, "CHANGELOG.md"), "utf8")).toBe(
+				"# pkg\r\n\r\n## 1.1.0\r\n\r\n📅 _Released 8 November 2026_\r\n\r\n- x\r\n",
+			);
 		} finally {
 			rmSync(dir, { recursive: true, force: true });
 		}
@@ -433,7 +504,8 @@ describe("release dates", () => {
 		const dir = tmp();
 		try {
 			mkdirSync(join(dir, ".changeset"));
-			const write = (changelog: unknown) => writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ changelog }));
+			const write = (changelog: unknown) =>
+				writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ changelog }));
 			expect(releaseDateEnabled(dir)).toBe(false);
 			write("@changesets/cli/changelog");
 			expect(releaseDateEnabled(dir)).toBe(false);
@@ -468,7 +540,10 @@ describe("release dates", () => {
 		try {
 			writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "pkg", version: "1.0.0" }));
 			mkdirSync(join(dir, ".changeset"));
-			writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ changelog: [CUSTOM_CHANGELOG, { releaseDate: true }] }));
+			writeFileSync(
+				join(dir, ".changeset", "config.json"),
+				JSON.stringify({ changelog: [CUSTOM_CHANGELOG, { releaseDate: true }] }),
+			);
 			// Stand in for `changeset version`: bump the package and write its changelog.
 			spawnBehavior = {
 				code: 0,
@@ -489,14 +564,18 @@ describe("release dates", () => {
 
 describe("release dates around `changeset version`", () => {
 	const CHANGELOG = "# pkg\n\n## 1.1.0\n\n- New thing.\n";
-	const git = (dir: string, ...args: string[]) => actualChildProcess.execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim();
+	const git = (dir: string, ...args: string[]) =>
+		actualChildProcess.execFileSync("git", args, { cwd: dir, encoding: "utf8" }).trim();
 
 	/** A single-package repo with release dates on. */
 	function repo(): string {
 		const dir = tmp();
 		writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "pkg", version: "1.0.0" }));
 		mkdirSync(join(dir, ".changeset"));
-		writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ changelog: [CUSTOM_CHANGELOG, { releaseDate: true }] }));
+		writeFileSync(
+			join(dir, ".changeset", "config.json"),
+			JSON.stringify({ changelog: [CUSTOM_CHANGELOG, { releaseDate: true }] }),
+		);
 		return dir;
 	}
 
@@ -567,14 +646,20 @@ describe("release dates around `changeset version`", () => {
 	it("finds packages in nested workspace folders", async () => {
 		const dir = tmp();
 		try {
-			writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "root", private: true, workspaces: ["packages/*", "packages/tools/*"] }));
+			writeFileSync(
+				join(dir, "package.json"),
+				JSON.stringify({ name: "root", private: true, workspaces: ["packages/*", "packages/tools/*"] }),
+			);
 			const pkgs = { a: join(dir, "packages", "a"), b: join(dir, "packages", "tools", "b") };
 			for (const [name, pkgDir] of Object.entries(pkgs)) {
 				mkdirSync(pkgDir, { recursive: true });
 				writeFileSync(join(pkgDir, "package.json"), JSON.stringify({ name, version: "1.0.0" }));
 			}
 			mkdirSync(join(dir, ".changeset"));
-			writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ changelog: [CUSTOM_CHANGELOG, { releaseDate: true }] }));
+			writeFileSync(
+				join(dir, ".changeset", "config.json"),
+				JSON.stringify({ changelog: [CUSTOM_CHANGELOG, { releaseDate: true }] }),
+			);
 			spawnBehavior = {
 				code: 0,
 				effect: () => {

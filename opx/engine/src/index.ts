@@ -4,6 +4,7 @@ export type {
 	DetectorContext,
 	DetectorDescription,
 	DetectorId,
+	DetectorPhase,
 	Logger,
 	DynamicTask,
 	DynamicTaskConfig,

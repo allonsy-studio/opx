@@ -131,7 +131,10 @@ describe("runPostCommit", () => {
 		it("keeps existing deferrals when it records the commit", () => {
 			const dir = make();
 			commit(dir, { "notes.md": "x" });
-			writeState(dir, { version: 1, deferrals: { js: { branch: "main", skipUntilDate: TODAY, reason: "later" } } });
+			writeState(dir, {
+				version: 1,
+				deferrals: { js: { branch: "main", skipUntilDate: TODAY, reason: "later" } },
+			});
 			runPostCommit(dir, TODAY);
 			expect(JSON.parse(readFileSync(join(dir, ".opx", "state.json"), "utf8")).deferrals.js).toBeDefined();
 		});

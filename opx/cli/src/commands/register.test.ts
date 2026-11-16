@@ -56,15 +56,18 @@ describe("command registration", () => {
 	afterEach(() => {
 		process.chdir(originalCwd);
 		jest.restoreAllMocks();
-		if (saved.ci === undefined) delete process.env.CI; else process.env.CI = saved.ci;
-		if (saved.ni === undefined) delete process.env.OPX_NONINTERACTIVE; else process.env.OPX_NONINTERACTIVE = saved.ni;
+		if (saved.ci === undefined) delete process.env.CI;
+		else process.env.CI = saved.ci;
+		if (saved.ni === undefined) delete process.env.OPX_NONINTERACTIVE;
+		else process.env.OPX_NONINTERACTIVE = saved.ni;
 		process.exitCode = saved.code;
 	});
 
 	it("enable and disable toggle a task and set the exit code", async () => {
 		await run(registerEnable, "enable", "release");
 		expect(process.exitCode).toBe(0);
-		const config = (): { release: boolean } => JSON.parse(readFileSync(join(dir, ".opx/config.json"), "utf8")) as { release: boolean };
+		const config = (): { release: boolean } =>
+			JSON.parse(readFileSync(join(dir, ".opx/config.json"), "utf8")) as { release: boolean };
 		expect(config().release).toBe(true);
 
 		await run(registerDisable, "disable", "release");
@@ -83,7 +86,10 @@ describe("command registration", () => {
 	it("init shows what an enabled plugin suggests dropping only with --cleanup", async () => {
 		mkdirSync(join(dir, ".opx"));
 		writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ version: 1, lint: { js: true } }));
-		writeFileSync(join(dir, "package.json"), JSON.stringify({ devDependencies: { "@allons-y/opx-lint-js": "^1.0.0", eslint: "^9.0.0" } }));
+		writeFileSync(
+			join(dir, "package.json"),
+			JSON.stringify({ devDependencies: { "@allons-y/opx-lint-js": "^1.0.0", eslint: "^9.0.0" } }),
+		);
 		writeFileSync(join(dir, ".eslintrc.json"), "{}\n");
 		writeFileSync(join(dir, ".eslintignore"), "coverage\n");
 		execFileSync("git", ["add", "."], { cwd: dir, stdio: "ignore" });

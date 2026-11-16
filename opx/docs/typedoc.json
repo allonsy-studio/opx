@@ -1,47 +1,37 @@
 {
-	"$schema": "https://typedoc.org/schema.json",
-	"entryPoints": [
-		"../engine/src/index.ts"
-	],
-	"tsconfig": "./tsconfig.typedoc.json",
-	"out": "src/api",
-	"plugin": [
-		"typedoc-plugin-markdown",
-		"typedoc-plugin-frontmatter"
-	],
-	"readme": "none",
-	"hideGenerator": true,
-	"hidePageHeader": true,
-	"hideBreadcrumbs": true,
-	"useCodeBlocks": true,
-	"expandObjects": true,
-	"parametersFormat": "table",
-	"propertiesFormat": "table",
-	"indexFormat": "table",
-	"frontmatterGlobals": {
-		"layout": "layouts/docs.njk"
-	},
-	"excludeInternal": true,
-	"excludePrivate": true,
-	"entryFileName": "index",
-	"flattenOutputFiles": false,
-	"indexFrontmatter": {
-		"title": "API",
-		"description": "Everything exported by @allons-y/opx, generated from its TypeScript sources.",
-		"hideTitle": true,
-		"eleventyNavigation": {
-			"key": "API",
-			"order": 7
-		}
-	},
-	"validation": {
-		"notDocumented": true
-	},
-	"requiredToBeDocumented": [
-		"Function",
-		"TypeAlias",
-		"Property",
-		"Method"
-	],
-	"treatValidationWarningsAsErrors": true
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["../engine/src/index.ts"],
+  "tsconfig": "./tsconfig.typedoc.json",
+  "out": "src/api",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-frontmatter"],
+  "readme": "none",
+  "hideGenerator": true,
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "useCodeBlocks": true,
+  "expandObjects": true,
+  "parametersFormat": "table",
+  "propertiesFormat": "table",
+  "indexFormat": "table",
+  "frontmatterGlobals": {
+    "layout": "layouts/docs.njk"
+  },
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "entryFileName": "index",
+  "flattenOutputFiles": false,
+  "indexFrontmatter": {
+    "title": "API",
+    "description": "Everything exported by @allons-y/opx, generated from its TypeScript sources.",
+    "hideTitle": true,
+    "eleventyNavigation": {
+      "key": "API",
+      "order": 7
+    }
+  },
+  "validation": {
+    "notDocumented": true
+  },
+  "requiredToBeDocumented": ["Function", "TypeAlias", "Property", "Method"],
+  "treatValidationWarningsAsErrors": true
 }

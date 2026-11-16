@@ -22,7 +22,9 @@ function makeCtx(dir: string): Ctx {
 		cwd: dir,
 		config: { version: 1, lint: {} },
 		fix: false,
-		write: (c: string) => { output += c; },
+		write: (c: string) => {
+			output += c;
+		},
 		fileTypes: new Set(),
 		_output: () => output,
 	} as unknown as Ctx;

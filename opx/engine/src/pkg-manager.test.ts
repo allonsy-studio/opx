@@ -55,36 +55,71 @@ describe("inspectPackageManager", () => {
 		});
 
 		it("is sure when the field and the lockfile agree, or the field stands alone", () => {
-			expect(inspectPackageManager(tmp("pnpm-lock.yaml"), { packageManager: "pnpm@9.0.0" }, {})).toMatchObject({ name: "pnpm", certain: true });
-			expect(inspectPackageManager(tmp(), { packageManager: "yarn@4.1.0" }, {})).toMatchObject({ name: "yarn", certain: true, reason: "packageManager field" });
+			expect(inspectPackageManager(tmp("pnpm-lock.yaml"), { packageManager: "pnpm@9.0.0" }, {})).toMatchObject({
+				name: "pnpm",
+				certain: true,
+			});
+			expect(inspectPackageManager(tmp(), { packageManager: "yarn@4.1.0" }, {})).toMatchObject({
+				name: "yarn",
+				certain: true,
+				reason: "packageManager field",
+			});
 		});
 
 		it("is sure of a single lockfile", () => {
-			expect(inspectPackageManager(tmp("bun.lockb"), {}, {})).toMatchObject({ name: "bun", certain: true, reason: "bun lockfile" });
+			expect(inspectPackageManager(tmp("bun.lockb"), {}, {})).toMatchObject({
+				name: "bun",
+				certain: true,
+				reason: "bun lockfile",
+			});
 		});
 
 		it("treats a bun.lock and a bun.lockb as one manager", () => {
-			expect(inspectPackageManager(tmp("bun.lock", "bun.lockb"), {}, {})).toMatchObject({ name: "bun", certain: true });
+			expect(inspectPackageManager(tmp("bun.lock", "bun.lockb"), {}, {})).toMatchObject({
+				name: "bun",
+				certain: true,
+			});
 		});
 
 		it("is unsure when lockfiles disagree, preferring the launcher then a fixed order", () => {
 			const dir = tmp("yarn.lock", "package-lock.json", "pnpm-lock.yaml");
-			expect(inspectPackageManager(dir, {}, {})).toMatchObject({ name: "yarn", certain: false, reason: "lockfiles for yarn and pnpm and npm" });
-			expect(inspectPackageManager(dir, {}, agent("pnpm/9.0.0 npm/? node/v24.0.0"))).toMatchObject({ name: "pnpm", certain: false });
+			expect(inspectPackageManager(dir, {}, {})).toMatchObject({
+				name: "yarn",
+				certain: false,
+				reason: "lockfiles for yarn and pnpm and npm",
+			});
+			expect(inspectPackageManager(dir, {}, agent("pnpm/9.0.0 npm/? node/v24.0.0"))).toMatchObject({
+				name: "pnpm",
+				certain: false,
+			});
 			expect(inspectPackageManager(dir, {}, agent("bun/1.2.0"))).toMatchObject({ name: "yarn", certain: false });
 		});
 
 		it("lets a lockfile beat the launcher, since npx reports npm in any project", () => {
-			expect(inspectPackageManager(tmp("yarn.lock"), {}, agent("npm/10.0.0 node/v24.0.0"))).toMatchObject({ name: "yarn", certain: true });
+			expect(inspectPackageManager(tmp("yarn.lock"), {}, agent("npm/10.0.0 node/v24.0.0"))).toMatchObject({
+				name: "yarn",
+				certain: true,
+			});
 		});
 
 		it("uses the launcher when the project says nothing", () => {
-			expect(inspectPackageManager(tmp(), {}, agent("bun/1.2.0 npm/? node/v24.0.0"))).toMatchObject({ name: "bun", certain: true, reason: "run through bun" });
-			expect(inspectPackageManager(tmp(), {}, agent("pnpm/9.0.0"))).toMatchObject({ name: "pnpm", certain: true });
+			expect(inspectPackageManager(tmp(), {}, agent("bun/1.2.0 npm/? node/v24.0.0"))).toMatchObject({
+				name: "bun",
+				certain: true,
+				reason: "run through bun",
+			});
+			expect(inspectPackageManager(tmp(), {}, agent("pnpm/9.0.0"))).toMatchObject({
+				name: "pnpm",
+				certain: true,
+			});
 		});
 
 		it("falls back to npm without signals or with a launcher it does not know", () => {
-			expect(inspectPackageManager(tmp(), {}, {})).toMatchObject({ name: "npm", certain: true, reason: "default" });
+			expect(inspectPackageManager(tmp(), {}, {})).toMatchObject({
+				name: "npm",
+				certain: true,
+				reason: "default",
+			});
 			expect(inspectPackageManager(tmp(), {}, agent("deno/2.0.0"))).toMatchObject({ name: "npm" });
 		});
 	});
@@ -94,7 +129,10 @@ describe("inspectPackageManager", () => {
 			const root = tmp("pnpm-lock.yaml");
 			mkdirSync(join(root, ".git"));
 			mkdirSync(join(root, "packages", "app"), { recursive: true });
-			expect(inspectPackageManager(join(root, "packages", "app"), {}, {})).toMatchObject({ name: "pnpm", certain: true });
+			expect(inspectPackageManager(join(root, "packages", "app"), {}, {})).toMatchObject({
+				name: "pnpm",
+				certain: true,
+			});
 		});
 
 		it("reads a parent's packageManager field", () => {
@@ -109,14 +147,21 @@ describe("inspectPackageManager", () => {
 			const outer = tmp("yarn.lock");
 			mkdirSync(join(outer, "repo", ".git"), { recursive: true });
 			mkdirSync(join(outer, "repo", "app"));
-			expect(inspectPackageManager(join(outer, "repo", "app"), {}, {})).toMatchObject({ name: "npm", reason: "default" });
+			expect(inspectPackageManager(join(outer, "repo", "app"), {}, {})).toMatchObject({
+				name: "npm",
+				reason: "default",
+			});
 		});
 	});
 
 	describe("workspace root", () => {
 		it("is a workspace root with a pnpm-workspace.yaml or a workspaces field", () => {
-			expect(inspectPackageManager(tmp("pnpm-lock.yaml", "pnpm-workspace.yaml"), {}, {}).workspaceRoot).toBe(true);
-			expect(inspectPackageManager(tmp("yarn.lock"), { workspaces: ["packages/*"] }, {}).workspaceRoot).toBe(true);
+			expect(inspectPackageManager(tmp("pnpm-lock.yaml", "pnpm-workspace.yaml"), {}, {}).workspaceRoot).toBe(
+				true,
+			);
+			expect(inspectPackageManager(tmp("yarn.lock"), { workspaces: ["packages/*"] }, {}).workspaceRoot).toBe(
+				true,
+			);
 			expect(inspectPackageManager(tmp("yarn.lock"), {}, {}).workspaceRoot).toBe(false);
 		});
 
