@@ -13,7 +13,7 @@ import { runChangeset } from "./changeset-cli.js";
 import { git } from "./git.js";
 import { githubClient, type GitHubClient } from "./github.js";
 import { detectRepo } from "./repo.js";
-import { ui as defaultUi, type Ui } from "./ui.js";
+import { ui as defaultUi, type Ui } from "@allons-y/opx";
 
 /** How a GitHub Action repository is released. */
 export type ActionSettings = {

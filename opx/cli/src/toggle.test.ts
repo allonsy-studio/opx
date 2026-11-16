@@ -20,8 +20,8 @@ describe("toggle", () => {
 		expect(result).toMatchObject({ config: { release: true, lint: {}, build: {} } });
 	});
 
-	it("rejects tasks that are not published", () => {
-		expect(toggle(base(), "test", true, {})).toEqual({ error: '"test" is not available yet.' });
+	it("sets the boolean for the test task", () => {
+		expect(toggle(base(), "test", true, {})).toMatchObject({ config: { test: true } });
 	});
 
 	it("rejects unknown plugin names", () => {

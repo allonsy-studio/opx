@@ -25,7 +25,7 @@ import {
 
 import { applyCleanup, describePlan, planCleanup } from "../cleanup.js";
 import { buildContext, readHostPackage } from "../context.js";
-import { load as loadDetectors, virtualDetectors, type Suggestion } from "../built-in.js";
+import { UNDETECTABLE_PLUGINS, load as loadDetectors, virtualDetectors, type Suggestion } from "../built-in.js";
 import { colors } from "../colors.js";
 import { PLUGIN_CATALOG } from "../plugin-catalog.js";
 import { eslintConfigHint, scaffoldEslintConfig } from "../eslint-scaffold.js";
@@ -107,7 +107,7 @@ export const runInstall: InstallRunner = async (cmd, cwd) => {
 
 /** Whether a suggestion is already covered by the config. */
 function isPending(s: Suggestion, config: OpxConfig): boolean {
-	if (s.shortName === "release") return !isTaskEnabled(config.release);
+	if (s.shortName === "release" || s.shortName === "test") return !isTaskEnabled(config[s.shortName]);
 	if (s.pkg.includes("opx-build-")) return !enabledNames(config.build).includes(s.shortName);
 	return !enabledNames(config.lint).includes(s.shortName);
 }
@@ -148,9 +148,9 @@ function applyAccepted(config: OpxConfig, accepted: Suggestion[]): OpxConfig {
 			...(config.build ?? {}),
 			...Object.fromEntries(names("opx-build-").map((shortName) => [shortName, conventionSetting(config.build, shortName)])),
 		},
-		// Keep release settings; `true` only turns it on.
+		// Keep release and test settings; `true` only turns them on.
 		release: isTaskEnabled(config.release) ? config.release : accepted.some((s) => s.shortName === "release"),
-		test: config.test === true,
+		test: isTaskEnabled(config.test) ? config.test : accepted.some((s) => s.shortName === "test"),
 	} as OpxConfig;
 }
 
@@ -442,7 +442,7 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 	const config = readConfig(cwd);
 
 	const everything = virtualDetectors(new Set(PLUGIN_CATALOG.flatMap((e) => e.extensions)), ctx.hostPkg);
-	const matched = virtualDetectors(ctx.fileTypes, ctx.hostPkg).filter((s) => s.shortName !== "release");
+	const matched = virtualDetectors(ctx.fileTypes, ctx.hostPkg).filter((s) => !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName));
 	let chosen: Suggestion[];
 	if (options.accept === "files") {
 		chosen = matched;

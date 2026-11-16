@@ -28,7 +28,7 @@ export type ScanOptions = {
 export function runScan(ctx: DetectorContext, opts: ScanOptions, tag?: string): number {
 	const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
 
-	const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(isTaskEnabled(ctx.config.release) ? ["release"] : [])]);
+	const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(isTaskEnabled(ctx.config.release) ? ["release"] : []), ...(isTaskEnabled(ctx.config.test) ? ["test"] : [])]);
 	// Plugins like release can't be inferred from files, so they never count as missing.
 	const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName) && !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName));
 

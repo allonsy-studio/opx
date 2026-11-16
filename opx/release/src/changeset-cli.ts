@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 
-import { ui as terminalUi, type Ui } from "./ui.js";
+import { ui as terminalUi, type Ui } from "@allons-y/opx";
 
 /** Resolve the bundled `@changesets/cli` executable (exported as `./bin.js`). */
 function resolveChangesetBin(): string {

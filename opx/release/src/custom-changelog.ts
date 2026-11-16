@@ -5,7 +5,7 @@ import { getInfo, getInfoFromPullRequest } from "@changesets/get-github-info";
 import type { ChangelogFunctions } from "@changesets/types";
 
 import { loadLocalEnv } from "./env.js";
-import { ui } from "./ui.js";
+import { ui } from "@allons-y/opx";
 
 loadLocalEnv();
 

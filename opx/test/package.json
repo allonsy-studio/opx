@@ -1,0 +1,59 @@
+{
+	"$schema": "https://www.schemastore.org/package.json",
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://registry.npmjs.org/"
+	},
+	"name": "@allons-y/opx-test",
+	"version": "0.0.0",
+	"description": "opx test — runs node --test, with c8 coverage and thresholds, for @allons-y/opx.",
+	"license": "Apache-2.0",
+	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
+	"homepage": "https://github.com/allonsy-studio/opx#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/allonsy-studio/opx.git",
+		"directory": "opx/test"
+	},
+	"bugs": {
+		"url": "https://github.com/allonsy-studio/opx/issues"
+	},
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./bin/index.d.ts",
+			"import": "./bin/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"main": "./bin/index.js",
+	"types": "./bin/index.d.ts",
+	"files": [
+		"bin/",
+		"CHANGELOG.md",
+		"README.md",
+		"package.json",
+		"LICENSE"
+	],
+	"scripts": {
+		"build": "yarn g:build && yarn g:dts",
+		"clean": "yarn g:clean",
+		"coverage": "yarn g:coverage",
+		"test": "yarn g:test",
+		"typecheck": "yarn g:typecheck"
+	},
+	"dependencies": {
+		"@allons-y/opx": "^0.1.1",
+		"c8": "12.0.0"
+	},
+	"keywords": [
+		"opx",
+		"test",
+		"node:test",
+		"coverage",
+		"c8"
+	],
+	"engines": {
+		"node": ">=24"
+	}
+}

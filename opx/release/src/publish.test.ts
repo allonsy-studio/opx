@@ -22,7 +22,7 @@ import {
 	type PublishDeps,
 	type RegistryTarget,
 } from "./publish.js";
-import { createUi } from "./ui.js";
+import { createUi } from "@allons-y/opx";
 
 const scratch = useScratch();
 

@@ -54,6 +54,12 @@ export const PLUGIN_CATALOG = [
 		extensions: [],
 		reason: "Not detectable from files; enable it if you publish packages.",
 	},
+	{
+		shortName: "test",
+		packages: ["@allons-y/opx-test"],
+		extensions: [],
+		reason: "Not detectable from files; enable it to run node --test, with c8 coverage.",
+	},
 ] as const satisfies readonly PluginCatalogEntry[];
 
 /** Every short name known to the catalog (e.g. "js" | "ts" | … | "release"). */

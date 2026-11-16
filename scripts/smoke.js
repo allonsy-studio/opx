@@ -75,8 +75,9 @@ import jsonDetector from "@allons-y/opx-lint-json";
 import mdDetector from "@allons-y/opx-lint-md";
 import tsDetector from "@allons-y/opx-lint-ts";
 import releaseDetector from "@allons-y/opx-release";
+import testDetector from "@allons-y/opx-test";
 
-const detectors: Detector[] = [jsDetector, jsonDetector, mdDetector, tsDetector, releaseDetector];
+const detectors: Detector[] = [jsDetector, jsonDetector, mdDetector, tsDetector, releaseDetector, testDetector];
 const info: PackageManagerInfo = inspectPackageManager(".");
 const suggestion: CleanupSuggestion = { kind: "file", target: ".eslintrc", reason: "unused" };
 export const summary = (ctx: DetectorContext): unknown[] => [
@@ -246,7 +247,7 @@ try {
 		check(`opx-${name} ships declarations, including the shared ones`, existsSync(join(types, "index.d.ts")) && existsSync(join(types, "shared", "eslint-runner.d.ts")));
 	}
 
-	for (const name of ["js", "json", "md", "release"]) {
+	for (const name of ["js", "json", "md", "release", "test"]) {
 		const enabled = opx("enable", name);
 		check(`opx enable ${name}`, enabled.status === 0, enabled.stderr);
 	}
@@ -254,7 +255,7 @@ try {
 
 	const config = JSON.parse(readFileSync(join(app, ".opx", "config.json"), "utf8"));
 	check("config enables js, json, and md for lint", config.lint?.js === true && config.lint?.json === true && config.lint?.md === true);
-	check("config enables release", config.release === true);
+	check("config enables release and test", config.release === true && config.test === true);
 
 	const failing = opx("lint");
 	check("opx lint fails on a style error", failing.status === 1 && /semi/.test(failing.stdout), failing.stdout + failing.stderr);
@@ -273,6 +274,18 @@ try {
 	check("opx scan --json reports nothing left to enable", scanned !== null && scanned.needsPrompt.length === 0, scan.stdout + scan.stderr);
 	check("opx scan --strict exits 0", opx("scan", "--strict").status === 0);
 
+	mkdirSync(join(app, "test"), { recursive: true });
+	writeFileSync(join(app, "test", "a.test.js"), 'import assert from "node:assert";\nimport test from "node:test";\n\nimport { a } from "../src/a.js";\n\ntest("a", () => assert.equal(a, 1));\n');
+	const tests = opx("test");
+	check("opx test runs node --test", tests.status === 0 && /Tests passed/.test(tests.stdout), tests.stdout + tests.stderr);
+	const covered = opx("test", "--coverage");
+	check("opx test --coverage runs c8 and reports", covered.status === 0 && /Coverage/.test(covered.stdout), covered.stdout + covered.stderr);
+	writeFileSync(join(app, ".opx", "config.json"), JSON.stringify({ ...config, test: { coverage: { lines: 100, branches: 100 } } }));
+	check("opx test --coverage passes when thresholds are met", opx("test", "--coverage").status === 0);
+	writeFileSync(join(app, "test", "a.test.js"), 'import test from "node:test";\n\ntest("a", () => { throw new Error("boom"); });\n');
+	check("opx test fails when a test fails", opx("test").status === 1);
+	writeFileSync(join(app, ".opx", "config.json"), JSON.stringify(config));
+
 	// 4. `opx init` in a real terminal: answer every prompt and check what it wrote.
 	const enter = "\r";
 	const session = await drive(join(interactive, "node_modules", ".bin", "opx"), ["init", "--cleanup"], interactive, [
@@ -280,6 +293,7 @@ try {
 		[/Enable md/, enter],
 		[/Enable json/, enter],
 		[/Enable release/, enter],
+		[/Enable test/, enter],
 		[/to package\.json scripts/, enter],
 		[/Delete the \d+ empty file/, enter],
 	]);
@@ -292,7 +306,7 @@ try {
 	} catch {
 		// reported by the check below
 	}
-	check("opx init enables the plugins that were accepted", written.lint?.js === true && written.lint?.md === true && written.lint?.json === true && written.release === true, read(".opx/config.json"));
+	check("opx init enables the plugins that were accepted", written.lint?.js === true && written.lint?.md === true && written.lint?.json === true && written.release === true && written.test === true, read(".opx/config.json"));
 	check("opx init adds the lint script and scaffolds eslint.config.js", JSON.parse(read("package.json") || "{}").scripts?.lint === "opx lint" && read("eslint.config.js").includes("opx-lint-js"));
 	check("opx init deletes the empty legacy file and keeps the one with content", !existsSync(join(interactive, ".eslintrc.json")) && existsSync(join(interactive, ".eslintignore")));
 

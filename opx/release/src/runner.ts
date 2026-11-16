@@ -4,14 +4,13 @@ import { join } from "node:path";
 
 import { getPackages } from "@manypkg/get-packages";
 
-import { detectPackageManager } from "@allons-y/opx";
+import { detectPackageManager, uiFor, type Ui } from "@allons-y/opx";
 import type { DetectorContext, PackageManager } from "@allons-y/opx";
 
 import { runAdd } from "./add.js";
 import { runChangeset } from "./changeset-cli.js";
 import { publishDeps, runPublish } from "./publish.js";
 import { detectRepo } from "./repo.js";
-import { uiFor, type Ui } from "./ui.js";
 
 export { detectRepo };
 import { detectBaseBranch } from "./base-branch.js";
