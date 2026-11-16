@@ -14,6 +14,7 @@ eleventyNavigation:
 | [`@allons-y/opx-lint-md`](./lint-md/) | `md` | lint | Markdown and MDX |
 | [`@allons-y/opx-lint-ts`](./lint-ts/) | `ts` | lint | TypeScript |
 | [`@allons-y/opx-release`](./release/) | `release` | release | Changesets release flow |
+| [`@allons-y/opx-test`](./test/) | `test` | test | `node --test`, with c8 coverage |
 
 All official plugins require Node.js 24 or newer and [`@allons-y/opx-cli`](../cli/). Want one that isn't here? See [Writing a detector](../guides/writing-a-detector/).
 

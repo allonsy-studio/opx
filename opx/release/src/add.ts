@@ -4,10 +4,9 @@ import writeChangeset from "@changesets/write";
 import { getPackages } from "@manypkg/get-packages";
 import type { Changeset, VersionType } from "@changesets/types";
 
-import type { DetectorContext } from "@allons-y/opx";
+import { uiFor, type DetectorContext, type Ui } from "@allons-y/opx";
 
 import { runChangeset } from "./changeset-cli.js";
-import { uiFor, type Ui } from "./ui.js";
 
 /** The bump levels opx exposes (changesets' `none` is not user-selectable here). */
 export type Bump = "patch" | "minor" | "major";

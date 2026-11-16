@@ -1,4 +1,4 @@
-import type { DetectorContext } from "@allons-y/opx";
+import type { DetectorContext } from "./detector.js";
 
 /** Where output goes and how it looks. Tests pass their own. */
 export type UiOptions = {
@@ -13,7 +13,7 @@ export type UiOptions = {
 };
 
 /** Colors follow the usual conventions: `NO_COLOR` wins, then `FORCE_COLOR`, then a TTY. */
-export function supportsColor(env: NodeJS.ProcessEnv = process.env, isTTY = Boolean(process.stdout.isTTY)): boolean {
+export function supportsColor(env: Record<string, string | undefined> = process.env, isTTY = Boolean(process.stdout.isTTY)): boolean {
 	if ("NO_COLOR" in env) return false;
 	if (env.FORCE_COLOR === "0" || env.FORCE_COLOR === "false") return false;
 	if (env.FORCE_COLOR) return true;
@@ -21,7 +21,7 @@ export function supportsColor(env: NodeJS.ProcessEnv = process.env, isTTY = Bool
 }
 
 /** Unicode everywhere except the legacy Windows console. */
-export function supportsUnicode(env: NodeJS.ProcessEnv = process.env, platform: string = process.platform): boolean {
+export function supportsUnicode(env: Record<string, string | undefined> = process.env, platform: string = process.platform): boolean {
 	if (platform !== "win32") return env.TERM !== "linux";
 	return Boolean(env.WT_SESSION || env.CI || env.TERM_PROGRAM === "vscode" || env.TERM === "xterm-256color");
 }
@@ -37,11 +37,40 @@ export type Row = string[];
 /** Strip ANSI codes to measure what a cell shows. */
 const visible = (text: string): number => text.replace(/\x1b\[[0-9;]*m/g, "").length;
 
+/** Wraps text in a color or style, or returns it unchanged when color is off. */
+export type Paint = (text: string) => string;
+
+/** The output helpers: every line is indented two spaces and starts with a status symbol, so a run reads as a checklist. */
+export type Ui = {
+	/** The text styles, which do nothing when color is off. */
+	colors: Record<"bold" | "dim" | "red" | "green" | "yellow" | "cyan", Paint>;
+	/** The status symbols, Unicode or ASCII to match the terminal. */
+	symbols: Record<"ok" | "skip" | "warn" | "fail" | "step" | "arrow", string>;
+	/** A section title, such as `opx release · publish`. */
+	heading(title: string): void;
+	/** Something about to happen. */
+	step(text: string, detail?: string): void;
+	/** Something that worked. */
+	ok(text: string, detail?: string): void;
+	/** Something deliberately not done, with why. */
+	skip(text: string, why?: string): void;
+	/** Something worth attention that didn't stop the run. */
+	warn(text: string, detail?: string): void;
+	/** Something that failed. */
+	fail(text: string, detail?: string): void;
+	/** A follow-up line under the previous one, such as what to run next. */
+	hint(text: string): void;
+	/** A blank line between sections. */
+	gap(): void;
+	/** An aligned table with a dim header row. */
+	table(header: Row, rows: Row[]): void;
+};
+
 /**
- * Build the release plugin's output helpers. Every line is indented two spaces
+ * Build the output helpers plugins share. Every line is indented two spaces
  * and starts with a status symbol, so a run reads as a checklist.
  */
-export function createUi(options: UiOptions = {}) {
+export function createUi(options: UiOptions = {}): Ui {
 	const out = options.out ?? ((line: string) => console.log(line));
 	const err = options.err ?? ((line: string) => console.error(line));
 	const color = options.color ?? supportsColor();
@@ -96,9 +125,6 @@ export function createUi(options: UiOptions = {}) {
 		},
 	};
 }
-
-/** The helpers' type, for functions that take a `ui`. */
-export type Ui = ReturnType<typeof createUi>;
 
 /**
  * Output through the host, as the runner contract asks: lines go to `ctx.write`, problems to

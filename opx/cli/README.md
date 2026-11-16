@@ -29,6 +29,7 @@ opx <command> [options]
 | `opx lint [paths...]` | Run every enabled lint detector. `--fix` auto-fixes where supported. |
 | `opx build [paths...]` | Run every enabled build detector. |
 | `opx release [args...]` | Drive the release flow; forwards subcommands to the releaser (changesets). |
+| `opx test [--coverage] [args...]` | Run the enabled test plugin (`node --test`); `--coverage` runs c8 and checks thresholds. |
 | `opx hook` | Internal — invoked by the post-commit git hook. |
 
 Run `opx <command> --help` for per-command flags.

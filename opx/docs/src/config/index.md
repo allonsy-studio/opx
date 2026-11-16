@@ -28,7 +28,7 @@ opx reads `.opx/config.json` from the repository root. [`opx init`](../cli/init/
 | `lint` | object | Lint plugins, keyed by short name |
 | `build` | object | Build plugins, keyed by short name |
 | `release` | plugin setting | Enables the release plugin |
-| `test` | plugin setting | Reserved for a future test plugin |
+| `test` | plugin setting | Enables the test plugin; settings such as `coverage` thresholds turn it on too |
 
 Short names must be lowercase letters and digits (`js`, `md`).
 
@@ -59,7 +59,7 @@ Use your own ESLint flat config for JavaScript, and lint JSONC and JSON5 too:
 }
 ```
 
-The settings each plugin understands are documented on its page: [js](../plugins/lint-js/), [ts](../plugins/lint-ts/), [json](../plugins/lint-json/), [md](../plugins/lint-md/), [release](../plugins/release/).
+The settings each plugin understands are documented on its page: [js](../plugins/lint-js/), [ts](../plugins/lint-ts/), [json](../plugins/lint-json/), [md](../plugins/lint-md/), [release](../plugins/release/), [test](../plugins/test/).
 
 ## Defaults & errors
 

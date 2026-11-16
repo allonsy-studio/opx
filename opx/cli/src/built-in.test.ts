@@ -196,3 +196,29 @@ describe("loadTask", () => {
 		expect((await loadTask(ctx({ cwd, hostPkg: {}, config }), "release")).failures).toEqual([expect.stringContaining('"release" is declared')]);
 	});
 });
+
+describe("loadTask for test", () => {
+	const testPlugin = "export default { id: \"@allons-y/opx-test\", shortName: \"test\", displayName: \"T\", concern: \"test\", detect: () => true, describe: () => ({ summary: \"\", bundledDeps: [] }) };\n";
+
+	it.each([true, { coverage: { lines: 98 } }])("loads the test plugin when test is %j", async (test) => {
+		const cwd = host({ "@allons-y/opx-test": testPlugin });
+		const config = { version: 1 as const, lint: {}, build: {}, release: false, test };
+		const hostPkg = { devDependencies: { "@allons-y/opx-test": "*" } };
+
+		const { detectors, failures } = await loadTask(ctx({ cwd, hostPkg, config }), "test");
+
+		expect(failures).toEqual([]);
+		expect(detectors.map((d) => d.shortName)).toEqual(["test"]);
+		expect((await load(ctx({ cwd, hostPkg, config }))).map((d) => d.shortName)).toEqual(["test"]);
+	});
+
+	it("loads nothing when test is off", async () => {
+		const config = { version: 1 as const, lint: {}, build: {}, release: false, test: false };
+		expect(await loadTask(ctx({ cwd: host({}), hostPkg: {}, config }), "test")).toEqual({ detectors: [], failures: [] });
+	});
+
+	it("reports the test plugin as missing when it is enabled but not installed", async () => {
+		const config = { version: 1 as const, lint: {}, build: {}, release: false, test: true };
+		expect((await loadTask(ctx({ cwd: host({}), hostPkg: {}, config }), "test")).failures).toEqual([expect.stringContaining('"test" is declared')]);
+	});
+});

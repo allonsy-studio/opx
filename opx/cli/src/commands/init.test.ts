@@ -103,6 +103,14 @@ describe("init", () => {
 			expect((json(dir, ".opx/config.json") as Parsed & { release?: unknown }).release).toEqual(settings);
 		});
 
+		it("keeps test settings already in the config", async () => {
+			const settings = { coverage: { lines: 98 } };
+			const dir = make({ "a.js": "x", "package.json": PKG, ".opx/config.json": JSON.stringify({ version: 1, test: settings }) });
+			answers({}, "yes");
+			await runInteractive(dir, install);
+			expect((json(dir, ".opx/config.json") as Parsed & { test?: unknown }).test).toEqual(settings);
+		});
+
 		it("records a one-branch deferral for 'later' and leaves the plugin off", async () => {
 			const dir = make({ "a.js": "x", "package.json": PKG });
 			answers({ js: "later" });
@@ -779,7 +787,7 @@ describe("init", () => {
 			const dir = make({ "README.txt": "x" });
 			await runReport(dir);
 			const cfg = json(dir, ".opx/config.json");
-			writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ ...cfg, release: true }));
+			writeFileSync(join(dir, ".opx/config.json"), JSON.stringify({ ...cfg, release: true, test: true }));
 			log.mockClear();
 			await runReport(dir);
 			expect(printed()).toBe("opx: nothing new to suggest.");

@@ -13,6 +13,7 @@ export const COMMANDS: Record<string, CommandLoader> = {
 	lint: () => import("./commands/lint.js"),
 	release: () => import("./commands/release.js"),
 	scan: () => import("./commands/scan.js"),
+	test: () => import("./commands/test.js"),
 };
 
 /**

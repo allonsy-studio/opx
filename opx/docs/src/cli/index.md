@@ -16,6 +16,7 @@ eleventyNavigation:
 | [`opx lint`](./lint/) | Run every enabled linter |
 | [`opx build`](./build/) | Run every enabled builder |
 | [`opx release`](./release/) | Drive the release flow |
+| [`opx test`](./test/) | Run the tests, with optional coverage |
 | [`opx hook`](./hook/) | Internal: invoked by the git hook |
 
 ## Global options

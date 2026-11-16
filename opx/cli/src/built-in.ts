@@ -62,7 +62,7 @@ export async function load(ctx: DetectorContext): Promise<Detector[]> {
 		...entriesFor("lint"),
 		...entriesFor("build"),
 		...(isTaskEnabled(ctx.config.release) ? ["release"] : []),
-		...(ctx.config.test === true ? ["test"] : []),
+		...(isTaskEnabled(ctx.config.test) ? ["test"] : []),
 	];
 	const installed = [...new Set(entries.map((entry) => normalizeDetectorId(entry, ctx.hostPkg)).filter((id): id is string => id !== null))];
 
@@ -75,7 +75,7 @@ export async function load(ctx: DetectorContext): Promise<Detector[]> {
 }
 
 /** A task whose command runs that task's enabled plugins. */
-export type RunnableTask = "lint" | "build" | "release";
+export type RunnableTask = "lint" | "build" | "release" | "test";
 
 /** The plugins enabled for one task, and why any enabled plugin couldn't be loaded. */
 export type TaskPlugins = {
@@ -91,8 +91,8 @@ export type TaskPlugins = {
  * passing without running it.
  */
 export async function loadTask(ctx: DetectorContext, task: RunnableTask): Promise<TaskPlugins> {
-	const entries = task === "release"
-		? (isTaskEnabled(ctx.config.release) ? ["release"] : [])
+	const entries = task === "release" || task === "test"
+		? (isTaskEnabled(ctx.config[task]) ? [task] : [])
 		: enabledNames(ctx.config[task]).map((name) => (isPackageId(name) ? name : `${task}-${name}`));
 	const failures: string[] = [];
 	const plugins = await loadPlugins([...new Set(entries)], {

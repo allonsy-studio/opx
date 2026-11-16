@@ -58,6 +58,7 @@ Full documentation lives in [`opx/docs`](opx/docs) and is built with `yarn docs:
 | [`@allons-y/opx-lint-md`](opx/lint-md) | Lint detector for Markdown. |
 | [`@allons-y/opx-lint-ts`](opx/lint-ts) | Lint detector for TypeScript (ESLint + `@stylistic` + `typescript-eslint`). |
 | [`@allons-y/opx-release`](opx/release) | Release detector — a lightweight [changesets](https://github.com/changesets/changesets) setup and flow. |
+| [`@allons-y/opx-test`](opx/test) | Test detector — `node --test`, with c8 coverage and thresholds. |
 
 ## Quick start
 
@@ -93,6 +94,7 @@ To set up without prompts, for scripts and AI agents, run
 | `opx lint [paths…]` | Run every enabled lint detector. |
 | `opx build [paths…]` | Run every enabled build detector. |
 | `opx release [args…]` | Drive the release flow; forwards subcommands to changesets. |
+| `opx test [--coverage] [args…]` | Run `node --test`; `--coverage` runs c8 and checks thresholds. |
 | `opx hook` | Internal — invoked by the post-commit git hook. |
 
 Run `opx <command> --help` for per-command flags. `opx lint --fix` auto-fixes

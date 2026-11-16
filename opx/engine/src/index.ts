@@ -42,3 +42,5 @@ export { filterPathsByExtension } from "./paths.js";
 export type { HookInstallResult } from "./hooks.js";
 export { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
 export { createConsoleLogger } from "./logger.js";
+export type { Paint, Row, Ui, UiOptions } from "./ui.js";
+export { createUi, supportsColor, supportsUnicode, ui, uiFor } from "./ui.js";
