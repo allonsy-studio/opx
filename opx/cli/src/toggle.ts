@@ -1,7 +1,14 @@
 import type { OpxConfig, PackageJson } from "@allons-y/opx";
 import { isTaskEnabled, isValidPluginName, normalizeDetectorId } from "@allons-y/opx";
 
-import { catalogEntryForPackage, isPackageId, isShipped, isStaticTask, tasksFor, type TaskKind } from "./plugin-catalog.js";
+import {
+	catalogEntryForPackage,
+	isPackageId,
+	isShipped,
+	isStaticTask,
+	tasksFor,
+	type TaskKind,
+} from "./plugin-catalog.js";
 
 export type ToggleResult = { config: OpxConfig; message: string } | { error: string };
 
@@ -9,9 +16,7 @@ const DYNAMIC_TASKS: TaskKind[] = ["lint", "build"];
 
 /** A toggle target after resolving package ids and installed names. */
 export type ToggleTarget =
-	| { kind: "catalog"; name: string }
-	| { kind: "package"; name: string }
-	| { kind: "unknown"; name: string };
+	{ kind: "catalog"; name: string } | { kind: "package"; name: string } | { kind: "unknown"; name: string };
 
 /**
  * Resolve what a name refers to.
@@ -42,7 +47,13 @@ function resolveTasks(name: string, provided: TaskKind[], requested: TaskKind[] 
 }
 
 /** Tasks a third-party plugin applies to: the requested ones, its concerns, or, when disabling, wherever it's set. */
-function packageTasks(config: OpxConfig, name: string, enable: boolean, requested: TaskKind[] | undefined, concerns: TaskKind[] | undefined): TaskKind[] | string {
+function packageTasks(
+	config: OpxConfig,
+	name: string,
+	enable: boolean,
+	requested: TaskKind[] | undefined,
+	concerns: TaskKind[] | undefined,
+): TaskKind[] | string {
 	if (concerns) return resolveTasks(name, concerns, requested);
 	if (requested && requested.length > 0) return requested;
 	if (!enable) return DYNAMIC_TASKS.filter((task) => typeof config[task]?.[name] !== "undefined");
@@ -54,18 +65,25 @@ function isOn(setting: unknown): boolean {
 	return setting !== undefined && setting !== false;
 }
 
+/** Plugins that don't read an ESLint config, so they neither share one nor count toward it. */
+const NOT_ESLINT = new Set(["format"]);
+
 /**
  * The setting to write for a newly enabled plugin.
  *
- * When every other enabled plugin in the task points at the same config file,
- * the new one points there too, so it gets the project's local rules.
+ * When every other enabled ESLint plugin in the task points at the same config
+ * file, the new one points there too, so it gets the project's local rules.
+ * Plugins that don't use ESLint always get `true`.
  *
  * @param entries - The task's current plugin settings.
  * @param name - The plugin being enabled.
  * @returns That shared path, or `true`.
  */
 export function conventionSetting(entries: Record<string, unknown> | undefined, name: string): string | true {
-	const others = Object.entries(entries ?? {}).filter(([key, setting]) => key !== name && isOn(setting)).map(([, setting]) => setting);
+	if (NOT_ESLINT.has(name)) return true;
+	const others = Object.entries(entries ?? {})
+		.filter(([key, setting]) => key !== name && !NOT_ESLINT.has(key) && isOn(setting))
+		.map(([, setting]) => setting);
 	const [first] = others;
 	return typeof first === "string" && others.every((setting) => setting === first) ? first : true;
 }
@@ -83,7 +101,14 @@ export function conventionSetting(entries: Record<string, unknown> | undefined, 
  * @param requested - Restrict to these tasks.
  * @param concerns - The dynamic tasks a third-party plugin's detectors declare, when it could be loaded.
  */
-export function toggle(config: OpxConfig, name: string, enable: boolean, hostPkg: PackageJson, requested?: TaskKind[], concerns?: TaskKind[]): ToggleResult {
+export function toggle(
+	config: OpxConfig,
+	name: string,
+	enable: boolean,
+	hostPkg: PackageJson,
+	requested?: TaskKind[],
+	concerns?: TaskKind[],
+): ToggleResult {
 	const target = resolveTarget(name, hostPkg);
 	if (target.kind === "unknown") {
 		return { error: `unknown plugin "${name}". Use a short name like js, ts, md, json, or a full package id.` };
@@ -93,24 +118,33 @@ export function toggle(config: OpxConfig, name: string, enable: boolean, hostPkg
 	if (isStaticTask(key)) {
 		if (enable && !isShipped(key)) return { error: `"${key}" is not available yet.` };
 		// Settings count as on, so enabling never replaces them.
-		if (isTaskEnabled(config[key]) === enable) return { config, message: `"${key}" is already ${enable ? "enabled" : "disabled"}.` };
+		if (isTaskEnabled(config[key]) === enable)
+			return { config, message: `"${key}" is already ${enable ? "enabled" : "disabled"}.` };
 		return { config: { ...config, [key]: enable }, message: `${enable ? "enabled" : "disabled"} "${key}".` };
 	}
 
-	const resolved = target.kind === "catalog" ? resolveTasks(key, tasksFor(key), requested) : packageTasks(config, key, enable, requested, concerns);
+	const resolved =
+		target.kind === "catalog"
+			? resolveTasks(key, tasksFor(key), requested)
+			: packageTasks(config, key, enable, requested, concerns);
 	if (typeof resolved === "string") return { error: resolved };
 
 	// Disabling by package id also clears entries written under that id, in any task.
 	const stale = !enable && name !== key ? [name] : [];
-	const staleTasks = requested?.length ? [] : DYNAMIC_TASKS.filter((task) => stale.some((k) => typeof config[task]?.[k] !== "undefined"));
+	const staleTasks = requested?.length
+		? []
+		: DYNAMIC_TASKS.filter((task) => stale.some((k) => typeof config[task]?.[k] !== "undefined"));
 	const tasks = DYNAMIC_TASKS.filter((task) => resolved.includes(task) || staleTasks.includes(task));
 	if (tasks.length === 0) {
-		return enable ? { error: `"${key}" provides no lint or build task.` } : { config, message: `"${key}" is already disabled.` };
+		return enable
+			? { error: `"${key}" provides no lint or build task.` }
+			: { config, message: `"${key}" is already disabled.` };
 	}
 
 	const verb = enable ? "enabled" : "disabled";
 	const changed = tasks.filter((task) =>
-		enable ? !isOn(config[task]?.[key]) : [key, ...stale].some((k) => typeof config[task]?.[k] !== "undefined"));
+		enable ? !isOn(config[task]?.[key]) : [key, ...stale].some((k) => typeof config[task]?.[k] !== "undefined"),
+	);
 	if (changed.length === 0) {
 		return { config, message: `"${key}" is already ${verb} in ${tasks.join(", ")}.` };
 	}

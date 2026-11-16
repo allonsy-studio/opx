@@ -80,7 +80,9 @@ export function isTaskEnabled(setting: unknown): boolean {
  * @returns The enabled plugin short names, in config order.
  */
 export function enabledNames(tasks: Record<string, unknown> | undefined): string[] {
-	return Object.entries(tasks ?? {}).filter(([, setting]) => setting !== false).map(([name]) => name);
+	return Object.entries(tasks ?? {})
+		.filter(([, setting]) => setting !== false)
+		.map(([name]) => name);
 }
 
 /**
@@ -131,7 +133,9 @@ export function writeConfig(cwd: string, config: OpxConfig): string[] {
 	mkdirSync(dirname(path), { recursive: true });
 	writeFileSync(path, `${JSON.stringify(normalized, null, 2)}\n`, "utf8");
 	const known: readonly string[] = CONFIG_KEYS;
-	return Object.keys(config).filter((key) => !known.includes(key)).sort();
+	return Object.keys(config)
+		.filter((key) => !known.includes(key))
+		.sort();
 }
 
 /**

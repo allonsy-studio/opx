@@ -24,12 +24,12 @@ A detector is the unit of work. It is a small object with an `id`, a `shortName`
 
 The config groups detectors by task.
 
-| Task | Kind | Shape in config | Used by |
-| --- | --- | --- | --- |
-| `lint` | dynamic | object keyed by plugin short name | `opx lint` |
-| `build` | dynamic | object keyed by plugin short name | `opx build` |
-| `release` | static | boolean (or a setting) | `opx release` |
-| `test` | static | boolean | reserved, no official plugin yet |
+| Task      | Kind    | Shape in config                   | Used by                          |
+| --------- | ------- | --------------------------------- | -------------------------------- |
+| `lint`    | dynamic | object keyed by plugin short name | `opx lint`                       |
+| `build`   | dynamic | object keyed by plugin short name | `opx build`                      |
+| `release` | static  | boolean (or a setting)            | `opx release`                    |
+| `test`    | static  | boolean                           | reserved, no official plugin yet |
 
 ## How plugins are found
 
@@ -45,11 +45,11 @@ A plugin must appear in your `dependencies` or `devDependencies`. If an enabled 
 
 All of opx's files live in `.opx/`.
 
-| Path | Purpose | Commit it? |
-| --- | --- | --- |
-| `.opx/config.json` | Which plugins are enabled | Yes |
-| `.opx/state.json` | Last scanned commit and per-branch "later" deferrals | No |
-| `.opx/cache/` | Tool caches, such as ESLint's | No |
+| Path               | Purpose                                              | Commit it? |
+| ------------------ | ---------------------------------------------------- | ---------- |
+| `.opx/config.json` | Which plugins are enabled                            | Yes        |
+| `.opx/state.json`  | Last scanned commit and per-branch "later" deferrals | No         |
+| `.opx/cache/`      | Tool caches, such as ESLint's                        | No         |
 
 If `state.json` is missing or unreadable, opx starts from a clean state. An unreadable `config.json` is an error that names the file, because opx won't guess at your settings.
 

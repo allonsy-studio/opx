@@ -26,7 +26,5 @@ export const COMMANDS: Record<string, CommandLoader> = {
  */
 export function selectLoaders(argv: string[]): CommandLoader[] {
 	const invoked = argv.find((arg) => !arg.startsWith("-"));
-	return invoked !== undefined && Object.hasOwn(COMMANDS, invoked)
-		? [COMMANDS[invoked]!]
-		: Object.values(COMMANDS);
+	return invoked !== undefined && Object.hasOwn(COMMANDS, invoked) ? [COMMANDS[invoked]!] : Object.values(COMMANDS);
 }

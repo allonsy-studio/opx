@@ -1,53 +1,53 @@
 {
-	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
-	"baseBranchPatterns": ["main"],
-	"extends": ["config:best-practices", "group:githubArtifactActions"],
-	"gitIgnoredAuthors": ["41898282+github-actions[bot]@users.noreply.github.com"],
-	"labels": ["dependencies", "renovate"],
-	"lockFileMaintenance": {
-		"enabled": true,
-		"extends": ["schedule:monthly"]
-	},
-	"packageRules": [
-		{
-			"matchDatasources": ["npm"],
-			"minimumReleaseAge": "1 month"
-		},
-		{
-			"groupName": "commitlint ecosystem",
-			"matchPackageNames": ["commitlint", "@commitlint/*"]
-		},
-		{
-			"groupName": "jest ecosystem",
-			"matchPackageNames": ["jest", "ts-jest", "@types/jest", "@jest/*"]
-		},
-		{
-			"groupName": "eslint ecosystem",
-			"matchPackageNames": ["eslint", "typescript-eslint", "@eslint/*", "eslint-plugin-*"]
-		},
-		{
-			"groupName": "changesets ecosystem",
-			"matchPackageNames": ["@changesets/*"]
-		},
-		{
-			"description": "The tools a plugin ships are pinned: a bump changes what users get and what the plugin's cleanup advice names, so it is reviewed and released on its own.",
-			"matchFileNames": ["opx/*/package.json", "!opx/{cli,engine,shared,docs}/package.json"],
-			"matchDepTypes": ["dependencies"],
-			"matchPackageNames": ["!@allons-y/*"],
-			"rangeStrategy": "pin",
-			"groupName": "plugin tools",
-			"semanticCommitType": "fix",
-			"semanticCommitScope": "plugins",
-			"addLabels": ["plugin-tools"]
-		},
-		{
-			"allowedVersions": "/^v?1(\\.\\d+){0,2}$/",
-			"description": "Hold changesets/action at v1: opx release bundles Changesets CLI 2, and action v2 needs CLI 3. Move both together when opx bundles CLI 3.",
-			"matchManagers": ["github-actions"],
-			"matchPackageNames": ["changesets/action"]
-		}
-	],
-	"postUpdateOptions": ["yarnDedupeHighest"],
-	"rebaseWhen": "behind-base-branch",
-	"reviewers": ["castastrophe"]
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "baseBranchPatterns": ["main"],
+  "extends": ["config:best-practices", "group:githubArtifactActions"],
+  "gitIgnoredAuthors": ["41898282+github-actions[bot]@users.noreply.github.com"],
+  "labels": ["dependencies", "renovate"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "extends": ["schedule:monthly"]
+  },
+  "packageRules": [
+    {
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "1 month"
+    },
+    {
+      "groupName": "commitlint ecosystem",
+      "matchPackageNames": ["commitlint", "@commitlint/*"]
+    },
+    {
+      "groupName": "jest ecosystem",
+      "matchPackageNames": ["jest", "ts-jest", "@types/jest", "@jest/*"]
+    },
+    {
+      "groupName": "eslint ecosystem",
+      "matchPackageNames": ["eslint", "typescript-eslint", "@eslint/*", "eslint-plugin-*"]
+    },
+    {
+      "groupName": "changesets ecosystem",
+      "matchPackageNames": ["@changesets/*"]
+    },
+    {
+      "description": "The tools a plugin ships are pinned: a bump changes what users get and what the plugin's cleanup advice names, so it is reviewed and released on its own.",
+      "matchFileNames": ["opx/*/package.json", "!opx/{cli,engine,shared,docs}/package.json"],
+      "matchDepTypes": ["dependencies"],
+      "matchPackageNames": ["!@allons-y/*"],
+      "rangeStrategy": "pin",
+      "groupName": "plugin tools",
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "plugins",
+      "addLabels": ["plugin-tools"]
+    },
+    {
+      "allowedVersions": "/^v?1(\\.\\d+){0,2}$/",
+      "description": "Hold changesets/action at v1: opx release bundles Changesets CLI 2, and action v2 needs CLI 3. Move both together when opx bundles CLI 3.",
+      "matchManagers": ["github-actions"],
+      "matchPackageNames": ["changesets/action"]
+    }
+  ],
+  "postUpdateOptions": ["yarnDedupeHighest"],
+  "rebaseWhen": "behind-base-branch",
+  "reviewers": ["castastrophe"]
 }

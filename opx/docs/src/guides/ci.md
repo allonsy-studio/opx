@@ -16,16 +16,16 @@ name: Lint
 on: [push, pull_request]
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: yarn
-      - run: yarn install --immutable
-      - run: yarn opx lint
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: yarn
+            - run: yarn install --immutable
+            - run: yarn opx lint
 ```
 
 ## Fail when a plugin is missing
@@ -33,7 +33,7 @@ jobs:
 `opx scan --strict` exits `1` when your repository contains files that an available plugin could lint but that aren't enabled. Use it to catch a new language arriving without tooling:
 
 ```yaml
-      - run: yarn opx scan --strict
+- run: yarn opx scan --strict
 ```
 
 For a machine-readable result, add `--json`; see the [`opx scan` reference](../../cli/scan/).

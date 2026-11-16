@@ -12,7 +12,11 @@ function fakeDetector(shortName: string, matched: boolean): Detector {
 	};
 }
 
-function ctx(partial: { lint?: Record<string, unknown>; deferrals?: OpxState["deferrals"]; branch?: string }): DetectorContext {
+function ctx(partial: {
+	lint?: Record<string, unknown>;
+	deferrals?: OpxState["deferrals"];
+	branch?: string;
+}): DetectorContext {
 	return {
 		config: { version: 1, lint: partial.lint ?? {} },
 		state: { version: 1, deferrals: partial.deferrals ?? {} },

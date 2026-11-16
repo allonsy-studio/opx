@@ -58,9 +58,17 @@ describe("runBuildCommand", () => {
 
 	it("forwards the build paths to each builder's runner", async () => {
 		const seen: string[][] = [];
-		load.mockResolvedValue({ detectors: [
-			detector({ run: async (_c, paths) => { seen.push(paths); return 0; } }),
-		], failures: [] });
+		load.mockResolvedValue({
+			detectors: [
+				detector({
+					run: async (_c, paths) => {
+						seen.push(paths);
+						return 0;
+					},
+				}),
+			],
+			failures: [],
+		});
 
 		const code = await runBuildCommand(ctx(), ["src/a.ts", "src/b.ts"]);
 

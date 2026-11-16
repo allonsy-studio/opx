@@ -42,7 +42,8 @@ function repo() {
 const read = (root, file) => readFileSync(join(root, file), "utf8");
 
 /** Import a compiled file and call its `run`, proving it's plain JavaScript that exports the shared code. */
-const runCompiled = async (root, file) => (await import(`${pathToFileURL(join(root, file)).href}?${Date.now()}`)).run(1);
+const runCompiled = async (root, file) =>
+	(await import(`${pathToFileURL(join(root, file)).href}?${Date.now()}`)).run(1);
 
 describe("write", () => {
 	it("leaves a file alone when it already holds the content", () => {
@@ -66,7 +67,8 @@ describe("relativeSpecifier", () => {
 
 describe("rewriteImports", () => {
 	it("replaces quoted specifiers only", () => {
-		const text = 'import a from "shared/runner.js";\nimport b from \'shared/runner.js\';\n// shared/runner.js\nimport c from "shared/runner.json";\n';
+		const text =
+			'import a from "shared/runner.js";\nimport b from \'shared/runner.js\';\n// shared/runner.js\nimport c from "shared/runner.json";\n';
 		assert.equal(
 			rewriteImports(text, "shared/runner.js", "./shared/runner.js"),
 			'import a from "./shared/runner.js";\nimport b from \'./shared/runner.js\';\n// shared/runner.js\nimport c from "shared/runner.json";\n',
@@ -98,11 +100,17 @@ describe("share inject", () => {
 		share("inject", join(root, "opx/lint-a"), { root, targets, declarations });
 
 		assert.equal(await runCompiled(root, "opx/lint-a/bin/shared/runner.js"), 2);
-		assert.equal(read(root, "opx/lint-a/bin/index.js"), 'import { run } from "./shared/runner.js";\nexport default run;\n');
+		assert.equal(
+			read(root, "opx/lint-a/bin/index.js"),
+			'import { run } from "./shared/runner.js";\nexport default run;\n',
+		);
 		assert.equal(read(root, "opx/lint-a/bin/nested/deep.js"), "import { run } from '../shared/runner.js';\n");
 		assert.equal(read(root, "opx/lint-a/bin/index.d.ts"), 'export { run } from "./shared/runner.js";\n');
 		assert.equal(read(root, "opx/lint-a/bin/notes.txt"), '"shared/runner.js"\n');
-		assert.deepEqual(declarations.mock.calls[0].arguments, [join(root, "opx/shared/src"), join(root, "opx/lint-a/bin")]);
+		assert.deepEqual(declarations.mock.calls[0].arguments, [
+			join(root, "opx/shared/src"),
+			join(root, "opx/lint-a/bin"),
+		]);
 	});
 
 	it("leaves packages that don't use the shared source untouched", () => {
@@ -122,7 +130,10 @@ describe("share inject", () => {
 	it("refuses to inject before the package is built", () => {
 		const { root, targets } = repo();
 		rmSync(join(root, "opx/lint-a/bin"), { recursive: true });
-		assert.throws(() => share("inject", "opx/lint-a", { root, targets, declarations: () => {} }), /lint-a has no bin\/ to inject into; build it first/);
+		assert.throws(
+			() => share("inject", "opx/lint-a", { root, targets, declarations: () => {} }),
+			/lint-a has no bin\/ to inject into; build it first/,
+		);
 	});
 });
 

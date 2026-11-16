@@ -18,19 +18,19 @@ opx init [--yes | --accept <names>] [--auto] [--quiet] [--cleanup]
 
 ## Options
 
-| Flag | Default | Description |
-| --- | --- | --- |
-| `--yes` | `false` | Accept every suggestion that matches your files, without prompting. See [Without prompts](#without-prompts). |
-| `--accept <names>` | | Accept these plugins without prompting, as comma-separated short names such as `js,md,release`. Unlike `--yes`, it can enable plugins files can't imply, like `release`. |
-| `--auto` | `false` | Only proceed in an interactive terminal. Intended for `postinstall` scripts. |
-| `--quiet` | `false` | Suppress informational output when `--auto` exits early |
-| `--cleanup` | `false` | Opt in to the [cleanup suggestions](#cleanup) from your plugins, and the offer to delete empty files |
+| Flag               | Default | Description                                                                                                                                                              |
+| ------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--yes`            | `false` | Accept every suggestion that matches your files, without prompting. See [Without prompts](#without-prompts).                                                             |
+| `--accept <names>` |         | Accept these plugins without prompting, as comma-separated short names such as `js,md,release`. Unlike `--yes`, it can enable plugins files can't imply, like `release`. |
+| `--auto`           | `false` | Only proceed in an interactive terminal. Intended for `postinstall` scripts.                                                                                             |
+| `--quiet`          | `false` | Suppress informational output when `--auto` exits early                                                                                                                  |
+| `--cleanup`        | `false` | Opt in to the [cleanup suggestions](#cleanup) from your plugins, and the offer to delete empty files                                                                     |
 
 ## What it does
 
 1. Creates `.opx/config.json` if there isn't one.
-2. For each suggested plugin not yet enabled, asks **Yes**, **No**, or **Later**. "Later" records a deferral in `.opx/state.json` for the current branch.
-3. Saves your choices and offers to install any missing packages with the project's [package manager](#package-manager) (npm, Yarn, pnpm, or Bun). An accepted lint plugin points at the same config file as your other lint plugins when they all share one. Accepting `ts` installs `lint-js` from its JavaScript-only 1.x range, or upgrades a 0.x release, since 0.x also lints TypeScript.
+2. For each suggested plugin not yet enabled (`format` is suggested whenever any lint plugin is), asks **Yes**, **No**, or **Later**. "Later" records a deferral in `.opx/state.json` for the current branch.
+3. Saves your choices and offers to install any missing packages with the project's [package manager](#package-manager) (npm, Yarn, pnpm, or Bun). An accepted ESLint plugin points at the same config file as your other ESLint plugins when they all share one; `format` always uses its bundled Prettier config. Accepting `ts` installs `lint-js` from its JavaScript-only 1.x range, or upgrades a 0.x release, since 0.x also lints TypeScript.
 4. Scaffolds a root `eslint.config.js` composed from your enabled lint plugins. It never overwrites an existing file. When you have one, it prints the import & spread lines that file needs for the plugins you just accepted.
 5. Offers to add `"lint": "opx lint"` to your `package.json` scripts.
 6. Installs the `post-commit` husky hook and updates `.gitignore` to ignore `.opx/*` except `.opx/config.json`, which stays tracked.
@@ -74,12 +74,12 @@ A plugin lists the packages it needs from your project, such as `typescript` for
 
 How they get installed depends on the package manager:
 
-| Manager | What happens |
-| --- | --- |
-| npm, pnpm, bun | Current versions install peers with the plugin, within the plugin's range, so opx runs one install. Older versions that don't, or a project that turned the setting off, need the peers installed by hand. |
-| Yarn | Yarn only warns about a missing peer. After the plugin installs, opx reads its `peerDependencies` and installs the ones your project lacks, with the plugin's range, such as `typescript@^5.0.0 \|\| ^6.0.0`. Yarn picks the newest version in range. |
+| Manager        | What happens                                                                                                                                                                                                                                          |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| npm, pnpm, bun | Current versions install peers with the plugin, within the plugin's range, so opx runs one install. Older versions that don't, or a project that turned the setting off, need the peers installed by hand.                                            |
+| Yarn           | Yarn only warns about a missing peer. After the plugin installs, opx reads its `peerDependencies` and installs the ones your project lacks, with the plugin's range, such as `typescript@^5.0.0 \|\| ^6.0.0`. Yarn picks the newest version in range. |
 
-opx skips optional peers and any peer your `package.json` already lists. It never changes a version your project already uses. If that version is outside what the plugin supports, such as TypeScript 7 where lint-ts supports 5 and 6, opx prints a warning that names both and leaves it alone; the plugin may not work until you move to a supported version. npm can also refuse the install over the same conflict. Where it can't read the installed plugin to find its peers, such as under Yarn Plug'n'Play, it says so; install the packages under `peerDependencies` in the plugin's `package.json` yourself. 
+opx skips optional peers and any peer your `package.json` already lists. It never changes a version your project already uses. If that version is outside what the plugin supports, such as TypeScript 7 where lint-ts supports 5 and 6, opx prints a warning that names both and leaves it alone; the plugin may not work until you move to a supported version. npm can also refuse the install over the same conflict. Where it can't read the installed plugin to find its peers, such as under Yarn Plug'n'Play, it says so; install the packages under `peerDependencies` in the plugin's `package.json` yourself.
 
 A peer that npm, pnpm, or bun installs for you isn't added to your `package.json`, and pnpm keeps it out of your top-level `node_modules`. Add it yourself if your own code or scripts use it, such as `typescript` for `tsc`.
 
@@ -95,11 +95,11 @@ It asks once before deleting. Everything else is advice for you to act on. opx n
 
 For example, with `lint-js`, `lint-json`, `lint-md`, or `lint-ts` enabled:
 
-| What | What opx does |
-| --- | --- |
-| An empty `.eslintrc*` or `.eslintignore` that git can restore | Offers to delete it. |
+| What                                                                                                                    | What opx does                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| An empty `.eslintrc*` or `.eslintignore` that git can restore                                                           | Offers to delete it.                                                                                                                                                                                                                                                                                                                              |
 | A legacy ESLint config with content (`.eslintrc*`, `.eslintignore`, `eslintConfig` or `eslintIgnore` in `package.json`) | Tells you opx does not apply it, and where to move what you still want: your override file if you set `lint.<name>`, otherwise a new flat config you point it at. For an `.eslintrc*` file it prints `npx @eslint/migrate-config <file>`, unless a flat config already exists, since that command overwrites one. You run it and delete the file. |
-| A package the plugin bundles (`eslint`, `globals`, …) that you list in `devDependencies` | Prints the `remove` command for your package manager, with the version the plugin ships, if nothing in the project appears to use it. |
+| A package the plugin bundles (`eslint`, `globals`, …) that you list in `devDependencies`                                | Prints the `remove` command for your package manager, with the version the plugin ships, if nothing in the project appears to use it.                                                                                                                                                                                                             |
 
 A package is held back, and shown under "Keeping", when:
 

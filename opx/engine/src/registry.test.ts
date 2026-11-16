@@ -17,7 +17,8 @@ afterEach(() => {
 });
 
 /** A detector module's source with the given default export. */
-const detector = (shortName: string) => `{ id: "x", shortName: "${shortName}", displayName: "", concern: "lint", detect: () => true, describe: () => ({ summary: "", bundledDeps: [] }) }`;
+const detector = (shortName: string) =>
+	`{ id: "x", shortName: "${shortName}", displayName: "", concern: "lint", detect: () => true, describe: () => ({ summary: "", bundledDeps: [] }) }`;
 
 /**
  * A host project, outside this repository, with plugin packages installed under
@@ -30,7 +31,10 @@ function host(packages: Record<string, string>): string {
 	for (const [name, source] of Object.entries(packages)) {
 		const pkg = join(dir, "node_modules", name);
 		mkdirSync(join(pkg, "bin"), { recursive: true });
-		writeFileSync(join(pkg, "package.json"), JSON.stringify({ name, type: "module", exports: { ".": { import: "./bin/index.js" } } }));
+		writeFileSync(
+			join(pkg, "package.json"),
+			JSON.stringify({ name, type: "module", exports: { ".": { import: "./bin/index.js" } } }),
+		);
 		writeFileSync(join(pkg, "bin", "index.js"), source);
 	}
 	return dir;
@@ -61,7 +65,10 @@ describe("resolvePluginPackageName", () => {
 });
 
 describe("normalizeDetectorId", () => {
-	const pkg: PackageJson = { dependencies: { "@allons-y/opx-lint-js": "1" }, devDependencies: { "opx-plugin-x": "1" } };
+	const pkg: PackageJson = {
+		dependencies: { "@allons-y/opx-lint-js": "1" },
+		devDependencies: { "opx-plugin-x": "1" },
+	};
 
 	it("resolves a candidate present in deps or devDeps", () => {
 		expect(normalizeDetectorId("lint-js", pkg)).toBe("@allons-y/opx-lint-js");
@@ -106,13 +113,19 @@ describe("loadPlugins", () => {
 		const root = host({ "opx-plugin-good": `export default ${detector("good")};\n` });
 		const workspace = join(root, "packages", "app");
 		mkdirSync(workspace, { recursive: true });
-		const loaded = await loadPlugins(["opx-plugin-good"], options(workspace, { devDependencies: { "opx-plugin-good": "1" } }));
+		const loaded = await loadPlugins(
+			["opx-plugin-good"],
+			options(workspace, { devDependencies: { "opx-plugin-good": "1" } }),
+		);
 		expect(loaded).toHaveLength(1);
 	});
 
 	it("loads a default export that is an array of detectors", async () => {
 		const cwd = host({ "opx-plugin-many": `export default [${detector("a")}, ${detector("b")}];\n` });
-		const loaded = await loadPlugins(["opx-plugin-many"], options(cwd, { dependencies: { "opx-plugin-many": "1" } }));
+		const loaded = await loadPlugins(
+			["opx-plugin-many"],
+			options(cwd, { dependencies: { "opx-plugin-many": "1" } }),
+		);
 		expect(loaded[0]?.detectors.map((d) => d.shortName)).toEqual(["a", "b"]);
 	});
 
@@ -126,7 +139,10 @@ describe("loadPlugins", () => {
 	it("reports skips to onSkip instead of the logger", async () => {
 		const opts = { ...options(host({}), {}), onSkip: jest.fn() };
 		await loadPlugins(["lint-css"], opts);
-		expect(opts.onSkip).toHaveBeenCalledWith("lint-css", expect.stringContaining("no matching package is installed"));
+		expect(opts.onSkip).toHaveBeenCalledWith(
+			"lint-css",
+			expect.stringContaining("no matching package is installed"),
+		);
 		expect(opts.logger.warnings).toEqual([]);
 	});
 });

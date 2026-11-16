@@ -18,8 +18,8 @@ opx enable <name> [--task <tasks...>]
 
 ## Options
 
-| Flag | Default | Description |
-| --- | --- | --- |
+| Flag                | Default                        | Description                                                                                         |
+| ------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------- |
 | `--task <tasks...>` | every task the plugin provides | One or more of `lint`, `build`. Required when opx can't load a third-party plugin to read its tasks |
 
 ## Behavior

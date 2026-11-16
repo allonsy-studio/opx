@@ -92,7 +92,11 @@ describe("state read/write", () => {
 		expect(readState(dir)).toEqual({ version: 1, deferrals: {} });
 		expect(statePath(dir)).toContain(join(".opx", "state.json"));
 
-		writeState(dir, { version: 1, lastScanCommit: "abc", deferrals: { js: { branch: "main", skipUntilDate: "2026-01-01", reason: "later" } } });
+		writeState(dir, {
+			version: 1,
+			lastScanCommit: "abc",
+			deferrals: { js: { branch: "main", skipUntilDate: "2026-01-01", reason: "later" } },
+		});
 		const read = readState(dir);
 		expect(read.lastScanCommit).toBe("abc");
 		expect(read.deferrals.js?.branch).toBe("main");
@@ -148,7 +152,11 @@ describe("isTaskEnabled", () => {
 
 describe("enabledNames", () => {
 	it("omits plugins set to false and handles a missing task", () => {
-		expect(enabledNames({ js: true, md: false, json: { dialects: [] }, css: "./x.js" })).toEqual(["js", "json", "css"]);
+		expect(enabledNames({ js: true, md: false, json: { dialects: [] }, css: "./x.js" })).toEqual([
+			"js",
+			"json",
+			"css",
+		]);
 		expect(enabledNames(undefined)).toEqual([]);
 	});
 });

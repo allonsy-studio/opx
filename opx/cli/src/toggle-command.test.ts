@@ -23,7 +23,8 @@ describe("runToggleCommand", () => {
 		return dir;
 	};
 	const configOf = (dir: string) => JSON.parse(readFileSync(join(dir, ".opx", "config.json"), "utf8"));
-	const said = (spy: ReturnType<typeof jest.spyOn>): string => spy.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
+	const said = (spy: ReturnType<typeof jest.spyOn>): string =>
+		spy.mock.calls.map((c: unknown[]) => String(c[0])).join("\n");
 
 	beforeEach(() => {
 		log = jest.spyOn(console, "log").mockImplementation(() => {});
@@ -51,28 +52,40 @@ describe("runToggleCommand", () => {
 
 	it("prints the lines the project's eslint.config.js lacks after enabling", async () => {
 		const dir = project({ version: 1, lint: { js: "./eslint.config.js" } });
-		writeFileSync(join(dir, "eslint.config.js"), 'import js from "@allons-y/opx-lint-js/eslint.config.js";\nexport default [...js];\n');
+		writeFileSync(
+			join(dir, "eslint.config.js"),
+			'import js from "@allons-y/opx-lint-js/eslint.config.js";\nexport default [...js];\n',
+		);
 		await runToggleCommand(dir, "ts", true);
 		expect(configOf(dir).lint.ts).toBe("./eslint.config.js");
 		expect(said(log)).toContain('import ts from "@allons-y/opx-lint-ts/eslint.config.js";');
 	});
 
 	it("asks for a lint-js upgrade when lint-ts joins a 0.x lint-js", async () => {
-		const dir = project({ version: 1, lint: { js: true } }, { name: "p", devDependencies: { "@allons-y/opx-lint-js": "^0.1.0-beta.0" } });
+		const dir = project(
+			{ version: 1, lint: { js: true } },
+			{ name: "p", devDependencies: { "@allons-y/opx-lint-js": "^0.1.0-beta.0" } },
+		);
 		await runToggleCommand(dir, "ts", true);
 		expect(said(log)).toContain("linted twice");
 		expect(said(log)).toContain("@allons-y/opx-lint-js@^1.0.0-beta.1");
 	});
 
 	it("gives the same advice when enabling by package id", async () => {
-		const dir = project({ version: 1, lint: { js: true } }, { name: "p", devDependencies: { "@allons-y/opx-lint-js": "^0.1.0-beta.0" } });
+		const dir = project(
+			{ version: 1, lint: { js: true } },
+			{ name: "p", devDependencies: { "@allons-y/opx-lint-js": "^0.1.0-beta.0" } },
+		);
 		await runToggleCommand(dir, "@allons-y/opx-lint-ts", true);
 		expect(configOf(dir).lint.ts).toBe(true);
 		expect(said(log)).toContain("linted twice");
 	});
 
 	it("gives no follow-up advice when nothing applies", async () => {
-		const dir = project({ version: 1, lint: { js: true } }, { name: "p", devDependencies: { "@allons-y/opx-lint-js": "^1.0.0-beta.3" } });
+		const dir = project(
+			{ version: 1, lint: { js: true } },
+			{ name: "p", devDependencies: { "@allons-y/opx-lint-js": "^1.0.0-beta.3" } },
+		);
 		await runToggleCommand(dir, "ts", true);
 		expect(log).toHaveBeenCalledTimes(1);
 		await runToggleCommand(dir, "ts", true);
@@ -160,10 +173,19 @@ describe("readConcerns", () => {
 		try {
 			const plugin = join(dir, "node_modules", "opx-plugin-both");
 			mkdirSync(plugin, { recursive: true });
-			writeFileSync(join(plugin, "package.json"), JSON.stringify({ name: "opx-plugin-both", type: "module", exports: { ".": { import: "./index.js" } } }));
-			const detector = (concern: string) => `{ id: "opx-plugin-both", shortName: "both", displayName: "Both", concern: "${concern}", detect: () => true, describe: () => ({ summary: "", bundledDeps: [] }) }`;
-			writeFileSync(join(plugin, "index.js"), `export default [${detector("build")}, ${detector("release")}, ${detector("lint")}];\n`);
-			expect(await readConcerns("opx-plugin-both", dir, { devDependencies: { "opx-plugin-both": "1.0.0" } })).toEqual(["lint", "build"]);
+			writeFileSync(
+				join(plugin, "package.json"),
+				JSON.stringify({ name: "opx-plugin-both", type: "module", exports: { ".": { import: "./index.js" } } }),
+			);
+			const detector = (concern: string) =>
+				`{ id: "opx-plugin-both", shortName: "both", displayName: "Both", concern: "${concern}", detect: () => true, describe: () => ({ summary: "", bundledDeps: [] }) }`;
+			writeFileSync(
+				join(plugin, "index.js"),
+				`export default [${detector("build")}, ${detector("release")}, ${detector("lint")}];\n`,
+			);
+			expect(
+				await readConcerns("opx-plugin-both", dir, { devDependencies: { "opx-plugin-both": "1.0.0" } }),
+			).toEqual(["lint", "build"]);
 		} finally {
 			rmSync(dir, { recursive: true, force: true });
 		}

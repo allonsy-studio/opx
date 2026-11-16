@@ -4,7 +4,16 @@ import { join } from "node:path";
 import * as p from "@clack/prompts";
 import type { Command } from "commander";
 import type { Detector, DetectorContext, Logger, PackageJson } from "@allons-y/opx";
-import { CLI_NAME, installsPeers, missingPeers, prereleaseTag, quoteSpec, splitCommand, withTag, type PeerConflict } from "../plugin-kit.js";
+import {
+	CLI_NAME,
+	installsPeers,
+	missingPeers,
+	prereleaseTag,
+	quoteSpec,
+	splitCommand,
+	withTag,
+	type PeerConflict,
+} from "../plugin-kit.js";
 
 import {
 	configPath,
@@ -27,7 +36,7 @@ import { applyCleanup, describePlan, planCleanup } from "../cleanup.js";
 import { buildContext, readHostPackage } from "../context.js";
 import { load as loadDetectors, virtualDetectors, type Suggestion } from "../built-in.js";
 import { colors } from "../colors.js";
-import { PLUGIN_CATALOG } from "../plugin-catalog.js";
+import { PLUGIN_CATALOG, tasksFor } from "../plugin-catalog.js";
 import { eslintConfigHint, scaffoldEslintConfig } from "../eslint-scaffold.js";
 import { LINT_JS, LINT_JS_UPGRADE, lintJsLintsTypeScript } from "../lint-js-version.js";
 import { saveConfig } from "../save-config.js";
@@ -66,7 +75,10 @@ export default function register(program: Command): void {
 		.option("--quiet", "suppress informational output when --auto exits early", false)
 		.option("--cleanup", "show what your plugins make unnecessary, and offer to delete empty files git can restore")
 		.option("--yes", "accept every suggestion that matches your files, without prompting")
-		.option("--accept <names>", "accept these plugins without prompting (comma-separated short names, such as js,md,release)")
+		.option(
+			"--accept <names>",
+			"accept these plugins without prompting (comma-separated short names, such as js,md,release)",
+		)
 		.action(async (opts: InitOptions) => {
 			const cwd = process.cwd();
 			const mode = detectMode(false);
@@ -75,7 +87,12 @@ export default function register(program: Command): void {
 			if (!opts.auto && (opts.yes || opts.accept)) {
 				process.exitCode = await runAccept(cwd, runInstall, {
 					tag,
-					accept: opts.accept ? opts.accept.split(",").map((n) => n.trim()).filter(Boolean) : "files",
+					accept: opts.accept
+						? opts.accept
+								.split(",")
+								.map((n) => n.trim())
+								.filter(Boolean)
+						: "files",
 					cleanup: opts.cleanup,
 				});
 				return;
@@ -108,7 +125,7 @@ export const runInstall: InstallRunner = async (cmd, cwd) => {
 /** Whether a suggestion is already covered by the config. */
 function isPending(s: Suggestion, config: OpxConfig): boolean {
 	if (s.shortName === "release") return !isTaskEnabled(config.release);
-	if (s.pkg.includes("opx-build-")) return !enabledNames(config.build).includes(s.shortName);
+	if (tasksFor(s.shortName).includes("build")) return !enabledNames(config.build).includes(s.shortName);
 	return !enabledNames(config.lint).includes(s.shortName);
 }
 
@@ -123,7 +140,13 @@ function isPending(s: Suggestion, config: OpxConfig): boolean {
  * @param candidates - Install specs, updated in place.
  * @returns Whether an installed 0.x release is being upgraded.
  */
-function pairLintJs(cwd: string, hostPkg: PackageJson, accepted: Suggestion[], nextConfig: OpxConfig, candidates: string[]): boolean {
+function pairLintJs(
+	cwd: string,
+	hostPkg: PackageJson,
+	accepted: Suggestion[],
+	nextConfig: OpxConfig,
+	candidates: string[],
+): boolean {
 	if (!accepted.some((s) => s.shortName === "ts") || !enabledNames(nextConfig.lint).includes("js")) return false;
 	const fresh = candidates.indexOf(LINT_JS);
 	if (fresh >= 0) {
@@ -137,16 +160,21 @@ function pairLintJs(cwd: string, hostPkg: PackageJson, accepted: Suggestion[], n
 
 /** The config with the accepted suggestions switched on; everything else is kept. */
 function applyAccepted(config: OpxConfig, accepted: Suggestion[]): OpxConfig {
-	const names = (marker: string): string[] => accepted.filter((s) => s.pkg.includes(marker)).map((s) => s.shortName);
+	const names = (task: "lint" | "build"): string[] =>
+		accepted.filter((s) => tasksFor(s.shortName).includes(task)).map((s) => s.shortName);
 	return {
 		...config,
 		lint: {
 			...(config.lint ?? {}),
-			...Object.fromEntries(names("opx-lint-").map((shortName) => [shortName, conventionSetting(config.lint, shortName)])),
+			...Object.fromEntries(
+				names("lint").map((shortName) => [shortName, conventionSetting(config.lint, shortName)]),
+			),
 		},
 		build: {
 			...(config.build ?? {}),
-			...Object.fromEntries(names("opx-build-").map((shortName) => [shortName, conventionSetting(config.build, shortName)])),
+			...Object.fromEntries(
+				names("build").map((shortName) => [shortName, conventionSetting(config.build, shortName)]),
+			),
 		},
 		// Keep release settings; `true` only turns it on.
 		release: isTaskEnabled(config.release) ? config.release : accepted.some((s) => s.shortName === "release"),
@@ -165,7 +193,11 @@ function applyAccepted(config: OpxConfig, accepted: Suggestion[]): OpxConfig {
  * @param install - Runs the package manager; defaults to spawning it.
  * @param options - Cleanup settings; see {@link CleanupOptions}.
  */
-export async function runInteractive(cwd: string, install: InstallRunner = runInstall, options: CleanupOptions = {}): Promise<void> {
+export async function runInteractive(
+	cwd: string,
+	install: InstallRunner = runInstall,
+	options: CleanupOptions = {},
+): Promise<void> {
 	p.intro(`${CLI_NAME} toolkit setup`);
 
 	if (!existsSync(configPath(cwd))) {
@@ -247,7 +279,9 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 	}
 
 	if (pairLintJs(cwd, ctx.hostPkg, accepted, nextConfig, installCandidates)) {
-		p.log.info(`Your ${LINT_JS} is a 0.x release, which also lints TypeScript. Upgrading it so lint-ts alone lints .ts files.`);
+		p.log.info(
+			`Your ${LINT_JS} is a 0.x release, which also lints TypeScript. Upgrading it so lint-ts alone lints .ts files.`,
+		);
 	}
 
 	if (installCandidates.length > 0) {
@@ -264,7 +298,9 @@ export async function runInteractive(cwd: string, install: InstallRunner = runIn
 				await install(cmd, cwd);
 				const peers = planPeers(cwd, pm, accepted, ctx.hostPkg);
 				if (peers.cmd) {
-					p.log.info(`Installing peer dependencies, which ${pm.name} doesn't install itself:\n  ${peers.cmd}`);
+					p.log.info(
+						`Installing peer dependencies, which ${pm.name} doesn't install itself:\n  ${peers.cmd}`,
+					);
 					await install(peers.cmd, cwd);
 				}
 				if (peers.unreadable.length > 0) p.log.warn(peers.hint);
@@ -339,7 +375,11 @@ function planPeers(
 ): { cmd: string; conflicts: PeerConflict[]; unreadable: string[]; hint: string } {
 	const none = { cmd: "", conflicts: [] as PeerConflict[], unreadable: [] as string[], hint: "" };
 	if (accepted.length === 0) return none;
-	const { specs, conflicts, unreadable } = missingPeers(cwd, accepted.map((s) => s.pkg), hostPkg);
+	const { specs, conflicts, unreadable } = missingPeers(
+		cwd,
+		accepted.map((s) => s.pkg),
+		hostPkg,
+	);
 	const installs = pm.certain && !installsPeers(pm.name);
 	return {
 		cmd: installs ? installCommand(pm.name, specs.map(quoteSpec), pm) : "",
@@ -355,7 +395,8 @@ function describeConflict(c: PeerConflict): string {
 }
 
 /** What to do about a peer opx left alone. */
-const CONFLICT_HINT = "opx doesn't change the versions your project uses. Move to a supported version, or expect the plugin not to work with it.";
+const CONFLICT_HINT =
+	"opx doesn't change the versions your project uses. Move to a supported version, or expect the plugin not to work with it.";
 
 /** Drops every message, so loading plugins for cleanup never warns about ones that are not installed. */
 const SILENT: Logger = { info() {}, warn() {}, error() {}, debug() {} };
@@ -376,7 +417,10 @@ async function offerCleanup(cwd: string, load: DetectorLoader): Promise<void> {
 	if (lines.length > 0) p.log.info(lines.join("\n"));
 	if (plan.delete.length === 0) return;
 
-	const confirmed = await p.confirm({ message: `Delete the ${plan.delete.length} empty file(s) listed above? git can restore them.`, initialValue: true });
+	const confirmed = await p.confirm({
+		message: `Delete the ${plan.delete.length} empty file(s) listed above? git can restore them.`,
+		initialValue: true,
+	});
 	if (p.isCancel(confirmed) || !confirmed) {
 		p.log.info("Left them in place.");
 		return;
@@ -402,7 +446,9 @@ export async function runReport(cwd: string, options: CleanupOptions = {}): Prom
 	if (remaining.length === 0) {
 		console.log(`${CLI_NAME}: nothing new to suggest.`);
 	} else {
-		console.log(`${CLI_NAME}: detected file types that match these built-in detectors (\`${CLI_NAME} init --yes\` sets them all up):`);
+		console.log(
+			`${CLI_NAME}: detected file types that match these built-in detectors (\`${CLI_NAME} init --yes\` sets them all up):`,
+		);
 		for (const s of remaining) {
 			console.log(`  - ${s.shortName}: install ${s.pkg}, then run \`${CLI_NAME} enable ${s.shortName}\``);
 		}
@@ -412,7 +458,9 @@ export async function runReport(cwd: string, options: CleanupOptions = {}): Prom
 	const quiet = buildContext({ cwd, logger: SILENT });
 	const lines = describePlan(planCleanup(quiet, await (options.detectors ?? loadDetectors)(quiet)));
 	if (lines.length > 0) {
-		console.log(`${CLI_NAME}: cleanup suggestions from your plugins (run \`${CLI_NAME} init --cleanup\` in a terminal to delete empty files):`);
+		console.log(
+			`${CLI_NAME}: cleanup suggestions from your plugins (run \`${CLI_NAME} init --cleanup\` in a terminal to delete empty files):`,
+		);
 		for (const line of lines) console.log(line);
 	}
 }
@@ -432,8 +480,13 @@ export type AcceptOptions = CleanupOptions & {
  * @param options - What to accept, plus cleanup settings; see {@link AcceptOptions}.
  * @returns `1` if a name is unknown or the install fails, otherwise `0`.
  */
-export async function runAccept(cwd: string, install: InstallRunner = runInstall, options: AcceptOptions): Promise<number> {
-	const ok = (msg: string, detail = ""): void => console.log(`  ${colors.green("✔")} ${msg}${detail ? ` ${colors.dim(detail)}` : ""}`);
+export async function runAccept(
+	cwd: string,
+	install: InstallRunner = runInstall,
+	options: AcceptOptions,
+): Promise<number> {
+	const ok = (msg: string, detail = ""): void =>
+		console.log(`  ${colors.green("✔")} ${msg}${detail ? ` ${colors.dim(detail)}` : ""}`);
 	const skip = (msg: string): void => console.log(`  ${colors.dim(`– ${msg}`)}`);
 	const hint = (msg: string): void => console.log(`    ${colors.dim(msg)}`);
 
@@ -450,7 +503,9 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 		const unknown = options.accept.filter((n) => !everything.some((s) => s.shortName === n));
 		if (unknown.length > 0) {
 			console.error(`${colors.red("✖")} Unknown plugin${unknown.length > 1 ? "s" : ""}: ${unknown.join(", ")}`);
-			console.error(`  ${colors.dim(`Use any of: ${[...new Set(everything.map((s) => s.shortName))].join(", ")}`)}`);
+			console.error(
+				`  ${colors.dim(`Use any of: ${[...new Set(everything.map((s) => s.shortName))].join(", ")}`)}`,
+			);
 			return 1;
 		}
 		chosen = everything.filter((s) => (options.accept as string[]).includes(s.shortName));
@@ -473,7 +528,9 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 	if (missing.length > 0 || (accepted.length > 0 && pm.certain && !installsPeers(pm.name))) {
 		const cmd = installCommand(pm.name, withTag(missing, options.tag), pm);
 		if (!pm.certain) {
-			console.log(`  ${colors.yellow("▲")} Not sure which package manager to use ${colors.dim(`(${pm.reason})`)}`);
+			console.log(
+				`  ${colors.yellow("▲")} Not sure which package manager to use ${colors.dim(`(${pm.reason})`)}`,
+			);
 			hint(`Run the one you use: ${cmd}`);
 		} else {
 			let running = cmd;
@@ -486,7 +543,9 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 				const peers = planPeers(cwd, pm, accepted, ctx.hostPkg);
 				if (peers.cmd) {
 					running = peers.cmd;
-					console.log(`  ${colors.cyan("●")} Installing peer dependencies ${colors.dim(`(${pm.name} doesn't install them itself)`)}`);
+					console.log(
+						`  ${colors.cyan("●")} Installing peer dependencies ${colors.dim(`(${pm.name} doesn't install them itself)`)}`,
+					);
 					await install(peers.cmd, cwd);
 					ok("Installed peer dependencies", peers.cmd);
 				}
@@ -506,7 +565,10 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 
 	if (scaffoldEslintConfig(cwd, Object.keys(nextConfig.lint ?? {}))) ok("Wrote eslint.config.js");
 	else {
-		const advice = eslintConfigHint(cwd, accepted.filter((s) => s.pkg.includes("opx-lint-")).map((s) => s.shortName));
+		const advice = eslintConfigHint(
+			cwd,
+			accepted.filter((s) => s.pkg.includes("opx-lint-")).map((s) => s.shortName),
+		);
 		if (advice) {
 			const [first, ...rest] = advice.split("\n");
 			console.log(`  ${colors.yellow("▲")} ${first}`);
@@ -533,7 +595,9 @@ export async function runAccept(cwd: string, install: InstallRunner = runInstall
 		const quiet = buildContext({ cwd, logger: SILENT });
 		const lines = describePlan(planCleanup(quiet, await (options.detectors ?? loadDetectors)(quiet)));
 		if (lines.length > 0) {
-			console.log(`  ${colors.yellow("▲")} Your plugins suggest cleanup ${colors.dim("(nothing is deleted without a terminal)")}`);
+			console.log(
+				`  ${colors.yellow("▲")} Your plugins suggest cleanup ${colors.dim("(nothing is deleted without a terminal)")}`,
+			);
 			for (const line of lines) console.log(line);
 		}
 	}

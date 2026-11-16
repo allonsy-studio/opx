@@ -7,7 +7,9 @@ import { join } from "node:path";
  */
 export function detectRepo(cwd: string): string | undefined {
 	try {
-		const pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as { repository?: string | { url?: string } };
+		const pkg = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as {
+			repository?: string | { url?: string };
+		};
 		const raw = typeof pkg.repository === "string" ? pkg.repository : pkg.repository?.url;
 		if (!raw) return undefined;
 		const url = /github\.com[/:]([^/]+\/[^/]+?)(?:\.git)?\/?$/.exec(raw);

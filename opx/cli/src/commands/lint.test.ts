@@ -67,7 +67,10 @@ describe("runLintCommand", () => {
 	it("forwards paths and flags to every runner", async () => {
 		const first = jest.fn<NonNullable<Detector["run"]>>().mockResolvedValue(0);
 		const second = jest.fn<NonNullable<Detector["run"]>>().mockResolvedValue(0);
-		load.mockResolvedValue({ detectors: [detector({ shortName: "a", run: first }), detector({ shortName: "b", run: second })], failures: [] });
+		load.mockResolvedValue({
+			detectors: [detector({ shortName: "a", run: first }), detector({ shortName: "b", run: second })],
+			failures: [],
+		});
 		await runLintCommand(ctx(), ["src", "README.md"]);
 		expect(first.mock.calls[0]?.[1]).toEqual(["src", "README.md"]);
 		expect(second.mock.calls[0]?.[1]).toEqual(["src", "README.md"]);
@@ -88,7 +91,10 @@ describe("runLintCommand", () => {
 		});
 
 		it("builds the context for the cwd with --fix, and exits with the lint result", async () => {
-			load.mockResolvedValue({ detectors: [detector({ run: async (c: DetectorContext) => (c.fix ? 4 : 0) })], failures: [] });
+			load.mockResolvedValue({
+				detectors: [detector({ run: async (c: DetectorContext) => (c.fix ? 4 : 0) })],
+				failures: [],
+			});
 			await run("--fix");
 			expect(buildContext).toHaveBeenCalledWith({ cwd: process.cwd(), fix: true });
 			expect(exit).toHaveBeenCalledWith(4);

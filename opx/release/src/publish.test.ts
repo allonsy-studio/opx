@@ -38,7 +38,10 @@ function json(path: string, data: unknown): void {
  * A committed repository with a bare `origin`. `packages` maps a folder (or `.` for a
  * single package) to its package.json.
  */
-function repo(packages: Record<string, Record<string, unknown>>, files: Record<string, string> = {}): { dir: string; origin: string } {
+function repo(
+	packages: Record<string, Record<string, unknown>>,
+	files: Record<string, string> = {},
+): { dir: string; origin: string } {
 	const root = scratch.dir("opx-publish-");
 	const dir = join(root, "work");
 	const origin = join(root, "origin.git");
@@ -47,7 +50,10 @@ function repo(packages: Record<string, Record<string, unknown>>, files: Record<s
 	if (!packages["."]) json(join(dir, "package.json"), { name: "root", private: true, workspaces: ["packages/*"] });
 	for (const [folder, pkg] of Object.entries(packages)) {
 		json(join(dir, folder, "package.json"), pkg);
-		writeFileSync(join(dir, folder, "CHANGELOG.md"), `# ${String(pkg.name)}\n\n## ${String(pkg.version)}\n\n### Minor Changes\n\n- Notes for ${String(pkg.name)}.\n\n## 0.0.1\n\n- Old.\n`);
+		writeFileSync(
+			join(dir, folder, "CHANGELOG.md"),
+			`# ${String(pkg.name)}\n\n## ${String(pkg.version)}\n\n### Minor Changes\n\n- Notes for ${String(pkg.name)}.\n\n## 0.0.1\n\n- Old.\n`,
+		);
 	}
 	json(join(dir, ".changeset", "config.json"), { baseBranch: "main" });
 	for (const [file, content] of Object.entries(files)) {
@@ -128,7 +134,9 @@ describe("githubFromEnv", () => {
 	it("needs a token, then a repository from the environment or package.json", () => {
 		const dir = scratch.dir("opx-gh-env-");
 		expect(githubFromEnv(dir, {})).toEqual({ reason: "set GITHUB_TOKEN to create them" });
-		expect(githubFromEnv(dir, { GITHUB_TOKEN: "t" })).toEqual({ reason: "no GitHub repository in package.json or GITHUB_REPOSITORY" });
+		expect(githubFromEnv(dir, { GITHUB_TOKEN: "t" })).toEqual({
+			reason: "no GitHub repository in package.json or GITHUB_REPOSITORY",
+		});
 		expect(githubFromEnv(dir, { GITHUB_TOKEN: "t", GITHUB_REPOSITORY: "o/r" })).toHaveProperty("createRelease");
 		json(join(dir, "package.json"), { repository: "github:o/r" });
 		expect(githubFromEnv(dir, { GITHUB_TOKEN: "t" })).toHaveProperty("createRelease");
@@ -137,14 +145,20 @@ describe("githubFromEnv", () => {
 
 describe("parsePublishArgs", () => {
 	it("keeps opx's flags and forwards the rest to changesets", () => {
-		expect(parsePublishArgs(["--no-push", "--tag", "next", "--no-github-release", "--otp", "1", "--action"])).toEqual({
+		expect(
+			parsePublishArgs(["--no-push", "--tag", "next", "--no-github-release", "--otp", "1", "--action"]),
+		).toEqual({
 			push: false,
 			githubReleases: false,
 			action: true,
 			noGitTag: false,
 			forwarded: ["--tag", "next", "--otp", "1"],
 		});
-		expect(parsePublishArgs(["--no-git-tag", "--no-action"])).toMatchObject({ noGitTag: true, action: false, forwarded: ["--no-git-tag"] });
+		expect(parsePublishArgs(["--no-git-tag", "--no-action"])).toMatchObject({
+			noGitTag: true,
+			action: false,
+			forwarded: ["--no-git-tag"],
+		});
 	});
 });
 
@@ -159,13 +173,22 @@ describe("resolveSettings", () => {
 	it("lets config turn things off, and flags override config", () => {
 		const dir = scratch.dir("opx-settings-");
 		const config = { push: false, githubReleases: false, action: { dist: "build", majorTag: false } };
-		expect(resolveSettings(dir, config, {})).toEqual({ push: false, githubReleases: false, action: { dist: "build", majorTag: false } });
-		expect(resolveSettings(dir, config, { push: true, githubReleases: true, action: false })).toEqual({ push: true, githubReleases: true, action: false });
+		expect(resolveSettings(dir, config, {})).toEqual({
+			push: false,
+			githubReleases: false,
+			action: { dist: "build", majorTag: false },
+		});
+		expect(resolveSettings(dir, config, { push: true, githubReleases: true, action: false })).toEqual({
+			push: true,
+			githubReleases: true,
+			action: false,
+		});
 	});
 });
 
 describe("changelogSection", () => {
-	const source = "# pkg\n\n## 1.2.0\n\n📅 _Released 8 November 2026_\n\n### Minor Changes\n\n- New.\n\n## 1.1.0\n\n- Old.\n";
+	const source =
+		"# pkg\n\n## 1.2.0\n\n📅 _Released 8 November 2026_\n\n### Minor Changes\n\n- New.\n\n## 1.1.0\n\n- Old.\n";
 
 	it("returns the notes under the version, including its ### sections", () => {
 		expect(changelogSection(source, "1.2.0")).toBe("📅 _Released 8 November 2026_\n\n### Minor Changes\n\n- New.");
@@ -197,8 +220,16 @@ describe("registryFor", () => {
 
 	it("prefers the scope's registry, from publishConfig and then the environment", () => {
 		const scoped = { "@s:registry": "https://scoped.test", registry: "https://plain.test" };
-		expect(registryFor({ name: "@s/a", publishConfig: scoped }, {})).toEqual({ url: "https://scoped.test", scope: "@s" });
-		expect(registryFor({ name: "@s/a", publishConfig: { registry: "https://plain.test" } }, { "npm_config_@s:registry": "https://env.test" })).toEqual({
+		expect(registryFor({ name: "@s/a", publishConfig: scoped }, {})).toEqual({
+			url: "https://scoped.test",
+			scope: "@s",
+		});
+		expect(
+			registryFor(
+				{ name: "@s/a", publishConfig: { registry: "https://plain.test" } },
+				{ "npm_config_@s:registry": "https://env.test" },
+			),
+		).toEqual({
 			url: "https://env.test",
 			scope: "@s",
 		});
@@ -210,13 +241,24 @@ describe("registryFor", () => {
 	});
 
 	it("falls back to publishConfig.registry, then npm_config_registry, then npm", () => {
-		expect(registryFor({ name: "a", publishConfig: { registry: "https://plain.test" } }, { npm_config_registry: "https://env.test" })).toEqual({ url: "https://plain.test" });
-		expect(registryFor({ name: "a" }, { npm_config_registry: "https://env.test" })).toEqual({ url: "https://env.test" });
+		expect(
+			registryFor(
+				{ name: "a", publishConfig: { registry: "https://plain.test" } },
+				{ npm_config_registry: "https://env.test" },
+			),
+		).toEqual({ url: "https://plain.test" });
+		expect(registryFor({ name: "a" }, { npm_config_registry: "https://env.test" })).toEqual({
+			url: "https://env.test",
+		});
 		expect(registryFor({ name: "a" }, {})).toEqual(npm);
 	});
 
 	it("treats npm and Yarn's registries, with or without a slash, as npm", () => {
-		for (const registry of ["https://registry.npmjs.org/", "https://registry.yarnpkg.com", "https://registry.yarnpkg.com/"]) {
+		for (const registry of [
+			"https://registry.npmjs.org/",
+			"https://registry.yarnpkg.com",
+			"https://registry.yarnpkg.com/",
+		]) {
 			expect(registryFor({ name: "a", publishConfig: { registry } }, {})).toEqual(npm);
 		}
 	});
@@ -229,13 +271,19 @@ describe("isOnRegistry", () => {
 	it("asks npm view for the exact version on the package's registry, in the project", async () => {
 		const npm = replying('"1.2.0"');
 		expect(await isOnRegistry("/repo", target, npm)).toBe(true);
-		expect(npm).toHaveBeenCalledWith(["view", "@s/a@1.2.0", "version", "--json", "--registry=https://r.test"], "/repo");
+		expect(npm).toHaveBeenCalledWith(
+			["view", "@s/a@1.2.0", "version", "--json", "--registry=https://r.test"],
+			"/repo",
+		);
 	});
 
 	it("passes a scoped registry under the scope's own flag", async () => {
 		const npm = replying('"1.2.0"');
 		await isOnRegistry("/repo", { ...target, registry: { url: "https://scoped.test", scope: "@s" } }, npm);
-		expect(npm).toHaveBeenCalledWith(["view", "@s/a@1.2.0", "version", "--json", "--@s:registry=https://scoped.test"], "/repo");
+		expect(npm).toHaveBeenCalledWith(
+			["view", "@s/a@1.2.0", "version", "--json", "--@s:registry=https://scoped.test"],
+			"/repo",
+		);
 	});
 
 	it("reads a version from a list, as newer npm prints it", async () => {
@@ -243,7 +291,8 @@ describe("isOnRegistry", () => {
 	});
 
 	it("counts no output, a failed lookup, another version, or unreadable output as not listed", async () => {
-		for (const output of ["", undefined, '"1.1.0"', "not json"]) expect(await isOnRegistry("/repo", target, replying(output))).toBe(false);
+		for (const output of ["", undefined, '"1.1.0"', "not json"])
+			expect(await isOnRegistry("/repo", target, replying(output))).toBe(false);
 	});
 });
 
@@ -257,7 +306,10 @@ describe("runNpm", () => {
 
 describe("registryTargets", () => {
 	it("lists public packages with their registry and skips private ones", async () => {
-		const { dir } = repo({ ...MONOREPO, "packages/c": { name: "@s/c", version: "0.1.0", publishConfig: { registry: "https://r.test" } } });
+		const { dir } = repo({
+			...MONOREPO,
+			"packages/c": { name: "@s/c", version: "0.1.0", publishConfig: { registry: "https://r.test" } },
+		});
 		expect(await registryTargets(dir, {})).toEqual([
 			{ name: "@s/a", version: "1.2.0", registry: { url: "https://registry.npmjs.org" } },
 			{ name: "@s/b", version: "2.0.0-beta.1", registry: { url: "https://registry.npmjs.org" } },
@@ -276,15 +328,27 @@ describe("runPublish", () => {
 		expect(d.published).toEqual([["--tag", "next"]]);
 		expect(originTags(origin)).toEqual(["@s/a@1.2.0", "@s/b@2.0.0-beta.1"]);
 		expect(github.created).toEqual([
-			{ tag: "@s/a@1.2.0", name: "@s/a@1.2.0", body: "### Minor Changes\n\n- Notes for @s/a.", prerelease: false },
-			{ tag: "@s/b@2.0.0-beta.1", name: "@s/b@2.0.0-beta.1", body: "### Minor Changes\n\n- Notes for @s/b.", prerelease: true },
+			{
+				tag: "@s/a@1.2.0",
+				name: "@s/a@1.2.0",
+				body: "### Minor Changes\n\n- Notes for @s/a.",
+				prerelease: false,
+			},
+			{
+				tag: "@s/b@2.0.0-beta.1",
+				name: "@s/b@2.0.0-beta.1",
+				body: "### Minor Changes\n\n- Notes for @s/b.",
+				prerelease: true,
+			},
 		]);
 		expect(d.out).toEqual(
 			expect.arrayContaining([
 				"  ✔ Tagged 2 versions  @s/a@1.2.0, @s/b@2.0.0-beta.1",
 				"  ✔ Pushed 2 tags to origin  @s/a@1.2.0, @s/b@2.0.0-beta.1",
 				"  ✔ Created 2 GitHub releases",
-				expect.stringMatching(/^ {2}@s\/a +1\.2\.0 +✔ new +✔ https:\/\/github\.com\/o\/r\/releases\/tag\/@s\/a@1\.2\.0$/),
+				expect.stringMatching(
+					/^ {2}@s\/a +1\.2\.0 +✔ new +✔ https:\/\/github\.com\/o\/r\/releases\/tag\/@s\/a@1\.2\.0$/,
+				),
 			]),
 		);
 	});
@@ -295,7 +359,12 @@ describe("runPublish", () => {
 		const again = deps(fakeGithub(["@s/a@1.2.0", "@s/b@2.0.0-beta.1"]));
 
 		expect(await runPublish(dir, [], true, again)).toBe(0);
-		expect(again.out).toEqual(expect.arrayContaining(["  – Pushing tags  origin already has them", "  – GitHub releases  every tag already has one"]));
+		expect(again.out).toEqual(
+			expect.arrayContaining([
+				"  – Pushing tags  origin already has them",
+				"  – GitHub releases  every tag already has one",
+			]),
+		);
 	});
 
 	it("stops before tagging when publishing fails and a version never reaches the registry", async () => {
@@ -306,7 +375,10 @@ describe("runPublish", () => {
 		expect(originTags(origin)).toEqual([]);
 		expect(d.waited).toEqual(REGISTRY_RETRY_MS.filter((ms) => ms > 0));
 		expect(d.looked.at(-1)).toEqual(["@s/b@2.0.0-beta.1"]);
-		expect(d.err).toEqual(["  ▲ changesets exited with 7  checking the registry", "  ✖ Publishing failed  not on the registry: @s/b@2.0.0-beta.1"]);
+		expect(d.err).toEqual([
+			"  ▲ changesets exited with 7  checking the registry",
+			"  ✖ Publishing failed  not on the registry: @s/b@2.0.0-beta.1",
+		]);
 	});
 
 	it("finishes the release when publishing fails but every version shows up on the registry", async () => {
@@ -320,7 +392,10 @@ describe("runPublish", () => {
 		expect(originTags(origin)).toEqual(["@s/a@1.2.0", "@s/b@2.0.0-beta.1"]);
 		expect(github.created).toHaveLength(2);
 		expect(d.out).toEqual(
-			expect.arrayContaining(["  ● Waiting for the registry  1 version not listed yet", "  ✔ Every version is on the registry  finishing the release"]),
+			expect.arrayContaining([
+				"  ● Waiting for the registry  1 version not listed yet",
+				"  ✔ Every version is on the registry  finishing the release",
+			]),
 		);
 		expect(d.out).not.toContain("  ✔ Published to the registry");
 	});
@@ -421,7 +496,10 @@ describe("runPublish", () => {
 describe("runPublish for a GitHub Action", () => {
 	/** A single-package Action repo with a gitignored build. */
 	function actionRepo(version = "1.4.0"): { dir: string; origin: string } {
-		const made = repo({ ".": { name: "my-action", version } }, { "action.yml": "runs:\n  main: dist/index.js\n", ".gitignore": "dist\n" });
+		const made = repo(
+			{ ".": { name: "my-action", version } },
+			{ "action.yml": "runs:\n  main: dist/index.js\n", ".gitignore": "dist\n" },
+		);
 		mkdirSync(join(made.dir, "dist"));
 		writeFileSync(join(made.dir, "dist", "index.js"), "console.log('built');\n");
 		return made;
@@ -503,9 +581,14 @@ describe("runPublish for a GitHub Action", () => {
 		process.env.GIT_CONFIG_NOSYSTEM = "1";
 		try {
 			expect(await runPublish(dir, [], true, deps(fakeGithub()))).toBe(0);
-			expect(git(dir, "log", "-1", "--format=%an <%ae>", "v1.4.0")).toBe("github-actions[bot] <41898283+github-actions[bot]@users.noreply.github.com>");
+			expect(git(dir, "log", "-1", "--format=%an <%ae>", "v1.4.0")).toBe(
+				"github-actions[bot] <41898283+github-actions[bot]@users.noreply.github.com>",
+			);
 		} finally {
-			for (const [key, value] of [["GIT_CONFIG_GLOBAL", saved.global], ["GIT_CONFIG_NOSYSTEM", saved.system]] as const) {
+			for (const [key, value] of [
+				["GIT_CONFIG_GLOBAL", saved.global],
+				["GIT_CONFIG_NOSYSTEM", saved.system],
+			] as const) {
 				if (value === undefined) delete process.env[key];
 				else process.env[key] = value;
 			}

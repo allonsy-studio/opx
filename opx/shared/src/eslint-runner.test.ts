@@ -53,7 +53,9 @@ function makeCtx(cwd: string, overrides: Partial<DetectorContext> = {}): Detecto
 		cwd,
 		config: { version: 1, lint: {} },
 		fix: false,
-		write: (chunk: string) => { out += chunk; },
+		write: (chunk: string) => {
+			out += chunk;
+		},
 		out: () => out,
 		...overrides,
 	} as unknown as DetectorContext & { out: () => string };
@@ -102,7 +104,11 @@ describe("runEslint", () => {
 		expect(relative.options.overrideConfigFile).toBe(resolve(dir, "cfg.js"));
 
 		const absolute = makeSpec(0);
-		await runEslint(makeCtx(dir, { config: { version: 1, lint: { x: "/abs/cfg.js" as never } } }), [], absolute.spec);
+		await runEslint(
+			makeCtx(dir, { config: { version: 1, lint: { x: "/abs/cfg.js" as never } } }),
+			[],
+			absolute.spec,
+		);
 		expect(absolute.options.overrideConfigFile).toBe("/abs/cfg.js");
 	});
 

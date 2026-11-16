@@ -1,6 +1,12 @@
 import type { Command } from "commander";
 
-import { enabledNames, inspectPackageManager, installCommand, isTaskEnabled, type DetectorContext } from "@allons-y/opx";
+import {
+	enabledNames,
+	inspectPackageManager,
+	installCommand,
+	isTaskEnabled,
+	type DetectorContext,
+} from "@allons-y/opx";
 
 import { buildContext } from "../context.js";
 import { UNDETECTABLE_PLUGINS, virtualDetectors } from "../built-in.js";
@@ -28,9 +34,14 @@ export type ScanOptions = {
 export function runScan(ctx: DetectorContext, opts: ScanOptions, tag?: string): number {
 	const suggestions = virtualDetectors(ctx.fileTypes, ctx.hostPkg);
 
-	const enabledLinters = new Set([...enabledNames(ctx.config.lint), ...(isTaskEnabled(ctx.config.release) ? ["release"] : [])]);
+	const enabledLinters = new Set([
+		...enabledNames(ctx.config.lint),
+		...(isTaskEnabled(ctx.config.release) ? ["release"] : []),
+	]);
 	// Plugins like release can't be inferred from files, so they never count as missing.
-	const needsPrompt = suggestions.filter((s) => !enabledLinters.has(s.shortName) && !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName));
+	const needsPrompt = suggestions.filter(
+		(s) => !enabledLinters.has(s.shortName) && !(UNDETECTABLE_PLUGINS as string[]).includes(s.shortName),
+	);
 
 	const mode = detectMode(opts.report || opts.json);
 
@@ -45,7 +56,10 @@ export function runScan(ctx: DetectorContext, opts: ScanOptions, tag?: string): 
 			needsPrompt: needsPrompt.map((s) => s.shortName),
 			packageManager: { name: pm.name, certain: pm.certain, reason: pm.reason },
 			install: missing.length > 0 ? installCommand(pm.name, withTag(missing, tag), pm) : null,
-			setup: needsPrompt.length > 0 ? `${CLI_NAME} init --accept ${needsPrompt.map((s) => s.shortName).join(",")}` : null,
+			setup:
+				needsPrompt.length > 0
+					? `${CLI_NAME} init --accept ${needsPrompt.map((s) => s.shortName).join(",")}`
+					: null,
 		};
 		process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
 	} else if (mode === "report") {
@@ -82,7 +96,11 @@ function renderReport(
 	}
 	console.log("Suggestions:");
 	for (const s of suggestions) {
-		const status = enabled.includes(s.shortName) ? "enabled" : s.installed ? "installed, not enabled" : "not installed";
+		const status = enabled.includes(s.shortName)
+			? "enabled"
+			: s.installed
+				? "installed, not enabled"
+				: "not installed";
 		console.log(`  - ${s.shortName} (${s.pkg}) — ${s.reason} [${status}]`);
 	}
 }

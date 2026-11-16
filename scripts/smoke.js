@@ -17,7 +17,10 @@ import { stripVTControlCharacters as plain } from "node:util";
 import * as pty from "@lydell/node-pty";
 
 /** Ignore the machine's git config (signing, hooks, templates) so results do not depend on it. */
-const GIT_ISOLATION = { GIT_CONFIG_GLOBAL: resolve(import.meta.dirname, "..", "configs", "empty.gitconfig"), GIT_CONFIG_NOSYSTEM: "1" };
+const GIT_ISOLATION = {
+	GIT_CONFIG_GLOBAL: resolve(import.meta.dirname, "..", "configs", "empty.gitconfig"),
+	GIT_CONFIG_NOSYSTEM: "1",
+};
 
 const root = resolve(import.meta.dirname, "..");
 /** How the packages are installed: `npm` runs every check; the others check that opx loads and runs a plugin. */
@@ -36,7 +39,11 @@ const failures = [];
  * @returns {{ status: number, stdout: string, stderr: string }}
  */
 function run(cmd, args, cwd, env = {}) {
-	const result = spawnSync(cmd, args, { cwd, encoding: "utf8", env: { ...process.env, ...GIT_ISOLATION, CI: "1", ...env } });
+	const result = spawnSync(cmd, args, {
+		cwd,
+		encoding: "utf8",
+		env: { ...process.env, ...GIT_ISOLATION, CI: "1", ...env },
+	});
 	return { status: result.status ?? 1, stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
 }
 
@@ -50,7 +57,14 @@ function check(name, ok, detail = "") {
 	console.log(`${ok ? "✔" : "✖"} ${name}`);
 	if (!ok) {
 		failures.push(name);
-		if (detail) console.log(detail.trim().split("\n").map((line) => `    ${line}`).join("\n"));
+		if (detail)
+			console.log(
+				detail
+					.trim()
+					.split("\n")
+					.map((line) => `    ${line}`)
+					.join("\n"),
+			);
 	}
 }
 
@@ -70,13 +84,14 @@ function publishablePackages() {
 /** A TypeScript file that uses the public types of every package. */
 const CONSUMER = `import { detectPackageManager, inspectPackageManager, installCommand } from "@allons-y/opx";
 import type { CleanupSuggestion, Detector, DetectorContext, PackageManagerInfo } from "@allons-y/opx";
+import formatDetector from "@allons-y/opx-format";
 import jsDetector from "@allons-y/opx-lint-js";
 import jsonDetector from "@allons-y/opx-lint-json";
 import mdDetector from "@allons-y/opx-lint-md";
 import tsDetector from "@allons-y/opx-lint-ts";
 import releaseDetector from "@allons-y/opx-release";
 
-const detectors: Detector[] = [jsDetector, jsonDetector, mdDetector, tsDetector, releaseDetector];
+const detectors: Detector[] = [formatDetector, jsDetector, jsonDetector, mdDetector, tsDetector, releaseDetector];
 const info: PackageManagerInfo = inspectPackageManager(".");
 const suggestion: CleanupSuggestion = { kind: "file", target: ".eslintrc", reason: "unused" };
 export const summary = (ctx: DetectorContext): unknown[] => [
@@ -135,24 +150,50 @@ function drive(cmd, args, cwd, steps, timeout = 90_000) {
  */
 function smokeWith(pm, tarballs) {
 	const tarball = (name) => tarballs.find((path) => new RegExp(`/allons-y-${name}-\\d`).test(path));
-	const local = Object.fromEntries(["opx", "opx-cli", "opx-lint-js"].map((name) => [`@allons-y/${name}`, `file:${tarball(name)}`]));
+	const local = Object.fromEntries(
+		["opx", "opx-cli", "opx-lint-js"].map((name) => [`@allons-y/${name}`, `file:${tarball(name)}`]),
+	);
 	const app = join(work, `app-${pm}`);
 	mkdirSync(join(app, "src"), { recursive: true });
 	mkdirSync(join(app, ".opx"));
 	writeFileSync(join(app, ".opx", "config.json"), `${JSON.stringify({ version: 1, lint: { js: true } })}\n`);
-	writeFileSync(join(app, "src", "a.js"), "export const a = 1\n");
+	writeFileSync(join(app, "src", "a.js"), "export var a = 1;\n");
 	run("git", ["init", "--quiet"], app);
 
-	const manifest = { name: `smoke-${pm}`, private: true, type: "module", devDependencies: { "@allons-y/opx-lint-js": local["@allons-y/opx-lint-js"] } };
+	const manifest = {
+		name: `smoke-${pm}`,
+		private: true,
+		type: "module",
+		devDependencies: { "@allons-y/opx-lint-js": local["@allons-y/opx-lint-js"] },
+	};
 	let installed;
 	let opx;
 	if (pm === "pnpm") {
-		writeFileSync(join(app, "package.json"), JSON.stringify({ ...manifest, devDependencies: { ...manifest.devDependencies, "@allons-y/opx-cli": local["@allons-y/opx-cli"] }, pnpm: { overrides: local } }));
+		writeFileSync(
+			join(app, "package.json"),
+			JSON.stringify({
+				...manifest,
+				devDependencies: { ...manifest.devDependencies, "@allons-y/opx-cli": local["@allons-y/opx-cli"] },
+				pnpm: { overrides: local },
+			}),
+		);
 		installed = run("npx", ["--yes", PNPM, "install"], app);
 		opx = (...args) => run("npx", ["--yes", PNPM, "exec", "opx", ...args], app);
 	} else if (pm === "yarn-pnp") {
-		const yarn = join(root, ".yarn", "releases", readdirSync(join(root, ".yarn", "releases")).find((file) => file.endsWith(".cjs")));
-		writeFileSync(join(app, "package.json"), JSON.stringify({ ...manifest, devDependencies: { ...manifest.devDependencies, "@allons-y/opx-cli": local["@allons-y/opx-cli"] }, resolutions: local }));
+		const yarn = join(
+			root,
+			".yarn",
+			"releases",
+			readdirSync(join(root, ".yarn", "releases")).find((file) => file.endsWith(".cjs")),
+		);
+		writeFileSync(
+			join(app, "package.json"),
+			JSON.stringify({
+				...manifest,
+				devDependencies: { ...manifest.devDependencies, "@allons-y/opx-cli": local["@allons-y/opx-cli"] },
+				resolutions: local,
+			}),
+		);
 		writeFileSync(join(app, ".yarnrc.yml"), "nodeLinker: pnp\nenableGlobalCache: false\n");
 		writeFileSync(join(app, "yarn.lock"), "");
 		const env = { YARN_ENABLE_IMMUTABLE_INSTALLS: "false" };
@@ -160,10 +201,18 @@ function smokeWith(pm, tarballs) {
 		opx = (...args) => run(process.execPath, [yarn, "opx", ...args], app, env);
 	} else if (pm === "global") {
 		const prefix = join(work, "global");
-		const cli = run("npm", ["install", "--prefix", prefix, "--no-audit", "--no-fund", tarball("opx"), tarball("opx-cli")], work);
+		const cli = run(
+			"npm",
+			["install", "--prefix", prefix, "--no-audit", "--no-fund", tarball("opx"), tarball("opx-cli")],
+			work,
+		);
 		check("install opx globally", cli.status === 0, cli.stderr);
 		writeFileSync(join(app, "package.json"), JSON.stringify({ ...manifest, devDependencies: {} }));
-		installed = run("npm", ["install", "--save-dev", "--no-audit", "--no-fund", tarball("opx"), tarball("opx-lint-js")], app);
+		installed = run(
+			"npm",
+			["install", "--save-dev", "--no-audit", "--no-fund", tarball("opx"), tarball("opx-lint-js")],
+			app,
+		);
 		opx = (...args) => run(join(prefix, "node_modules", ".bin", "opx"), args, app);
 	} else {
 		throw new Error(`unknown SMOKE_PM: ${pm}`);
@@ -172,8 +221,13 @@ function smokeWith(pm, tarballs) {
 	if (installed.status !== 0) return;
 
 	const failing = opx("lint");
-	check(`opx lint loads the plugin and fails on a style error (${pm})`, failing.status === 1 && /semi/.test(failing.stdout), failing.stdout + failing.stderr);
-	if (pm === "yarn-pnp") check("opx lint leaves Yarn's .pnp.cjs alone", !failing.stdout.includes(".pnp.cjs"), failing.stdout);
+	check(
+		`opx lint loads the plugin and fails on a style error (${pm})`,
+		failing.status === 1 && /no-var/.test(failing.stdout),
+		failing.stdout + failing.stderr,
+	);
+	if (pm === "yarn-pnp")
+		check("opx lint leaves Yarn's .pnp.cjs alone", !failing.stdout.includes(".pnp.cjs"), failing.stdout);
 	writeFileSync(join(app, "src", "a.js"), "export const a = 1;\n");
 	const clean = opx("lint");
 	check(`opx lint passes once it's fixed (${pm})`, clean.status === 0, clean.stdout + clean.stderr);
@@ -203,7 +257,18 @@ try {
 		const subpaths = Object.keys(JSON.parse(manifest.stdout).exports ?? {}).filter((key) => key !== ".");
 		const publint = run(join(root, "node_modules", ".bin", "publint"), [out, "--strict"], work);
 		check(`publint ${name}`, publint.status === 0, publint.stdout + publint.stderr);
-		const attw = run(join(root, "node_modules", ".bin", "attw"), [out, "--profile", "esm-only", ...(subpaths.length > 0 ? ["--exclude-entrypoints", ...subpaths] : []), "--format", "ascii"], work);
+		const attw = run(
+			join(root, "node_modules", ".bin", "attw"),
+			[
+				out,
+				"--profile",
+				"esm-only",
+				...(subpaths.length > 0 ? ["--exclude-entrypoints", ...subpaths] : []),
+				"--format",
+				"ascii",
+			],
+			work,
+		);
 		check(`attw ${name}`, attw.status === 0, attw.stdout + attw.stderr);
 	}
 
@@ -215,7 +280,10 @@ try {
 	// 2. Install the tarballs into a scratch repository.
 	const app = join(work, "app");
 	mkdirSync(join(app, "src"), { recursive: true });
-	writeFileSync(join(app, "package.json"), `${JSON.stringify({ name: "smoke-app", private: true, type: "module", devDependencies: { eslint: "^9.0.0" } }, null, "\t")}\n`);
+	writeFileSync(
+		join(app, "package.json"),
+		`${JSON.stringify({ name: "smoke-app", private: true, type: "module", devDependencies: { eslint: "^9.0.0" } }, null, "\t")}\n`,
+	);
 	writeFileSync(join(app, "src", "a.js"), "export const a = 1\n");
 	writeFileSync(join(app, "README.md"), "# Smoke\n");
 	writeFileSync(join(app, ".gitignore"), "node_modules\n.opx/*\n!.opx/config.json\n");
@@ -229,7 +297,11 @@ try {
 	if (installed.status !== 0) throw new Error("install failed");
 
 	run("git", ["add", "--all"], app);
-	run("git", ["-c", "user.name=smoke", "-c", "user.email=smoke@example.com", "commit", "--quiet", "--message", "init"], app);
+	run(
+		"git",
+		["-c", "user.name=smoke", "-c", "user.email=smoke@example.com", "commit", "--quiet", "--message", "init"],
+		app,
+	);
 
 	// A pristine copy for the real-terminal check, since the steps below change `app`.
 	const interactive = join(work, "app-interactive");
@@ -239,25 +311,42 @@ try {
 
 	// 3. Drive the CLI.
 	const version = opx("--version");
-	check("opx --version prints a version", version.status === 0 && /^\d+\.\d+\.\d+/.test(version.stdout.trim()), version.stderr);
+	check(
+		"opx --version prints a version",
+		version.status === 0 && /^\d+\.\d+\.\d+/.test(version.stdout.trim()),
+		version.stderr,
+	);
 
 	for (const name of ["lint-js", "lint-json", "lint-md", "lint-ts"]) {
 		const types = join(app, "node_modules", "@allons-y", `opx-${name}`, "bin");
-		check(`opx-${name} ships declarations, including the shared ones`, existsSync(join(types, "index.d.ts")) && existsSync(join(types, "shared", "eslint-runner.d.ts")));
+		check(
+			`opx-${name} ships declarations, including the shared ones`,
+			existsSync(join(types, "index.d.ts")) && existsSync(join(types, "shared", "eslint-runner.d.ts")),
+		);
 	}
 
-	for (const name of ["js", "json", "md", "release"]) {
+	for (const name of ["js", "json", "md", "format", "release"]) {
 		const enabled = opx("enable", name);
 		check(`opx enable ${name}`, enabled.status === 0, enabled.stderr);
 	}
 	check("opx enable rejects an unknown plugin", opx("enable", "nope").status === 1);
 
 	const config = JSON.parse(readFileSync(join(app, ".opx", "config.json"), "utf8"));
-	check("config enables js, json, and md for lint", config.lint?.js === true && config.lint?.json === true && config.lint?.md === true);
+	check(
+		"config enables js, json, md, and format for lint",
+		config.lint?.js === true &&
+			config.lint?.json === true &&
+			config.lint?.md === true &&
+			config.lint?.format === true,
+	);
 	check("config enables release", config.release === true);
 
 	const failing = opx("lint");
-	check("opx lint fails on a style error", failing.status === 1 && /semi/.test(failing.stdout), failing.stdout + failing.stderr);
+	check(
+		"opx lint fails on a formatting error",
+		failing.status === 1 && /need(s)? formatting/.test(failing.stdout) && failing.stdout.includes("src/a.js"),
+		failing.stdout + failing.stderr,
+	);
 
 	const fixed = opx("lint", "--fix");
 	check("opx lint --fix repairs it", fixed.status === 0, fixed.stdout + fixed.stderr);
@@ -270,7 +359,11 @@ try {
 	} catch {
 		scanned = null;
 	}
-	check("opx scan --json reports nothing left to enable", scanned !== null && scanned.needsPrompt.length === 0, scan.stdout + scan.stderr);
+	check(
+		"opx scan --json reports nothing left to enable",
+		scanned !== null && scanned.needsPrompt.length === 0,
+		scan.stdout + scan.stderr,
+	);
 	check("opx scan --strict exits 0", opx("scan", "--strict").status === 0);
 
 	// 4. `opx init` in a real terminal: answer every prompt and check what it wrote.
@@ -279,11 +372,16 @@ try {
 		[/Enable js/, enter],
 		[/Enable md/, enter],
 		[/Enable json/, enter],
+		[/Enable format/, enter],
 		[/Enable release/, enter],
 		[/to package\.json scripts/, enter],
 		[/Delete the \d+ empty file/, enter],
 	]);
-	check("opx init finishes in a real terminal", session.code === 0 && !session.timedOut && /Setup complete/.test(session.output), session.output);
+	check(
+		"opx init finishes in a real terminal",
+		session.code === 0 && !session.timedOut && /Setup complete/.test(session.output),
+		session.output,
+	);
 
 	const read = (file) => (existsSync(join(interactive, file)) ? readFileSync(join(interactive, file), "utf8") : "");
 	let written = {};
@@ -292,9 +390,24 @@ try {
 	} catch {
 		// reported by the check below
 	}
-	check("opx init enables the plugins that were accepted", written.lint?.js === true && written.lint?.md === true && written.lint?.json === true && written.release === true, read(".opx/config.json"));
-	check("opx init adds the lint script and scaffolds eslint.config.js", JSON.parse(read("package.json") || "{}").scripts?.lint === "opx lint" && read("eslint.config.js").includes("opx-lint-js"));
-	check("opx init deletes the empty legacy file and keeps the one with content", !existsSync(join(interactive, ".eslintrc.json")) && existsSync(join(interactive, ".eslintignore")));
+	check(
+		"opx init enables the plugins that were accepted",
+		written.lint?.js === true &&
+			written.lint?.md === true &&
+			written.lint?.json === true &&
+			written.lint?.format === true &&
+			written.release === true,
+		read(".opx/config.json"),
+	);
+	check(
+		"opx init adds the lint script and scaffolds eslint.config.js",
+		JSON.parse(read("package.json") || "{}").scripts?.lint === "opx lint" &&
+			read("eslint.config.js").includes("opx-lint-js"),
+	);
+	check(
+		"opx init deletes the empty legacy file and keeps the one with content",
+		!existsSync(join(interactive, ".eslintrc.json")) && existsSync(join(interactive, ".eslintignore")),
+	);
 
 	// 5. A TypeScript project can read the published declarations on every TypeScript
 	// version the packages allow. Declarations are checked in full, with no @types/node.
@@ -303,7 +416,18 @@ try {
 	writeFileSync(join(typesCheck, "consumer.ts"), CONSUMER);
 	writeFileSync(
 		join(typesCheck, "tsconfig.json"),
-		JSON.stringify({ compilerOptions: { module: "nodenext", moduleResolution: "nodenext", target: "es2022", strict: true, noEmit: true, skipLibCheck: false, types: [] }, files: ["consumer.ts"] }),
+		JSON.stringify({
+			compilerOptions: {
+				module: "nodenext",
+				moduleResolution: "nodenext",
+				target: "es2022",
+				strict: true,
+				noEmit: true,
+				skipLibCheck: false,
+				types: [],
+			},
+			files: ["consumer.ts"],
+		}),
 	);
 	for (const major of ["5", "6"]) {
 		const prefix = join(work, `typescript-${major}`);
@@ -311,8 +435,16 @@ try {
 		const got = run("npm", ["install", "--prefix", prefix, "--no-audit", "--no-fund", `typescript@${major}`], work);
 		check(`install TypeScript ${major}`, got.status === 0, got.stderr);
 		if (got.status !== 0) continue;
-		const tsc = run(process.execPath, [join(prefix, "node_modules", "typescript", "bin", "tsc"), "-p", join(typesCheck, "tsconfig.json")], typesCheck);
-		check(`a TypeScript ${major} project compiles against the published types`, tsc.status === 0, tsc.stdout + tsc.stderr);
+		const tsc = run(
+			process.execPath,
+			[join(prefix, "node_modules", "typescript", "bin", "tsc"), "-p", join(typesCheck, "tsconfig.json")],
+			typesCheck,
+		);
+		check(
+			`a TypeScript ${major} project compiles against the published types`,
+			tsc.status === 0,
+			tsc.stdout + tsc.stderr,
+		);
 	}
 
 	// The packed plugins' suggestions reach the CLI: an empty legacy file is offered for deletion, the rest is advice
@@ -320,10 +452,15 @@ try {
 	const init = opx("init", "--cleanup");
 	check(
 		"opx init shows the plugins' cleanup suggestions",
-		/Empty files that git can restore:\n\s+- \.eslintrc\.json/.test(init.stdout) && init.stdout.includes(".eslintignore: opx lint uses its own config"),
+		/Empty files that git can restore:\n\s+- \.eslintrc\.json/.test(init.stdout) &&
+			init.stdout.includes(".eslintignore: opx lint uses its own config"),
 		init.stdout + init.stderr,
 	);
-	check("opx init prints the migrate command for a legacy config", init.stdout.includes("Run: npx @eslint/migrate-config .eslintrc.yml"), init.stdout);
+	check(
+		"opx init prints the migrate command for a legacy config",
+		init.stdout.includes("Run: npx @eslint/migrate-config .eslintrc.yml"),
+		init.stdout,
+	);
 	check(
 		"opx init names the eslint version the plugin ships",
 		/eslint: bundled by @allons-y\/opx-lint-\w+ at (?!9\.)\d+\.\d+\.\d+/.test(init.stdout),

@@ -38,15 +38,32 @@ describe("eslintCleanup", () => {
 	it("suggests the legacy config files and package.json keys", () => {
 		const suggestions = eslintCleanup(ctx(), spec);
 		const of = (kind: string): string[] => suggestions.filter((s) => s.kind === kind).map((s) => s.target);
-		expect(of("file")).toEqual(expect.arrayContaining([".eslintrc", ".eslintrc.json", ".eslintrc.js", ".eslintrc.cjs", ".eslintrc.yml", ".eslintignore"]));
+		expect(of("file")).toEqual(
+			expect.arrayContaining([
+				".eslintrc",
+				".eslintrc.json",
+				".eslintrc.js",
+				".eslintrc.cjs",
+				".eslintrc.yml",
+				".eslintignore",
+			]),
+		);
 		expect(of("setting")).toEqual(["eslintConfig", "eslintIgnore"]);
 	});
 
 	describe("the migrate command", () => {
 		it("is offered for a legacy config when no flat config exists", () => {
 			const suggestions = eslintCleanup(ctx(), spec);
-			expect(find(suggestions, ".eslintrc.json")?.command?.run).toEqual(["npx", "@eslint/migrate-config", ".eslintrc.json"]);
-			expect(find(suggestions, ".eslintrc.yml")?.command?.run).toEqual(["npx", "@eslint/migrate-config", ".eslintrc.yml"]);
+			expect(find(suggestions, ".eslintrc.json")?.command?.run).toEqual([
+				"npx",
+				"@eslint/migrate-config",
+				".eslintrc.json",
+			]);
+			expect(find(suggestions, ".eslintrc.yml")?.command?.run).toEqual([
+				"npx",
+				"@eslint/migrate-config",
+				".eslintrc.yml",
+			]);
 		});
 
 		it("is withheld when a flat config exists, because the command would overwrite it", () => {
@@ -59,7 +76,8 @@ describe("eslintCleanup", () => {
 
 		it("is not offered for files and keys it cannot convert", () => {
 			const suggestions = eslintCleanup(ctx(), spec);
-			for (const target of [".eslintignore", "eslintConfig", "eslintIgnore"]) expect(find(suggestions, target)?.command).toBeUndefined();
+			for (const target of [".eslintignore", "eslintConfig", "eslintIgnore"])
+				expect(find(suggestions, target)?.command).toBeUndefined();
 		});
 	});
 

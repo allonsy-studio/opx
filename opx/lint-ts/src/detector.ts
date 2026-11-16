@@ -5,13 +5,13 @@ import { runEslint } from "./runner.js";
 import { TS_EXTENSIONS } from "./extensions.js";
 
 /** The packages this plugin brings with it. */
-const BUNDLED_DEPS = ["eslint", "typescript-eslint", "@stylistic/eslint-plugin"];
+const BUNDLED_DEPS = ["eslint", "typescript-eslint"];
 
 export const opxLintTsDetector: Detector = {
 	concern: "lint",
 	id: "@allons-y/opx-lint-ts",
 	shortName: "ts",
-	displayName: "TypeScript (ESLint + typescript-eslint + @stylistic)",
+	displayName: "TypeScript (ESLint + typescript-eslint)",
 	fileTypes: [...TS_EXTENSIONS],
 
 	detect(ctx: DetectorContext): boolean {
@@ -23,13 +23,18 @@ export const opxLintTsDetector: Detector = {
 
 	describe() {
 		return {
-			summary: "ESLint with typescript-eslint and @stylistic, configured by opx",
+			summary: "ESLint with typescript-eslint, configured by opx",
 			bundledDeps: BUNDLED_DEPS,
 		};
 	},
 
 	cleanup(ctx: DetectorContext) {
-		return eslintCleanup(ctx, { id: "@allons-y/opx-lint-ts", shortName: "ts", bundledDeps: BUNDLED_DEPS, from: import.meta.url });
+		return eslintCleanup(ctx, {
+			id: "@allons-y/opx-lint-ts",
+			shortName: "ts",
+			bundledDeps: BUNDLED_DEPS,
+			from: import.meta.url,
+		});
 	},
 
 	async run(ctx: DetectorContext, args: string[]): Promise<number> {

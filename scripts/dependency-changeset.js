@@ -59,7 +59,11 @@ export function buildChangeset(packages) {
 
 /** A branch name as a file name: `renovate/plugin-tools` becomes `renovate-plugin-tools`. */
 export function slugOf(branch) {
-	return branch.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+	return branch
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "")
+		.slice(0, 80);
 }
 
 /** Run git in a directory and return its output. */

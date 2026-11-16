@@ -5,7 +5,8 @@
     "js": true,
     "ts": true,
     "json": true,
-    "md": true
+    "md": true,
+    "format": "configs/prettier.config.js"
   },
   "release": true,
   "test": false

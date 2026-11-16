@@ -1,6 +1,6 @@
 # @allons-y/opx-lint-ts
 
-opx detector + runner for **TypeScript**. Bundles ESLint with [`typescript-eslint`](https://typescript-eslint.io) and [`@stylistic/eslint-plugin`](https://eslint.style), pre-configured. JavaScript is covered by [`@allons-y/opx-lint-js`](https://www.npmjs.com/package/@allons-y/opx-lint-js).
+opx detector + runner for **TypeScript**. Bundles ESLint with [`typescript-eslint`](https://typescript-eslint.io), pre-configured. Formatting belongs to [`@allons-y/opx-format`](https://www.npmjs.com/package/@allons-y/opx-format). JavaScript is covered by [`@allons-y/opx-lint-js`](https://www.npmjs.com/package/@allons-y/opx-lint-js).
 
 ## Install
 
@@ -14,10 +14,10 @@ Then enable it in `.opx/config.json`:
 
 ```json
 {
-  "version": 1,
-  "lint": {
-    "ts": true
-  }
+	"version": 1,
+	"lint": {
+		"ts": true
+	}
 }
 ```
 
@@ -29,31 +29,31 @@ Earlier betas of `@allons-y/opx-lint-js` also linted TypeScript. From 0.1.0 it l
 
 1. Install lint-ts & a JavaScript-only lint-js in one step:
 
-   ```sh
-   yarn add --dev @allons-y/opx-lint-ts "@allons-y/opx-lint-js@^0.1.0"
-   ```
+    ```sh
+    yarn add --dev @allons-y/opx-lint-ts "@allons-y/opx-lint-js@^0.1.0"
+    ```
 
 2. Run `opx enable ts`. When your other lint plugins all point at your own `eslint.config.js`, `ts` points there too.
 3. If you have your own `eslint.config.js`, spread the lint-ts config into it. `opx enable ts` prints the lines to add:
 
-   ```js
-   import js from "@allons-y/opx-lint-js/eslint.config.js";
-   import ts from "@allons-y/opx-lint-ts/eslint.config.js";
+    ```js
+    import js from "@allons-y/opx-lint-js/eslint.config.js";
+    import ts from "@allons-y/opx-lint-ts/eslint.config.js";
 
-   export default [
-   	...js,
-   	...ts,
-   	// Your own rules, such as a license header for src/**/*.ts, still apply after the spreads.
-   ];
-   ```
+    export default [
+    	...js,
+    	...ts,
+    	// Your own rules, such as a license header for src/**/*.ts, still apply after the spreads.
+    ];
+    ```
 
 `opx init` handles steps 1 & 2 when you accept `ts`, and prints the lines for step 3.
 
 ## What it covers
 
-| File types | Plugins |
-|---|---|
-| `.ts`, `.tsx`, `.mts`, `.cts` | `typescript-eslint`, `@stylistic/eslint-plugin` |
+| File types                    | Plugins             |
+| ----------------------------- | ------------------- |
+| `.ts`, `.tsx`, `.mts`, `.cts` | `typescript-eslint` |
 
 The bundled flat config owns both **semantic lint** and **formatting** — there is no separate Prettier step.
 
@@ -74,10 +74,10 @@ To swap in your own ESLint flat config, set `lint.ts` in `.opx/config.json`:
 
 ```json
 {
-  "version": 1,
-  "lint": {
-    "ts": "./eslint.config.js"
-  }
+	"version": 1,
+	"lint": {
+		"ts": "./eslint.config.js"
+	}
 }
 ```
 
@@ -91,11 +91,7 @@ The flat config is exported at `@allons-y/opx-lint-ts/eslint.config.js` as a pla
 import js from "@allons-y/opx-lint-js/eslint.config.js";
 import ts from "@allons-y/opx-lint-ts/eslint.config.js";
 
-export default [
-  ...js,
-  ...ts,
-  { files: ["**/*.ts"], rules: { "no-console": "warn" } },
-];
+export default [...js, ...ts, { files: ["**/*.ts"], rules: { "no-console": "warn" } }];
 ```
 
 Every block is `files`-scoped, so the TS formatting rules never leak onto other languages — it composes cleanly with `@allons-y/opx-lint-js`, `@allons-y/opx-lint-json`, `@allons-y/opx-lint-md`, and third-party plugins. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.

@@ -71,9 +71,12 @@ export type EslintRunSpec = {
  */
 export async function runEslint(ctx: DetectorContext, args: string[], spec: EslintRunSpec): Promise<number> {
 	const override = ctx.config.lint?.[spec.key];
-	const configFile = typeof override === "string"
-		? (isAbsolute(override) ? override : resolve(ctx.cwd, override))
-		: join(spec.configDir, "eslint.config.js");
+	const configFile =
+		typeof override === "string"
+			? isAbsolute(override)
+				? override
+				: resolve(ctx.cwd, override)
+			: join(spec.configDir, "eslint.config.js");
 
 	const requested = args.length > 0 ? filterPathsByExtension(args, spec.extensions) : null;
 	if (requested && requested.length === 0) return 0;

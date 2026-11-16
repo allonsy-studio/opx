@@ -15,7 +15,9 @@ export { CLI_NAME } from "./plugin-kit.js";
 const program = new Command();
 
 /** Get version from package.json */
-const packageJson = await readFile(new URL("../package.json", import.meta.url), "utf-8").then(JSON.parse) as PackageJson;
+const packageJson = (await readFile(new URL("../package.json", import.meta.url), "utf-8").then(
+	JSON.parse,
+)) as PackageJson;
 const version = packageJson.version;
 
 program
@@ -34,6 +36,8 @@ try {
 } catch (err) {
 	// Show a one-line message instead of a stack trace unless --debug is set.
 	const message = err instanceof Error ? err.message : String(err);
-	console.error(`${CLI_NAME}: ${program.opts<{ debug?: boolean }>().debug && err instanceof Error ? (err.stack ?? message) : message}`);
+	console.error(
+		`${CLI_NAME}: ${program.opts<{ debug?: boolean }>().debug && err instanceof Error ? (err.stack ?? message) : message}`,
+	);
 	process.exitCode = 1;
 }

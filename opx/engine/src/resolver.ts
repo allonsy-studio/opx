@@ -19,7 +19,11 @@ export type ResolvedTool = {
  * detector package, so its resolution lookups start from the detector's own
  * node_modules tree. Only its `resolve` is used, so any object with one works.
  */
-export function resolveTool(toolName: string, hostCwd: string, bundledRequire: { resolve(request: string): string }): ResolvedTool {
+export function resolveTool(
+	toolName: string,
+	hostCwd: string,
+	bundledRequire: { resolve(request: string): string },
+): ResolvedTool {
 	const hostRequire = createRequire(pathToFileURL(`${hostCwd}/__opx_resolve__`));
 	try {
 		const packagePath = hostRequire.resolve(`${toolName}/package.json`);
@@ -58,7 +62,12 @@ function exportTarget(value: unknown): string | undefined {
 export function packageEntry(manifest: { exports?: unknown; main?: unknown }): string {
 	const { exports } = manifest;
 	if (exports !== undefined && exports !== null) {
-		const root = typeof exports === "object" && !Array.isArray(exports) && Object.keys(exports).some((key) => key.startsWith(".")) ? (exports as Record<string, unknown>)["."] : exports;
+		const root =
+			typeof exports === "object" &&
+			!Array.isArray(exports) &&
+			Object.keys(exports).some((key) => key.startsWith("."))
+				? (exports as Record<string, unknown>)["."]
+				: exports;
 		const target = exportTarget(root);
 		if (target) return target;
 	}

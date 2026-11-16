@@ -5,12 +5,21 @@ import type { DetectorContext } from "@allons-y/opx";
 import { useScratch } from "shared/testing.js";
 
 import { PLUGIN_CATALOG } from "./plugin-catalog.js";
-import { suggest, virtualDetectors, load, loadTask, PACKAGE_HINTS, SUPPORTED_FILE_EXTS, UNDETECTABLE_PLUGINS } from "./built-in.js";
+import {
+	suggest,
+	virtualDetectors,
+	load,
+	loadTask,
+	PACKAGE_HINTS,
+	SUPPORTED_FILE_EXTS,
+	UNDETECTABLE_PLUGINS,
+} from "./built-in.js";
 
 const scratch = useScratch();
 
 /** A detector module's default-export source. */
-const detector = (shortName: string, concern: string) => `{ id: "x", shortName: "${shortName}", displayName: "", concern: "${concern}", detect: () => true, describe: () => ({ summary: "", bundledDeps: [] }) }`;
+const detector = (shortName: string, concern: string) =>
+	`{ id: "x", shortName: "${shortName}", displayName: "", concern: "${concern}", detect: () => true, describe: () => ({ summary: "", bundledDeps: [] }) }`;
 
 /** A host project with ESM plugin packages installed under `node_modules`, each exporting `source`. */
 function host(packages: Record<string, string>): string {
@@ -18,7 +27,10 @@ function host(packages: Record<string, string>): string {
 	for (const [name, source] of Object.entries(packages)) {
 		const pkg = join(dir, "node_modules", name);
 		mkdirSync(pkg, { recursive: true });
-		writeFileSync(join(pkg, "package.json"), JSON.stringify({ name, type: "module", exports: { ".": { import: "./index.js" } } }));
+		writeFileSync(
+			join(pkg, "package.json"),
+			JSON.stringify({ name, type: "module", exports: { ".": { import: "./index.js" } } }),
+		);
 		writeFileSync(join(pkg, "index.js"), source);
 	}
 	return dir;
@@ -117,6 +129,14 @@ describe("virtualDetectors", () => {
 		for (const ext of [".ts", ".tsx", ".mts", ".cts"]) expect(suggest(new Set([ext]))).toEqual(["ts"]);
 	});
 
+	it("suggests format whenever it suggests a lint plugin, and not otherwise", () => {
+		expect(virtualDetectors(new Set([".md"]), {}).find((r) => r.shortName === "format")).toMatchObject({
+			pkg: "@allons-y/opx-format",
+		});
+		expect(virtualDetectors(new Set([".css"]), {}).some((r) => r.shortName === "format")).toBe(false);
+		expect(UNDETECTABLE_PLUGINS).not.toContain("format");
+	});
+
 	it("works with no deps and no matches (still lists undetectable plugins)", () => {
 		const result = virtualDetectors(new Set(), {});
 		expect(result.every((r) => r.installed === false)).toBe(true);
@@ -128,7 +148,13 @@ describe("load", () => {
 	const lintJs = () => host({ "@allons-y/opx-lint-js": `export default ${detector("js", "lint")};\n` });
 
 	it("returns [] when nothing is configured/installed", async () => {
-		const loaded = await load(ctx({ cwd: host({}), hostPkg: {}, config: { version: 1, lint: {}, build: {}, release: false, test: false } }));
+		const loaded = await load(
+			ctx({
+				cwd: host({}),
+				hostPkg: {},
+				config: { version: 1, lint: {}, build: {}, release: false, test: false },
+			}),
+		);
 		expect(loaded).toEqual([]);
 	});
 
@@ -141,6 +167,17 @@ describe("load", () => {
 			}),
 		);
 		expect(loaded.map((d) => d.shortName)).toEqual(["js"]);
+	});
+
+	it("loads format, which is enabled under lint, from @allons-y/opx-format", async () => {
+		const loaded = await load(
+			ctx({
+				cwd: host({ "@allons-y/opx-format": `export default ${detector("format", "lint")};\n` }),
+				hostPkg: { devDependencies: { "@allons-y/opx-format": "1" } },
+				config: { version: 1, lint: { format: true }, build: {}, release: false, test: false },
+			}),
+		);
+		expect(loaded.map((d) => d.shortName)).toEqual(["format"]);
 	});
 
 	it("loads the release plugin when release holds settings", async () => {
@@ -159,7 +196,13 @@ describe("load", () => {
 			ctx({
 				cwd: lintJs(),
 				hostPkg: { dependencies: { "@allons-y/opx-lint-js": "1" } },
-				config: { version: 1, lint: { "@allons-y/opx-lint-js": true }, build: { "@allons-y/opx-lint-js": true, js: true }, release: false, test: false },
+				config: {
+					version: 1,
+					lint: { "@allons-y/opx-lint-js": true },
+					build: { "@allons-y/opx-lint-js": true, js: true },
+					release: false,
+					test: false,
+				},
 			}),
 		);
 		expect(loaded).toHaveLength(1);
@@ -179,20 +222,48 @@ describe("load", () => {
 
 describe("loadTask", () => {
 	it("returns only the task's own detectors, from the plugins enabled for that task", async () => {
-		const cwd = host({ "opx-plugin-mixed": `export default [${detector("a", "lint")}, ${detector("b", "build")}];\n` });
-		const config = { version: 1 as const, lint: { "opx-plugin-mixed": true }, build: {}, release: false, test: false };
-		const { detectors, failures } = await loadTask(ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-mixed": "1" } }, config }), "lint");
+		const cwd = host({
+			"opx-plugin-mixed": `export default [${detector("a", "lint")}, ${detector("b", "build")}];\n`,
+		});
+		const config = {
+			version: 1 as const,
+			lint: { "opx-plugin-mixed": true },
+			build: {},
+			release: false,
+			test: false,
+		};
+		const { detectors, failures } = await loadTask(
+			ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-mixed": "1" } }, config }),
+			"lint",
+		);
 		expect(detectors.map((d) => d.shortName)).toEqual(["a"]);
 		expect(failures).toEqual([]);
-		expect((await loadTask(ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-mixed": "1" } }, config }), "build")).detectors).toEqual([]);
+		expect(
+			(await loadTask(ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-mixed": "1" } }, config }), "build"))
+				.detectors,
+		).toEqual([]);
 	});
 
 	it("reports an enabled plugin that isn't installed or can't be imported", async () => {
 		const cwd = host({ "opx-plugin-broken": "export default ;\n" });
-		const config = { version: 1 as const, lint: { css: true, "opx-plugin-broken": true }, build: {}, release: true, test: false };
-		const lint = await loadTask(ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-broken": "1" } }, config }), "lint");
+		const config = {
+			version: 1 as const,
+			lint: { css: true, "opx-plugin-broken": true },
+			build: {},
+			release: true,
+			test: false,
+		};
+		const lint = await loadTask(
+			ctx({ cwd, hostPkg: { devDependencies: { "opx-plugin-broken": "1" } }, config }),
+			"lint",
+		);
 		expect(lint.detectors).toEqual([]);
-		expect(lint.failures).toEqual([expect.stringContaining("no matching package is installed"), expect.stringContaining('failed to import "opx-plugin-broken"')]);
-		expect((await loadTask(ctx({ cwd, hostPkg: {}, config }), "release")).failures).toEqual([expect.stringContaining('"release" is declared')]);
+		expect(lint.failures).toEqual([
+			expect.stringContaining("no matching package is installed"),
+			expect.stringContaining('failed to import "opx-plugin-broken"'),
+		]);
+		expect((await loadTask(ctx({ cwd, hostPkg: {}, config }), "release")).failures).toEqual([
+			expect.stringContaining('"release" is declared'),
+		]);
 	});
 });

@@ -71,12 +71,16 @@ const maintainerCache = new Map<string, string[]>();
  * Handles from the workspace root's `package.json` `author` and `contributors`. Cached per file.
  * @param file - Defaults to `npm_package_json`, set by npm and Yarn scripts, then `./package.json`.
  */
-export function packageMaintainers(file = process.env.npm_package_json || join(process.cwd(), "package.json")): string[] {
+export function packageMaintainers(
+	file = process.env.npm_package_json || join(process.cwd(), "package.json"),
+): string[] {
 	const root = workspaceRootPackageJson(file);
 	const cached = maintainerCache.get(root);
 	if (cached) return cached;
 	const pkg = readJson(root) as { author?: Person; contributors?: Person[] } | undefined;
-	const people = [pkg?.author, ...(Array.isArray(pkg?.contributors) ? pkg.contributors : [])].filter((p): p is Person => Boolean(p));
+	const people = [pkg?.author, ...(Array.isArray(pkg?.contributors) ? pkg.contributors : [])].filter(
+		(p): p is Person => Boolean(p),
+	);
 	const handles = [...new Set(people.map(githubHandle).filter((h): h is string => Boolean(h)))];
 	maintainerCache.set(root, handles);
 	return handles;
@@ -104,8 +108,10 @@ export function requireRepo(options: ChangelogOptions | null | undefined): strin
 
 /** Link bare `#123` references. Inline code, markdown links, autolinks, and URLs are left alone. */
 export function linkifyIssueRefs(line: string, repo: string): string {
-	return line.replace(/(`+)[^`]*?\1|\[[^\]]*\]\([^)]*\)|<[^>\s]+>|https?:\/\/[^\s)>]+|\B#([1-9]\d*)\b/g, (match, _ticks, issue: string | undefined) =>
-		issue ? `[#${issue}](${serverUrl()}/${repo}/issues/${issue})` : match,
+	return line.replace(
+		/(`+)[^`]*?\1|\[[^\]]*\]\([^)]*\)|<[^>\s]+>|https?:\/\/[^\s)>]+|\B#([1-9]\d*)\b/g,
+		(match, _ticks, issue: string | undefined) =>
+			issue ? `[#${issue}](${serverUrl()}/${repo}/issues/${issue})` : match,
 	);
 }
 
@@ -143,10 +149,14 @@ export function extractMeta(summary: string): Meta {
 	lines.forEach((line, i) => {
 		if (!inCode[i]) {
 			let match: RegExpExecArray | null;
-			if (pr === undefined && (match = /^[ \t]*(?:pr|pull|pull\s+request):\s*#?(\d+)[ \t]*$/i.exec(line))) return void (pr = Number(match[1]));
-			if (commit === undefined && (match = /^[ \t]*commit:\s*(\S+)[ \t]*$/i.exec(line))) return void (commit = match[1]);
-			if ((match = /^[ \t]*(?:author|user):\s*@?(\S+)[ \t]*$/i.exec(line))) return void authors.push(match[1] as string);
-			if (!migration && (match = /^[ \t]*(?:migration|upgrade):[ \t]*(.*)$/i.exec(line))) return void (migration = [match[1] ?? ""]);
+			if (pr === undefined && (match = /^[ \t]*(?:pr|pull|pull\s+request):\s*#?(\d+)[ \t]*$/i.exec(line)))
+				return void (pr = Number(match[1]));
+			if (commit === undefined && (match = /^[ \t]*commit:\s*(\S+)[ \t]*$/i.exec(line)))
+				return void (commit = match[1]);
+			if ((match = /^[ \t]*(?:author|user):\s*@?(\S+)[ \t]*$/i.exec(line)))
+				return void authors.push(match[1] as string);
+			if (!migration && (match = /^[ \t]*(?:migration|upgrade):[ \t]*(.*)$/i.exec(line)))
+				return void (migration = [match[1] ?? ""]);
 		}
 		(migration ?? kept).push(line);
 	});
@@ -172,7 +182,11 @@ export function compareUrl(repo: string, name: string, from: string, to: string)
 }
 
 /** Look up the PR-or-commit link and the authors; calls GitHub only when there is something to look up. */
-async function resolveLinks(repo: string, meta: Meta, changesetCommit: string | undefined): Promise<{ reference: string | null; authors: Author[] }> {
+async function resolveLinks(
+	repo: string,
+	meta: Meta,
+	changesetCommit: string | undefined,
+): Promise<{ reference: string | null; authors: Author[] }> {
 	let info: { user: string | null; links: { pull: string | null; commit: string | null; user: string | null } } = {
 		user: null,
 		links: { pull: null, commit: null, user: null },
@@ -217,7 +231,9 @@ const changelogFunctions: ChangelogFunctions = {
 			headline = "_No summary._";
 		}
 
-		const maintainers = new Set((options.maintainers ?? packageMaintainers()).map((handle) => handle.toLowerCase()));
+		const maintainers = new Set(
+			(options.maintainers ?? packageMaintainers()).map((handle) => handle.toLowerCase()),
+		);
 		const external = authors.filter((author) => !isBot(author) && !maintainers.has(author.login.toLowerCase()));
 
 		let suffix = "";
@@ -227,7 +243,11 @@ const changelogFunctions: ChangelogFunctions = {
 		const body = renderBody(rest, repo);
 		if (meta.migration) {
 			const [first = "", ...more] = meta.migration.split("\n").map((line) => line.trimEnd());
-			body.push("", `  **To upgrade:**${first ? ` ${linkifyIssueRefs(first, repo)}` : ""}`, ...renderBody(more, repo));
+			body.push(
+				"",
+				`  **To upgrade:**${first ? ` ${linkifyIssueRefs(first, repo)}` : ""}`,
+				...renderBody(more, repo),
+			);
 		}
 
 		return [`- ${linkifyIssueRefs(headline, repo)}${suffix}`, ...body].join("\n").trimEnd();
@@ -237,9 +257,15 @@ const changelogFunctions: ChangelogFunctions = {
 		const repo = requireRepo(rawOptions as ChangelogOptions | null);
 		if (dependenciesUpdated.length === 0) return "";
 		const items = dependenciesUpdated.map((dep) => {
-			const range = dep.oldVersion && dep.oldVersion !== dep.newVersion ? `${dep.oldVersion} → ${dep.newVersion}` : dep.newVersion;
+			const range =
+				dep.oldVersion && dep.oldVersion !== dep.newVersion
+					? `${dep.oldVersion} → ${dep.newVersion}`
+					: dep.newVersion;
 			// Private packages are never tagged, so there is no diff to link.
-			const diff = dep.oldVersion && dep.oldVersion !== dep.newVersion && !dep.packageJson?.private ? ` ([diff](${compareUrl(repo, dep.name, dep.oldVersion, dep.newVersion)}))` : "";
+			const diff =
+				dep.oldVersion && dep.oldVersion !== dep.newVersion && !dep.packageJson?.private
+					? ` ([diff](${compareUrl(repo, dep.name, dep.oldVersion, dep.newVersion)}))`
+					: "";
 			return `\`${dep.name}\` ${range}${diff}`;
 		});
 		if (items.length === 1) return `- Updated ${items[0]}`;

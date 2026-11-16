@@ -9,9 +9,9 @@ import { extname, basename } from "node:path";
  */
 const NAMED_TYPES: Record<string, string> = {
 	Dockerfile: "dockerfile",
-	"dockerfile": "dockerfile",
+	dockerfile: "dockerfile",
 	Makefile: "makefile",
-	"makefile": "makefile",
+	makefile: "makefile",
 	LICENSE: "license",
 	".gitignore": "gitignore",
 	".gitattributes": "gitattributes",
@@ -89,7 +89,10 @@ export function listFilesInHeadCommit(cwd: string): string[] {
 			["diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-z", "HEAD"],
 			{ cwd, stdio: ["ignore", "pipe", "ignore"] },
 		);
-		return stdout.toString("utf8").split("\0").filter((p) => p.length > 0);
+		return stdout
+			.toString("utf8")
+			.split("\0")
+			.filter((p) => p.length > 0);
 	} catch {
 		return [];
 	}

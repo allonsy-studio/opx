@@ -98,7 +98,10 @@ export function splitCommand(cmd: string): string[] {
 }
 
 /** Find an installed package's manifest the way Node resolves it, looking in each parent `node_modules`. */
-function readInstalled(cwd: string, pkg: string): PackageJson & { peerDependenciesMeta?: Record<string, { optional?: boolean }> } | undefined {
+function readInstalled(
+	cwd: string,
+	pkg: string,
+): (PackageJson & { peerDependenciesMeta?: Record<string, { optional?: boolean }> }) | undefined {
 	for (let dir = resolve(cwd); ; dir = dirname(dir)) {
 		const file = join(dir, "node_modules", ...pkg.split("/"), "package.json");
 		if (existsSync(file)) return JSON.parse(readFileSync(file, "utf8"));
@@ -138,7 +141,11 @@ function fits(cwd: string, peer: string, declared: string, range: string): boole
  * @param hostPkg - The host's `package.json`.
  * @returns Install specs, the project's peers a plugin doesn't support, and the plugins whose manifest couldn't be found, such as under Plug'n'Play.
  */
-export function missingPeers(cwd: string, plugins: string[], hostPkg: PackageJson): { specs: string[]; conflicts: PeerConflict[]; unreadable: string[] } {
+export function missingPeers(
+	cwd: string,
+	plugins: string[],
+	hostPkg: PackageJson,
+): { specs: string[]; conflicts: PeerConflict[]; unreadable: string[] } {
 	const have = { ...hostPkg.dependencies, ...hostPkg.devDependencies };
 	const specs: string[] = [];
 	const conflicts: PeerConflict[] = [];

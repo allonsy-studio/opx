@@ -22,7 +22,12 @@ function ctx(over: Over = {}): DetectorContext {
 	} as unknown as DetectorContext;
 }
 
-const flags = (over: Partial<{ report: boolean; json: boolean; strict: boolean }> = {}) => ({ report: false, json: false, strict: false, ...over });
+const flags = (over: Partial<{ report: boolean; json: boolean; strict: boolean }> = {}) => ({
+	report: false,
+	json: false,
+	strict: false,
+	...over,
+});
 
 describe("runScan", () => {
 	let log: ReturnType<typeof jest.spyOn>;
@@ -44,8 +49,10 @@ describe("runScan", () => {
 	});
 	afterEach(() => {
 		jest.restoreAllMocks();
-		if (saved.ci === undefined) delete process.env.CI; else process.env.CI = saved.ci;
-		if (saved.ni === undefined) delete process.env.OPX_NONINTERACTIVE; else process.env.OPX_NONINTERACTIVE = saved.ni;
+		if (saved.ci === undefined) delete process.env.CI;
+		else process.env.CI = saved.ci;
+		if (saved.ni === undefined) delete process.env.OPX_NONINTERACTIVE;
+		else process.env.OPX_NONINTERACTIVE = saved.ni;
 		Object.defineProperty(process.stdout, "isTTY", { value: saved.tty, configurable: true });
 	});
 
@@ -57,8 +64,10 @@ describe("runScan", () => {
 			expect(payload.branch).toBe("main");
 			expect(payload.fileTypes).toEqual([".js", ".md"]);
 			expect(payload.enabled).toEqual(["js"]);
-			expect(payload.needsPrompt).toEqual(["md"]);
-			expect(payload.suggestions.map((s: { shortName: string }) => s.shortName)).toEqual(expect.arrayContaining(["js", "md", "release"]));
+			expect(payload.needsPrompt).toEqual(["md", "format"]);
+			expect(payload.suggestions.map((s: { shortName: string }) => s.shortName)).toEqual(
+				expect.arrayContaining(["js", "md", "format", "release"]),
+			);
 		});
 
 		it("lists release as enabled, and never as needing a prompt", () => {
@@ -79,20 +88,32 @@ describe("runScan", () => {
 
 	describe("--json setup commands", () => {
 		it("gives the install command for the project's package manager, naming only what is missing, and the init command that enables it", () => {
-			runScan(ctx({ fileTypes: [".js", ".md"], pm: "pnpm@9.0.0", deps: { "@allons-y/opx-lint-js": "1.0.0" } }), flags({ json: true }));
+			runScan(
+				ctx({ fileTypes: [".js", ".md"], pm: "pnpm@9.0.0", deps: { "@allons-y/opx-lint-js": "1.0.0" } }),
+				flags({ json: true }),
+			);
 			const payload = JSON.parse(written());
-			expect(payload.install).toBe("pnpm add -D @allons-y/opx-lint-md");
-			expect(payload.setup).toBe("opx init --accept js,md");
+			expect(payload.install).toBe("pnpm add -D @allons-y/opx-lint-md @allons-y/opx-format");
+			expect(payload.setup).toBe("opx init --accept js,md,format");
 			expect(payload.packageManager).toMatchObject({ name: "pnpm", certain: true });
 		});
 
 		it("pins the install to the CLI's dist-tag when it is a prerelease", () => {
 			runScan(ctx({ fileTypes: [".js"], pm: "npm@10.0.0" }), flags({ json: true }), "beta");
-			expect(JSON.parse(written()).install).toBe("npm install --save-dev @allons-y/opx-lint-js@beta");
+			expect(JSON.parse(written()).install).toBe(
+				"npm install --save-dev @allons-y/opx-lint-js@beta @allons-y/opx-format@beta",
+			);
 		});
 
 		it("has nothing to install or set up when every matching plugin is enabled and installed", () => {
-			runScan(ctx({ fileTypes: [".js"], lint: { js: true }, deps: { "@allons-y/opx-lint-js": "1.0.0" } }), flags({ json: true }));
+			runScan(
+				ctx({
+					fileTypes: [".js"],
+					lint: { js: true, format: true },
+					deps: { "@allons-y/opx-lint-js": "1.0.0", "@allons-y/opx-format": "1.0.0" },
+				}),
+				flags({ json: true }),
+			);
 			const payload = JSON.parse(written());
 			expect(payload.install).toBeNull();
 			expect(payload.setup).toBeNull();
@@ -105,11 +126,16 @@ describe("runScan", () => {
 		});
 
 		it("exits 0 when every matching plugin is enabled", () => {
-			expect(runScan(ctx({ lint: { js: true, md: true } }), flags({ strict: true }))).toBe(0);
+			expect(runScan(ctx({ lint: { js: true, md: true, format: true } }), flags({ strict: true }))).toBe(0);
 		});
 
 		it("exits 0 when only release is missing", () => {
-			expect(runScan(ctx({ fileTypes: [".js"], lint: { js: true }, release: false }), flags({ strict: true }))).toBe(0);
+			expect(
+				runScan(
+					ctx({ fileTypes: [".js"], lint: { js: true, format: true }, release: false }),
+					flags({ strict: true }),
+				),
+			).toBe(0);
 		});
 
 		it("exits 0 without --strict even when plugins are missing", () => {
@@ -119,7 +145,10 @@ describe("runScan", () => {
 
 	describe("text output", () => {
 		it("lists file types and each plugin's status in report mode", () => {
-			runScan(ctx({ fileTypes: [".md", ".js"], lint: { js: true }, deps: { "@allons-y/opx-lint-md": "1" } }), flags({ report: true }));
+			runScan(
+				ctx({ fileTypes: [".md", ".js"], lint: { js: true }, deps: { "@allons-y/opx-lint-md": "1" } }),
+				flags({ report: true }),
+			);
 			const out = printed();
 			expect(out).toContain("File types in committed tree: .js, .md");
 			expect(out).toContain("Enabled lint detectors: js");

@@ -1,81 +1,82 @@
 {
-	"$schema": "https://www.schemastore.org/package.json",
-	"name": "opx-monorepo",
-	"version": "0.0.0",
-	"description": "opx, the _optionally_ opinionated front-end toolkit. Private monorepo root for the @allons-y/opx-* package family.",
-	"license": "Apache-2.0",
-	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
-	"homepage": "https://github.com/allonsy-studio/opx#readme",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/allonsy-studio/opx.git"
-	},
-	"bugs": {
-		"url": "https://github.com/allonsy-studio/opx/issues"
-	},
-	"private": true,
-	"type": "module",
-	"workspaces": [
-		"opx/*"
-	],
-	"scripts": {
-		"build": "yarn workspaces foreach --all --parallel --interlaced --topological-dev --no-private run build",
-		"ci": "run-s clean build typecheck",
-		"test": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run test",
-		"test:root": "node --test '!(opx|node_modules)/**/*.test.js'",
-		"coverage": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run coverage && yarn coverage:root && node scripts/coverage-report.js --check",
-		"coverage:root": "node --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage.lcov '!(opx|node_modules)/**/*.test.js'",
-		"lint": "yarn build && opx lint",
-		"format": "yarn build && opx lint --fix",
-		"smoke": "yarn build && node scripts/smoke.js",
-		"typecheck": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run typecheck",
-		"clean": "yarn workspaces foreach --all --parallel --exclude @allons-y/opx-docs run clean",
-		"docs:build": "yarn workspace @allons-y/opx-docs run build",
-		"docs:dev": "yarn workspace @allons-y/opx-docs run dev",
-		"docs:clean": "yarn workspace @allons-y/opx-docs run clean",
-		"g:build": "cd $INIT_CWD && node $PROJECT_CWD/scripts/shared.js build . && node $PROJECT_CWD/configs/esbuild.config.js",
-		"g:inject": "cd $INIT_CWD && node $PROJECT_CWD/scripts/shared.js inject .",
-		"g:uninject": "node $PROJECT_CWD/scripts/shared.js clean",
-		"g:test": "cd $INIT_CWD && cross-env NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 jest --config=$PROJECT_CWD/configs/jest.config.js --rootDir=$INIT_CWD --passWithNoTests",
-		"g:coverage": "cd $INIT_CWD && cross-env NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 jest --config=$PROJECT_CWD/configs/jest.config.js --rootDir=$INIT_CWD --passWithNoTests --coverage",
-		"g:typecheck": "cd $INIT_CWD && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
-		"g:dts": "cd $INIT_CWD && tsc -p tsconfig.json --emitDeclarationOnly --outDir bin",
-		"g:clean": "cd $INIT_CWD && rm -rf bin dist coverage .opx/cache",
-		"precommit": "lint-staged --config configs/lint-staged.config.js",
-		"prepare": "husky && envoy || true",
-		"changeset": "opx release add",
-		"version": "opx release version && yarn install --mode update-lockfile",
-		"release": "run-s clean build && opx release publish"
-	},
-	"devDependencies": {
-		"@allons-y/envoy": "^1.1.0",
-		"@allons-y/opx-cli": "workspace:*",
-		"@allons-y/opx-lint-js": "workspace:*",
-		"@allons-y/opx-lint-json": "workspace:*",
-		"@allons-y/opx-lint-md": "workspace:*",
-		"@allons-y/opx-lint-ts": "workspace:*",
-		"@allons-y/opx-release": "workspace:*",
-		"@arethetypeswrong/cli": "^0.18.5",
-		"@lydell/node-pty": "1.2.0-beta.15",
-		"@types/jest": "^30",
-		"cross-env": "^10.1.0",
-		"esbuild": "^0.28.2",
-		"husky": "^9.1.7",
-		"jest": "^30.5.2",
-		"lint-staged": "^17.6.0",
-		"npm-run-all2": "^9.0.3",
-		"publint": "^0.3.25",
-		"shared": "workspace:opx/shared",
-		"ts-jest": "^29.4.14",
-		"typescript": "^6.0.3"
-	},
-	"keywords": [
-		"opx",
-		"toolkit",
-		"linting"
-	],
-	"engines": {
-		"node": ">=24"
-	},
-	"packageManager": "yarn@4.18.1"
+  "$schema": "https://www.schemastore.org/package.json",
+  "name": "opx-monorepo",
+  "version": "0.0.0",
+  "description": "opx, the _optionally_ opinionated front-end toolkit. Private monorepo root for the @allons-y/opx-* package family.",
+  "license": "Apache-2.0",
+  "author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
+  "homepage": "https://github.com/allonsy-studio/opx#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allonsy-studio/opx.git"
+  },
+  "bugs": {
+    "url": "https://github.com/allonsy-studio/opx/issues"
+  },
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "opx/*"
+  ],
+  "scripts": {
+    "build": "yarn workspaces foreach --all --parallel --interlaced --topological-dev --no-private run build",
+    "ci": "run-s clean build typecheck",
+    "test": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run test",
+    "test:root": "node --test '!(opx|node_modules)/**/*.test.js'",
+    "coverage": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run coverage && yarn coverage:root && node scripts/coverage-report.js --check",
+    "coverage:root": "node --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage.lcov '!(opx|node_modules)/**/*.test.js'",
+    "lint": "yarn build && opx lint",
+    "format": "yarn build && opx lint --fix",
+    "smoke": "yarn build && node scripts/smoke.js",
+    "typecheck": "yarn workspaces foreach --all --parallel --interlaced --exclude @allons-y/opx-docs run typecheck",
+    "clean": "yarn workspaces foreach --all --parallel --exclude @allons-y/opx-docs run clean",
+    "docs:build": "yarn workspace @allons-y/opx-docs run build",
+    "docs:dev": "yarn workspace @allons-y/opx-docs run dev",
+    "docs:clean": "yarn workspace @allons-y/opx-docs run clean",
+    "g:build": "cd $INIT_CWD && node $PROJECT_CWD/scripts/shared.js build . && node $PROJECT_CWD/configs/esbuild.config.js",
+    "g:inject": "cd $INIT_CWD && node $PROJECT_CWD/scripts/shared.js inject .",
+    "g:uninject": "node $PROJECT_CWD/scripts/shared.js clean",
+    "g:test": "cd $INIT_CWD && cross-env NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 jest --config=$PROJECT_CWD/configs/jest.config.js --rootDir=$INIT_CWD --passWithNoTests",
+    "g:coverage": "cd $INIT_CWD && cross-env NODE_OPTIONS=--experimental-vm-modules NODE_NO_WARNINGS=1 jest --config=$PROJECT_CWD/configs/jest.config.js --rootDir=$INIT_CWD --passWithNoTests --coverage",
+    "g:typecheck": "cd $INIT_CWD && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json",
+    "g:dts": "cd $INIT_CWD && tsc -p tsconfig.json --emitDeclarationOnly --outDir bin",
+    "g:clean": "cd $INIT_CWD && rm -rf bin dist coverage .opx/cache",
+    "precommit": "lint-staged --config configs/lint-staged.config.js",
+    "prepare": "husky && envoy || true",
+    "changeset": "opx release add",
+    "version": "opx release version && yarn install --mode update-lockfile",
+    "release": "run-s clean build && opx release publish"
+  },
+  "devDependencies": {
+    "@allons-y/envoy": "^1.1.0",
+    "@allons-y/opx-cli": "workspace:*",
+    "@allons-y/opx-format": "workspace:*",
+    "@allons-y/opx-lint-js": "workspace:*",
+    "@allons-y/opx-lint-json": "workspace:*",
+    "@allons-y/opx-lint-md": "workspace:*",
+    "@allons-y/opx-lint-ts": "workspace:*",
+    "@allons-y/opx-release": "workspace:*",
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@lydell/node-pty": "1.2.0-beta.15",
+    "@types/jest": "^30",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.28.2",
+    "husky": "^9.1.7",
+    "jest": "^30.5.2",
+    "lint-staged": "^17.6.0",
+    "npm-run-all2": "^9.0.3",
+    "publint": "^0.3.25",
+    "shared": "workspace:opx/shared",
+    "ts-jest": "^29.4.14",
+    "typescript": "^6.0.3"
+  },
+  "keywords": [
+    "opx",
+    "toolkit",
+    "linting"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "yarn@4.18.1"
 }

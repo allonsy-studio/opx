@@ -13,9 +13,11 @@ const scratch = useScratch();
 describe("droppedKeysMessage", () => {
 	it("names each dropped key and the keys opx keeps", () => {
 		expect(droppedKeysMessage(["custom"])).toBe(
-			"Removed a key opx doesn't know from .opx/config.json: \"custom\". It keeps only $schema, version, lint, build, release, test.",
+			'Removed a key opx doesn\'t know from .opx/config.json: "custom". It keeps only $schema, version, lint, build, release, test.',
 		);
-		expect(droppedKeysMessage(["a", "b"])).toMatch(/^Removed keys opx doesn't know from \.opx\/config\.json: "a", "b"\./);
+		expect(droppedKeysMessage(["a", "b"])).toMatch(
+			/^Removed keys opx doesn't know from \.opx\/config\.json: "a", "b"\./,
+		);
 	});
 
 	it("is undefined when nothing was dropped", () => {

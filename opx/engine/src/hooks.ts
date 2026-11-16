@@ -6,7 +6,8 @@ import { join } from "node:path";
  * adds about a second. Yarn Plug'n'Play has no `node_modules/.bin`, so there it
  * runs through `yarn`.
  */
-const POST_COMMIT_LINE = '( if [ -f .pnp.cjs ]; then yarn opx hook post-commit; else PATH="node_modules/.bin:$PATH" opx hook post-commit; fi >/dev/null 2>&1 & ) || true';
+const POST_COMMIT_LINE =
+	'( if [ -f .pnp.cjs ]; then yarn opx hook post-commit; else PATH="node_modules/.bin:$PATH" opx hook post-commit; fi >/dev/null 2>&1 & ) || true';
 
 /** The lines earlier versions wrote, newest first, upgraded in place. */
 const LEGACY_POST_COMMIT_LINES = [

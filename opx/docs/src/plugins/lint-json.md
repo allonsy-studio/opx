@@ -19,11 +19,11 @@ yarn opx enable json
 
 ## Covers
 
-| Files | Language mode | Default |
-| --- | --- | --- |
-| `.json` | `json/json` | always on |
-| `.jsonc` | `json/jsonc` | opt in |
-| `.json5` | `json/json5` | opt in |
+| Files    | Language mode | Default   |
+| -------- | ------------- | --------- |
+| `.json`  | `json/json`   | always on |
+| `.jsonc` | `json/jsonc`  | opt in    |
+| `.json5` | `json/json5`  | opt in    |
 
 Lockfiles (`package-lock.json`, `npm-shrinkwrap.json`) are ignored.
 
@@ -33,8 +33,8 @@ Opt in to JSONC and JSON5 with `dialects`:
 
 ```json
 {
-  "version": 1,
-  "lint": { "json": { "dialects": ["jsonc", "json5"] } }
+	"version": 1,
+	"lint": { "json": { "dialects": ["jsonc", "json5"] } }
 }
 ```
 
@@ -42,8 +42,8 @@ Or replace the bundled config with your own flat config:
 
 ```json
 {
-  "version": 1,
-  "lint": { "json": "./eslint.json.config.js" }
+	"version": 1,
+	"lint": { "json": "./eslint.json.config.js" }
 }
 ```
 

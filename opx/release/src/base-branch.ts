@@ -14,7 +14,12 @@ function resolveGitDir(cwd: string): string | null {
 function hasBranch(gitDir: string, branch: string): boolean {
 	if (existsSync(join(gitDir, "refs", "heads", branch))) return true;
 	const packed = join(gitDir, "packed-refs");
-	return existsSync(packed) && readFileSync(packed, "utf8").split("\n").some((line) => line.endsWith(` refs/heads/${branch}`));
+	return (
+		existsSync(packed) &&
+		readFileSync(packed, "utf8")
+			.split("\n")
+			.some((line) => line.endsWith(` refs/heads/${branch}`))
+	);
 }
 
 /**

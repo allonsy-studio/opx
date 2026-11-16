@@ -27,7 +27,12 @@ const PACKAGES: ReleasablePackage[] = [
 /** A host that prints the way the CLI does, so console spies see plugin output. */
 const host = {
 	write: (chunk: string) => console.log(chunk.replace(/\n$/, "")),
-	logger: { info: (m: string) => console.log(m), warn: (m: string) => console.warn(m), error: (m: string) => console.error(m), debug: () => {} },
+	logger: {
+		info: (m: string) => console.log(m),
+		warn: (m: string) => console.warn(m),
+		error: (m: string) => console.error(m),
+		debug: () => {},
+	},
 };
 
 function ctx(): DetectorContext {
@@ -36,7 +41,13 @@ function ctx(): DetectorContext {
 
 describe("parseAddArgs", () => {
 	it("collects --type, repeatable/comma --pkg, --summary, and --empty", () => {
-		expect(parseAddArgs(["add"].slice(1).concat(["--type", "minor", "--pkg", "@scope/a", "--pkg", "@scope/b,@scope/c", "--summary", "hi"]))).toEqual({
+		expect(
+			parseAddArgs(
+				["add"]
+					.slice(1)
+					.concat(["--type", "minor", "--pkg", "@scope/a", "--pkg", "@scope/b,@scope/c", "--summary", "hi"]),
+			),
+		).toEqual({
 			empty: false,
 			type: "minor",
 			pkgs: ["@scope/a", "@scope/b", "@scope/c"],
@@ -80,16 +91,30 @@ describe("changesetFromFlags", () => {
 	});
 
 	it("rejects a missing type, bad type, no packages, unknown packages, and empty summary", () => {
-		expect(() => changesetFromFlags({ empty: false, pkgs: ["@scope/a"], summary: "x" }, PACKAGES)).toThrow(/--type/);
-		expect(() => changesetFromFlags({ empty: false, type: "huge", pkgs: ["@scope/a"], summary: "x" }, PACKAGES)).toThrow(/invalid --type/);
-		expect(() => changesetFromFlags({ empty: false, type: "minor", pkgs: [], summary: "x" }, PACKAGES)).toThrow(/--pkg/);
-		expect(() => changesetFromFlags({ empty: false, type: "minor", pkgs: ["@scope/nope"], summary: "x" }, PACKAGES)).toThrow(/unknown package/);
-		expect(() => changesetFromFlags({ empty: false, type: "minor", pkgs: ["@scope/a"], summary: "  " }, PACKAGES)).toThrow(/--summary/);
+		expect(() => changesetFromFlags({ empty: false, pkgs: ["@scope/a"], summary: "x" }, PACKAGES)).toThrow(
+			/--type/,
+		);
+		expect(() =>
+			changesetFromFlags({ empty: false, type: "huge", pkgs: ["@scope/a"], summary: "x" }, PACKAGES),
+		).toThrow(/invalid --type/);
+		expect(() => changesetFromFlags({ empty: false, type: "minor", pkgs: [], summary: "x" }, PACKAGES)).toThrow(
+			/--pkg/,
+		);
+		expect(() =>
+			changesetFromFlags({ empty: false, type: "minor", pkgs: ["@scope/nope"], summary: "x" }, PACKAGES),
+		).toThrow(/unknown package/);
+		expect(() =>
+			changesetFromFlags({ empty: false, type: "minor", pkgs: ["@scope/a"], summary: "  " }, PACKAGES),
+		).toThrow(/--summary/);
 	});
 });
 
 describe("runAdd", () => {
-	function deps(over: Partial<AddDeps> = {}): { deps: AddDeps; written: Changeset[]; prompt: jest.Mock<AddDeps["prompt"]> } {
+	function deps(over: Partial<AddDeps> = {}): {
+		deps: AddDeps;
+		written: Changeset[];
+		prompt: jest.Mock<AddDeps["prompt"]>;
+	} {
 		const written: Changeset[] = [];
 		const prompt = jest.fn<AddDeps["prompt"]>(async () => 0);
 		const base: AddDeps = {
@@ -114,15 +139,18 @@ describe("runAdd", () => {
 	});
 	afterEach(() => jest.restoreAllMocks());
 
-	it.each(["status", "version", "publish", "pre"])("points `%s` at its own subcommand instead of prompting", async (word) => {
-		const { deps: d, written, prompt } = deps();
+	it.each(["status", "version", "publish", "pre"])(
+		"points `%s` at its own subcommand instead of prompting",
+		async (word) => {
+			const { deps: d, written, prompt } = deps();
 
-		expect(await runAdd(ctx(), [word], d)).toBe(1);
-		expect(prompt).not.toHaveBeenCalled();
-		expect(written).toHaveLength(0);
-		expect(err).toHaveBeenCalledWith(expect.stringContaining("isn't an option"));
-		expect(log).toHaveBeenCalledWith(expect.stringContaining(`opx release ${word}`));
-	});
+			expect(await runAdd(ctx(), [word], d)).toBe(1);
+			expect(prompt).not.toHaveBeenCalled();
+			expect(written).toHaveLength(0);
+			expect(err).toHaveBeenCalledWith(expect.stringContaining("isn't an option"));
+			expect(log).toHaveBeenCalledWith(expect.stringContaining(`opx release ${word}`));
+		},
+	);
 
 	it("writes the changeset built from flags without prompting", async () => {
 		const { deps: d, written, prompt } = deps();
@@ -171,14 +199,25 @@ describe("listReleasablePackages", () => {
 	/** A workspace with a public, a private, an ignored, and an unversioned package. */
 	function workspace(config: Record<string, unknown>): string {
 		const dir = scratch.dir("opx-add-");
-		writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "root", private: true, workspaces: ["packages/*"] }));
-		const pkgs = { pub: { version: "1.0.0" }, priv: { version: "1.0.0", private: true }, skipped: { version: "1.0.0" }, nover: {} };
+		writeFileSync(
+			join(dir, "package.json"),
+			JSON.stringify({ name: "root", private: true, workspaces: ["packages/*"] }),
+		);
+		const pkgs = {
+			pub: { version: "1.0.0" },
+			priv: { version: "1.0.0", private: true },
+			skipped: { version: "1.0.0" },
+			nover: {},
+		};
 		for (const [name, extra] of Object.entries(pkgs)) {
 			mkdirSync(join(dir, "packages", name), { recursive: true });
 			writeFileSync(join(dir, "packages", name, "package.json"), JSON.stringify({ name, ...extra }));
 		}
 		mkdirSync(join(dir, ".changeset"));
-		writeFileSync(join(dir, ".changeset", "config.json"), JSON.stringify({ baseBranch: "main", ignore: ["skipped"], ...config }));
+		writeFileSync(
+			join(dir, ".changeset", "config.json"),
+			JSON.stringify({ baseBranch: "main", ignore: ["skipped"], ...config }),
+		);
 		return dir;
 	}
 
@@ -188,12 +227,16 @@ describe("listReleasablePackages", () => {
 	});
 
 	it("leaves out private packages when `privatePackages.version` is off", async () => {
-		const names = (await listReleasablePackages(workspace({ privatePackages: { version: false, tag: false } }))).map((pkg) => pkg.name);
+		const names = (
+			await listReleasablePackages(workspace({ privatePackages: { version: false, tag: false } }))
+		).map((pkg) => pkg.name);
 		expect(names).toEqual(["pub"]);
 	});
 
 	it("rejects an ignored package passed as a flag", async () => {
 		const available = await listReleasablePackages(workspace({}));
-		expect(() => changesetFromFlags({ empty: false, type: "patch", pkgs: ["skipped"], summary: "x" }, available)).toThrow(/unknown package\(s\): skipped/);
+		expect(() =>
+			changesetFromFlags({ empty: false, type: "patch", pkgs: ["skipped"], summary: "x" }, available),
+		).toThrow(/unknown package\(s\): skipped/);
 	});
 });

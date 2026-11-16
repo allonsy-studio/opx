@@ -14,10 +14,7 @@ import { extname } from "node:path";
  * Extensions are compared case-insensitively and must include the leading dot
  * (e.g. `".ts"`).
  */
-export function filterPathsByExtension(
-	paths: string[],
-	extensions: ReadonlySet<string>,
-): string[] {
+export function filterPathsByExtension(paths: string[], extensions: ReadonlySet<string>): string[] {
 	return paths.filter((path) => {
 		const ext = extname(path).toLowerCase();
 		if (ext === "" || extensions.has(ext)) return true;

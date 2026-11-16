@@ -11,8 +11,7 @@ import builtIns from "../built-in.js";
 export default function register(program: Command): void {
 	const hook = program.command("hook").description("Internal — invoked by git hooks");
 
-	hook
-		.command("post-commit")
+	hook.command("post-commit")
 		.description("Detect new file types in the latest commit and nudge the user")
 		.action(() => {
 			runPostCommit();
@@ -28,7 +27,10 @@ export default function register(program: Command): void {
  * @param cwd - The repository root.
  * @param today - Today's date as `YYYY-MM-DD`; injectable for tests.
  */
-export function runPostCommit(cwd: string = process.cwd(), today: string = new Date().toISOString().slice(0, 10)): void {
+export function runPostCommit(
+	cwd: string = process.cwd(),
+	today: string = new Date().toISOString().slice(0, 10),
+): void {
 	let config;
 	let state;
 	try {
@@ -51,11 +53,15 @@ export function runPostCommit(cwd: string = process.cwd(), today: string = new D
 	const branch = getCurrentBranch(cwd);
 
 	const suggested = builtIns.suggest(newTypes);
-	const toNudge = suggested.filter((shortName) => !enabledLinters.has(shortName) && !isDeferred(state, shortName, branch, today));
+	const toNudge = suggested.filter(
+		(shortName) => !enabledLinters.has(shortName) && !isDeferred(state, shortName, branch, today),
+	);
 
 	for (const shortName of toNudge as BuiltInShortName[]) {
 		const pkgs = builtIns.PACKAGE_HINTS[shortName];
-		console.log(`opx: new ${shortName} files detected. Run \`opx enable ${shortName}\` to wire up ${pkgs.join(", ")}.`);
+		console.log(
+			`opx: new ${shortName} files detected. Run \`opx enable ${shortName}\` to wire up ${pkgs.join(", ")}.`,
+		);
 	}
 
 	const head = getHeadCommit(cwd);

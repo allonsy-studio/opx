@@ -18,7 +18,11 @@ afterEach(() => {
 	for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
 });
 
-const git = (cwd, ...args) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t.io", "-c", "commit.gpgsign=false", ...args], { cwd, stdio: "pipe" });
+const git = (cwd, ...args) =>
+	execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t.io", "-c", "commit.gpgsign=false", ...args], {
+		cwd,
+		stdio: "pipe",
+	});
 const write = (cwd, file, value) => {
 	mkdirSync(dirname(join(cwd, file)), { recursive: true });
 	writeFileSync(join(cwd, file), `${JSON.stringify(value, null, "\t")}\n`);
@@ -33,7 +37,12 @@ function fixture() {
 	const cwd = mkdtempSync(join(tmpdir(), "opx-depcs-"));
 	dirs.push(cwd);
 	git(cwd, "init", "-b", "main");
-	write(cwd, "pkg/a/package.json", { name: "@s/a", version: "1.0.0", dependencies: { eslint: "10.11.0", globals: "17.13.0" }, devDependencies: { jest: "30.0.0" } });
+	write(cwd, "pkg/a/package.json", {
+		name: "@s/a",
+		version: "1.0.0",
+		dependencies: { eslint: "10.11.0", globals: "17.13.0" },
+		devDependencies: { jest: "30.0.0" },
+	});
 	write(cwd, "pkg/b/package.json", { name: "@s/b", version: "1.0.0", dependencies: { eslint: "10.11.0" } });
 	write(cwd, "pkg/shared/package.json", { name: "shared", private: true, dependencies: { eslint: "10.11.0" } });
 	mkdirSync(join(cwd, ".changeset"));
@@ -57,9 +66,18 @@ describe("changedDependencies", () => {
 	});
 
 	it("looks at what a user installs, not at dev dependencies", () => {
-		assert.deepEqual(changedDependencies({ devDependencies: { a: "1.0.0" } }, { devDependencies: { a: "2.0.0" } }), []);
-		assert.equal(changedDependencies({ peerDependencies: { a: "^1" } }, { peerDependencies: { a: "^2" } }).length, 1);
-		assert.equal(changedDependencies({ optionalDependencies: {} }, { optionalDependencies: { a: "1.0.0" } }).length, 1);
+		assert.deepEqual(
+			changedDependencies({ devDependencies: { a: "1.0.0" } }, { devDependencies: { a: "2.0.0" } }),
+			[],
+		);
+		assert.equal(
+			changedDependencies({ peerDependencies: { a: "^1" } }, { peerDependencies: { a: "^2" } }).length,
+			1,
+		);
+		assert.equal(
+			changedDependencies({ optionalDependencies: {} }, { optionalDependencies: { a: "1.0.0" } }).length,
+			1,
+		);
 	});
 
 	it("reports nothing when nothing moved", () => {
@@ -77,9 +95,19 @@ describe("buildChangeset", () => {
 		const change = { name: "eslint", from: "10.11.0", to: "10.12.0" };
 		const text = buildChangeset([
 			{ name: "@s/a", changes: [change, { name: "globals", from: "17.13.0", to: "17.14.0" }] },
-			{ name: "@s/b", changes: [change, { name: "x", from: undefined, to: "1.0.0" }, { name: "y", from: "1.0.0", to: undefined }] },
+			{
+				name: "@s/b",
+				changes: [
+					change,
+					{ name: "x", from: undefined, to: "1.0.0" },
+					{ name: "y", from: "1.0.0", to: undefined },
+				],
+			},
 		]);
-		assert.equal(text, '---\n"@s/a": patch\n"@s/b": patch\n---\n\nUpdate dependencies: eslint 10.11.0 → 10.12.0, globals 17.13.0 → 17.14.0, add x 1.0.0, remove y.\n');
+		assert.equal(
+			text,
+			'---\n"@s/a": patch\n"@s/b": patch\n---\n\nUpdate dependencies: eslint 10.11.0 → 10.12.0, globals 17.13.0 → 17.14.0, add x 1.0.0, remove y.\n',
+		);
 	});
 });
 
@@ -95,13 +123,24 @@ describe("slugOf", () => {
 describe("updateChangeset", () => {
 	it("writes a patch changeset for each published package whose shipped dependencies changed", () => {
 		const cwd = fixture();
-		write(cwd, "pkg/a/package.json", { name: "@s/a", version: "1.0.0", dependencies: { eslint: "10.12.0", globals: "17.13.0" }, devDependencies: { jest: "30.0.0" } });
+		write(cwd, "pkg/a/package.json", {
+			name: "@s/a",
+			version: "1.0.0",
+			dependencies: { eslint: "10.12.0", globals: "17.13.0" },
+			devDependencies: { jest: "30.0.0" },
+		});
 		write(cwd, "pkg/b/package.json", { name: "@s/b", version: "1.0.0", dependencies: { eslint: "10.12.0" } });
 		write(cwd, "pkg/shared/package.json", { name: "shared", private: true, dependencies: { eslint: "10.12.0" } });
 		commit(cwd, "bump");
 
-		assert.match(updateChangeset(cwd, "main", "renovate/lint-tools"), /^Wrote \.changeset\/renovate-lint-tools\.md for @s\/a, @s\/b\.$/);
-		assert.equal(changeset(cwd), '---\n"@s/a": patch\n"@s/b": patch\n---\n\nUpdate dependencies: eslint 10.11.0 → 10.12.0.\n');
+		assert.match(
+			updateChangeset(cwd, "main", "renovate/lint-tools"),
+			/^Wrote \.changeset\/renovate-lint-tools\.md for @s\/a, @s\/b\.$/,
+		);
+		assert.equal(
+			changeset(cwd),
+			'---\n"@s/a": patch\n"@s/b": patch\n---\n\nUpdate dependencies: eslint 10.11.0 → 10.12.0.\n',
+		);
 	});
 
 	it("leaves the file alone when run again", () => {
@@ -125,7 +164,12 @@ describe("updateChangeset", () => {
 
 	it("writes nothing for dev dependencies, private packages, or other fields", () => {
 		const cwd = fixture();
-		write(cwd, "pkg/a/package.json", { name: "@s/a", version: "1.0.1", dependencies: { eslint: "10.11.0", globals: "17.13.0" }, devDependencies: { jest: "31.0.0" } });
+		write(cwd, "pkg/a/package.json", {
+			name: "@s/a",
+			version: "1.0.1",
+			dependencies: { eslint: "10.11.0", globals: "17.13.0" },
+			devDependencies: { jest: "31.0.0" },
+		});
 		write(cwd, "pkg/shared/package.json", { name: "shared", private: true, dependencies: { eslint: "10.12.0" } });
 		commit(cwd, "dev only");
 		assert.equal(updateChangeset(cwd, "main", "renovate/lint-tools"), "No shipped dependency changed.");
@@ -146,7 +190,12 @@ describe("updateChangeset", () => {
 	it("measures from the merge base, so new commits on main do not count", () => {
 		const cwd = fixture();
 		git(cwd, "checkout", "main");
-		write(cwd, "pkg/a/package.json", { name: "@s/a", version: "1.0.0", dependencies: { eslint: "10.20.0", globals: "17.13.0" }, devDependencies: { jest: "30.0.0" } });
+		write(cwd, "pkg/a/package.json", {
+			name: "@s/a",
+			version: "1.0.0",
+			dependencies: { eslint: "10.20.0", globals: "17.13.0" },
+			devDependencies: { jest: "30.0.0" },
+		});
 		commit(cwd, "main moved on");
 		git(cwd, "checkout", "renovate/lint-tools");
 		write(cwd, "pkg/b/package.json", { name: "@s/b", version: "1.0.0", dependencies: { eslint: "10.12.0" } });

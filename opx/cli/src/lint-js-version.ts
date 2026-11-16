@@ -23,7 +23,9 @@ export const LINT_JS_UPGRADE = `${LINT_JS}@${LINT_JS_TS_FREE}`;
  */
 export function lintJsLintsTypeScript(cwd: string, hostPkg: PackageJson): boolean {
 	try {
-		const installed = JSON.parse(readFileSync(join(cwd, "node_modules", ...LINT_JS.split("/"), "package.json"), "utf8")) as PackageJson;
+		const installed = JSON.parse(
+			readFileSync(join(cwd, "node_modules", ...LINT_JS.split("/"), "package.json"), "utf8"),
+		) as PackageJson;
 		if (typeof installed.version === "string") return installed.version.startsWith("0.");
 	} catch {
 		// Not installed here; use the declared range.

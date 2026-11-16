@@ -56,7 +56,11 @@ export function write(path, content) {
  */
 function emitDeclarations(sharedDir, bin) {
 	const tsc = createRequire(import.meta.url).resolve("typescript/bin/tsc");
-	execFileSync(process.execPath, [tsc, "-p", join(sharedDir, "..", "tsconfig.json"), "--emitDeclarationOnly", "--outDir", join(bin, "shared")], { stdio: "inherit" });
+	execFileSync(
+		process.execPath,
+		[tsc, "-p", join(sharedDir, "..", "tsconfig.json"), "--emitDeclarationOnly", "--outDir", join(bin, "shared")],
+		{ stdio: "inherit" },
+	);
 }
 
 /**
@@ -126,7 +130,11 @@ export function share(mode, dir, { root, targets = TARGETS, declarations = emitD
 	}
 
 	for (const name of names) {
-		const code = transformSync(readFileSync(join(sharedDir, `${name}.ts`), "utf8"), { loader: "ts", format: "esm", target: "node24" }).code;
+		const code = transformSync(readFileSync(join(sharedDir, `${name}.ts`), "utf8"), {
+			loader: "ts",
+			format: "esm",
+			target: "node24",
+		}).code;
 
 		if (mode === "build") {
 			const compiled = join(sharedDir, `${name}.js`);
@@ -137,7 +145,13 @@ export function share(mode, dir, { root, targets = TARGETS, declarations = emitD
 		const copy = join(bin, "shared", `${name}.js`);
 		if (write(copy, code)) written.push(copy);
 		for (const file of sourceFiles(bin)) {
-			if (write(file, rewriteImports(readFileSync(file, "utf8"), `shared/${name}.js`, relativeSpecifier(file, copy)))) written.push(file);
+			if (
+				write(
+					file,
+					rewriteImports(readFileSync(file, "utf8"), `shared/${name}.js`, relativeSpecifier(file, copy)),
+				)
+			)
+				written.push(file);
 		}
 	}
 	return written;

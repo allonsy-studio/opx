@@ -36,7 +36,7 @@ export default [
 	},
 	{
 		files: ["**/*.test.ts"],
-		rules: { "@stylistic/quotes": "off" },
+		rules: { "no-unused-vars": "off" },
 	},
 ];
 ```

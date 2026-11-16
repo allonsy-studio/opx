@@ -22,10 +22,10 @@ Requires [`@allons-y/opx-cli`](https://www.npmjs.com/package/@allons-y/opx-cli).
 
 ## What it covers
 
-| File types | Language mode |
-|---|---|
-| `.md` | `markdown/commonmark` |
-| `.mdx` | `markdown/gfm` |
+| File types | Language mode         |
+| ---------- | --------------------- |
+| `.md`      | `markdown/commonmark` |
+| `.mdx`     | `markdown/gfm`        |
 
 ## Running
 
@@ -44,10 +44,10 @@ To swap in your own ESLint flat config, set `lint.md` in `.opx/config.json`:
 
 ```json
 {
-  "version": 1,
-  "lint": {
-    "md": "./eslint.markdown.config.js"
-  }
+	"version": 1,
+	"lint": {
+		"md": "./eslint.markdown.config.js"
+	}
 }
 ```
 
@@ -63,11 +63,7 @@ The flat config is exported at `@allons-y/opx-lint-md/eslint.config.js` as a pla
 import js from "@allons-y/opx-lint-js/eslint.config.js";
 import md from "@allons-y/opx-lint-md/eslint.config.js";
 
-export default [
-  ...js,
-  ...md,
-  { files: ["**/*.md"], rules: { "markdown/no-html": "off" } },
-];
+export default [...js, ...md, { files: ["**/*.md"], rules: { "markdown/no-html": "off" } }];
 ```
 
 Every block is `files`-scoped, so it composes without clobbering other languages. `opx init` scaffolds this file for you. See the [monorepo README](https://github.com/allonsy-studio/opx#composing-lint-configs-mix-and-match) for the full mix-and-match guide.

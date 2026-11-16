@@ -5,9 +5,7 @@
  */
 const enabled =
 	!("NO_COLOR" in process.env) &&
-	(process.env.FORCE_COLOR === "1" ||
-		process.env.FORCE_COLOR === "true" ||
-		process.stdout.isTTY === true);
+	(process.env.FORCE_COLOR === "1" || process.env.FORCE_COLOR === "true" || process.stdout.isTTY === true);
 
 function style(open: number, close: number): (text: string) => string {
 	return (text) => (enabled ? `\x1b[${open}m${text}\x1b[${close}m` : text);

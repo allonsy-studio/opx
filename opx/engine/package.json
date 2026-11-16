@@ -1,54 +1,54 @@
 {
-	"$schema": "https://www.schemastore.org/package.json",
-	"publishConfig": {
-		"access": "public",
-		"registry": "https://registry.npmjs.org/"
-	},
-	"name": "@allons-y/opx",
-	"version": "0.1.1",
-	"description": "opx engine — pure detector registry, scanner contract, state, plugin loader, and resolver. Consumed by @allons-y/opx-cli; build your own plugin or host on it.",
-	"license": "Apache-2.0",
-	"author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
-	"homepage": "https://github.com/allonsy-studio/opx#readme",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/allonsy-studio/opx.git",
-		"directory": "opx/engine"
-	},
-	"bugs": {
-		"url": "https://github.com/allonsy-studio/opx/issues"
-	},
-	"type": "module",
-	"exports": {
-		".": {
-			"types": "./bin/index.d.ts",
-			"import": "./bin/index.js"
-		}
-	},
-	"main": "./bin/index.js",
-	"types": "./bin/index.d.ts",
-	"files": [
-		"bin/",
-		"schema/config.json",
-		"package.json",
-		"README.md",
-		"LICENSE"
-	],
-	"scripts": {
-		"build": "yarn g:build && yarn g:dts",
-		"test": "yarn g:test",
-		"coverage": "yarn g:coverage",
-		"typecheck": "yarn g:typecheck",
-		"clean": "yarn g:clean"
-	},
-	"keywords": [
-		"opx",
-		"engine",
-		"detector",
-		"linter",
-		"plugin"
-	],
-	"engines": {
-		"node": ">=24"
-	}
+  "$schema": "https://www.schemastore.org/package.json",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "name": "@allons-y/opx",
+  "version": "0.1.1",
+  "description": "opx engine — pure detector registry, scanner contract, state, plugin loader, and resolver. Consumed by @allons-y/opx-cli; build your own plugin or host on it.",
+  "license": "Apache-2.0",
+  "author": "Cassondra Roberts <castastrophe@users.noreply.github.com> (https://allons-y.studio)",
+  "homepage": "https://github.com/allonsy-studio/opx#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allonsy-studio/opx.git",
+    "directory": "opx/engine"
+  },
+  "bugs": {
+    "url": "https://github.com/allonsy-studio/opx/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./bin/index.d.ts",
+      "import": "./bin/index.js"
+    }
+  },
+  "main": "./bin/index.js",
+  "types": "./bin/index.d.ts",
+  "files": [
+    "bin/",
+    "schema/config.json",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "yarn g:build && yarn g:dts",
+    "test": "yarn g:test",
+    "coverage": "yarn g:coverage",
+    "typecheck": "yarn g:typecheck",
+    "clean": "yarn g:clean"
+  },
+  "keywords": [
+    "opx",
+    "engine",
+    "detector",
+    "linter",
+    "plugin"
+  ],
+  "engines": {
+    "node": ">=24"
+  }
 }

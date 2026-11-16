@@ -2,7 +2,7 @@ import type { Detector, DetectorContext, PackageJson } from "@allons-y/opx";
 import { enabledNames, isTaskEnabled, loadPlugins, normalizeDetectorId } from "@allons-y/opx";
 
 import { colors } from "./colors.js";
-import { PLUGIN_CATALOG, isPackageId, type BuiltInShortName } from "./plugin-catalog.js";
+import { PLUGIN_CATALOG, loaderEntry, tasksFor, type BuiltInShortName } from "./plugin-catalog.js";
 
 export type { BuiltInShortName };
 
@@ -17,18 +17,18 @@ export type { BuiltInShortName };
  */
 
 /** Short names that can be detected from file types alone (e.g. "js", "css"). */
-export const SUPPORTED_FILE_EXTS: BuiltInShortName[] = PLUGIN_CATALOG
-	.filter((entry) => entry.extensions.length > 0)
-	.map((entry) => entry.shortName);
+export const SUPPORTED_FILE_EXTS: BuiltInShortName[] = PLUGIN_CATALOG.filter(
+	(entry) => entry.extensions.length > 0,
+).map((entry) => entry.shortName);
 
 /**
  * Plugins that are not detectable by file types alone (e.g. "release", "test").
  * Used to generate virtual builtin detector suggestions and validate contributor
  * plugins.
  */
-export const UNDETECTABLE_PLUGINS: BuiltInShortName[] = PLUGIN_CATALOG
-	.filter((entry) => entry.extensions.length === 0)
-	.map((entry) => entry.shortName);
+export const UNDETECTABLE_PLUGINS: BuiltInShortName[] = PLUGIN_CATALOG.filter(
+	(entry) => entry.extensions.length === 0 && !("companionOf" in entry),
+).map((entry) => entry.shortName);
 
 /**
  * For each built-in short name, what would the user need to install. Used
@@ -44,9 +44,9 @@ export const PACKAGE_HINTS: Record<BuiltInShortName, string[]> = Object.fromEntr
  * suggest "install @allons-y/opx-lint-css" before the user has installed it.
  */
 export function suggest(fileTypes: Set<string>): BuiltInShortName[] {
-	return PLUGIN_CATALOG
-		.filter((entry) => entry.extensions.some((ext) => fileTypes.has(ext)))
-		.map((entry) => entry.shortName);
+	return PLUGIN_CATALOG.filter((entry) => entry.extensions.some((ext) => fileTypes.has(ext))).map(
+		(entry) => entry.shortName,
+	);
 }
 
 /**
@@ -57,14 +57,18 @@ export function suggest(fileTypes: Set<string>): BuiltInShortName[] {
  */
 export async function load(ctx: DetectorContext): Promise<Detector[]> {
 	const entriesFor = (task: "lint" | "build"): string[] =>
-		enabledNames(ctx.config[task]).map((name) => (isPackageId(name) ? name : `${task}-${name}`));
+		enabledNames(ctx.config[task]).map((name) => loaderEntry(task, name));
 	const entries = [
 		...entriesFor("lint"),
 		...entriesFor("build"),
 		...(isTaskEnabled(ctx.config.release) ? ["release"] : []),
 		...(ctx.config.test === true ? ["test"] : []),
 	];
-	const installed = [...new Set(entries.map((entry) => normalizeDetectorId(entry, ctx.hostPkg)).filter((id): id is string => id !== null))];
+	const installed = [
+		...new Set(
+			entries.map((entry) => normalizeDetectorId(entry, ctx.hostPkg)).filter((id): id is string => id !== null),
+		),
+	];
 
 	const plugins = await loadPlugins(installed, {
 		hostPkg: ctx.hostPkg,
@@ -91,9 +95,12 @@ export type TaskPlugins = {
  * passing without running it.
  */
 export async function loadTask(ctx: DetectorContext, task: RunnableTask): Promise<TaskPlugins> {
-	const entries = task === "release"
-		? (isTaskEnabled(ctx.config.release) ? ["release"] : [])
-		: enabledNames(ctx.config[task]).map((name) => (isPackageId(name) ? name : `${task}-${name}`));
+	const entries =
+		task === "release"
+			? isTaskEnabled(ctx.config.release)
+				? ["release"]
+				: []
+			: enabledNames(ctx.config[task]).map((name) => loaderEntry(task, name));
 	const failures: string[] = [];
 	const plugins = await loadPlugins([...new Set(entries)], {
 		hostPkg: ctx.hostPkg,
@@ -129,6 +136,12 @@ export type Suggestion = {
 export function virtualDetectors(fileTypes: Set<string>, hostPkg: PackageJson): Suggestion[] {
 	const deps = { ...(hostPkg.dependencies ?? {}), ...(hostPkg.devDependencies ?? {}) };
 	const matched = new Set<string>([...suggest(fileTypes), ...UNDETECTABLE_PLUGINS]);
+	// A companion rides along with the first plugin for its task.
+	for (const entry of PLUGIN_CATALOG) {
+		const task = "companionOf" in entry ? entry.companionOf : undefined;
+		if (task && [...matched].some((name) => name !== entry.shortName && tasksFor(name).includes(task)))
+			matched.add(entry.shortName);
+	}
 	return PLUGIN_CATALOG.filter((entry) => matched.has(entry.shortName)).flatMap((entry) =>
 		entry.packages.map((pkg) => ({
 			shortName: entry.shortName,

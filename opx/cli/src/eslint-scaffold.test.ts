@@ -84,13 +84,15 @@ describe("eslintConfigHint", () => {
 	});
 
 	it("lists the import and spread an existing config lacks", () => {
-		const dir = withConfig('import js from "@allons-y/opx-lint-js/eslint.config.js";\nexport default [...js, { files: ["src/**/*.ts"] }];\n');
+		const dir = withConfig(
+			'import js from "@allons-y/opx-lint-js/eslint.config.js";\nexport default [...js, { files: ["src/**/*.ts"] }];\n',
+		);
 		const hint = eslintConfigHint(dir, ["js", "ts"]);
 		expect(hint).toContain("eslint.config.js doesn't include the ts config");
 		expect(hint).toContain('import ts from "@allons-y/opx-lint-ts/eslint.config.js";');
 		expect(hint).toContain("...ts,");
 		expect(hint).toContain("spread it into");
-		expect(hint).not.toContain("opx-lint-js/eslint.config.js\";\n");
+		expect(hint).not.toContain('opx-lint-js/eslint.config.js";\n');
 		rmSync(dir, { recursive: true });
 	});
 

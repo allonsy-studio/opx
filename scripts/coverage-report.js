@@ -50,7 +50,15 @@ export function parseLcov(source) {
 		else if (key in sums) sums[key] += Number(value) || 0;
 	}
 	const lines = { total: sums.LF, covered: sums.LH };
-	return { total: { lines, statements: lines, branches: { total: sums.BRF, covered: sums.BRH }, functions: { total: sums.FNF, covered: sums.FNH } }, files };
+	return {
+		total: {
+			lines,
+			statements: lines,
+			branches: { total: sums.BRF, covered: sums.BRH },
+			functions: { total: sums.FNF, covered: sums.FNH },
+		},
+		files,
+	};
 }
 
 /** Code outside the workspaces; config files and the smoke test aren't code to cover. */
@@ -83,7 +91,13 @@ export function combine(rows) {
 	return Object.fromEntries(
 		METRICS.map((metric) => [
 			metric,
-			rows.reduce((sum, row) => ({ total: sum.total + row.total[metric].total, covered: sum.covered + row.total[metric].covered }), { total: 0, covered: 0 }),
+			rows.reduce(
+				(sum, row) => ({
+					total: sum.total + row.total[metric].total,
+					covered: sum.covered + row.total[metric].covered,
+				}),
+				{ total: 0, covered: 0 },
+			),
 		]),
 	);
 }
@@ -125,7 +139,10 @@ export function renderReport(rows, thresholds) {
 		"",
 		"| Package | Lines | Branches | Functions | Statements | Status |",
 		"| --- | ---: | ---: | ---: | ---: | :---: |",
-		...rows.map((row) => `| \`${row.name}\` | ${cells(row.total, true).join(" | ")} | ${passes(row, thresholds) ? "✅" : "❌"} |`),
+		...rows.map(
+			(row) =>
+				`| \`${row.name}\` | ${cells(row.total, true).join(" | ")} | ${passes(row, thresholds) ? "✅" : "❌"} |`,
+		),
 		`| **All** | ${cells(combine(rows), false).join(" | ")} | |`,
 		"",
 		...(untested.length > 0 ? [`⚠️ No tests: ${untested.join(", ")}.`, ""] : []),
@@ -141,7 +158,10 @@ export function renderReport(rows, thresholds) {
  * @param {Record<string, number>} thresholds
  */
 export function passes(row, thresholds) {
-	return (row.untested ?? []).length === 0 && METRICS.every((metric) => percent(row.total[metric]) >= (thresholds[metric] ?? 0));
+	return (
+		(row.untested ?? []).length === 0 &&
+		METRICS.every((metric) => percent(row.total[metric]) >= (thresholds[metric] ?? 0))
+	);
 }
 
 /**

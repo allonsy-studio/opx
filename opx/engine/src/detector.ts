@@ -43,7 +43,7 @@ export type DynamicTask = "lint" | "build";
 export type DynamicTaskConfig<PluginName extends string = string, PluginConfig = Record<string, unknown>> = {
 	[key in DynamicTask]?: {
 		[key in PluginName]: PluginConfig | boolean | string;
-	}
+	};
 };
 
 /** A task with no plugin choice: config turns it on with `true` or with its settings. */
@@ -65,7 +65,8 @@ export type OpxConfig<PluginName extends string = string, PluginConfig = Record<
 	$schema?: string;
 	/** The config format version. */
 	version: 1;
-} & DynamicTaskConfig<PluginName, PluginConfig> & StaticTaskConfig;
+} & DynamicTaskConfig<PluginName, PluginConfig> &
+	StaticTaskConfig;
 
 /** A "later" answer to a plugin suggestion, remembered for one branch. */
 export type OpxStateDeferral = {
@@ -148,6 +149,12 @@ export type CleanupSuggestion = {
 	command?: SuggestionCommand;
 };
 
+/**
+ * When a detector runs within its task. `"format"` detectors run first, one at a
+ * time, on the same paths; `"check"` detectors run after them, in parallel.
+ */
+export type DetectorPhase = "format" | "check";
+
 /** The contract every opx plugin implements: decide when it applies, then run. */
 export type Detector = {
 	/** The package id, such as `@allons-y/opx-lint-js`. */
@@ -158,6 +165,13 @@ export type Detector = {
 	displayName: string;
 	/** The task this detector belongs to. */
 	concern: "lint" | "test" | "build" | "release";
+	/**
+	 * When the detector runs within its task. Defaults to `"check"`.
+	 *
+	 * Detectors that rewrite files, such as formatters, use `"format"` so the
+	 * checkers see the formatted result.
+	 */
+	phase?: DetectorPhase;
 	/** File extensions this detector owns, with the leading dot. */
 	fileTypes?: string[];
 	/** Whether the detector applies to this project. */

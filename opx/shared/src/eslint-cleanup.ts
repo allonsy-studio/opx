@@ -5,10 +5,25 @@ import { join } from "node:path";
 import type { CleanupSuggestion, DetectorContext } from "@allons-y/opx";
 
 /** The legacy ESLint config files that flat config replaces. */
-const LEGACY_CONFIGS = [".eslintrc", ".eslintrc.json", ".eslintrc.js", ".eslintrc.cjs", ".eslintrc.mjs", ".eslintrc.yaml", ".eslintrc.yml"];
+const LEGACY_CONFIGS = [
+	".eslintrc",
+	".eslintrc.json",
+	".eslintrc.js",
+	".eslintrc.cjs",
+	".eslintrc.mjs",
+	".eslintrc.yaml",
+	".eslintrc.yml",
+];
 
 /** The flat config files. `@eslint/migrate-config` overwrites one of these if it is already there. */
-const FLAT_CONFIGS = ["eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.ts", "eslint.config.mts", "eslint.config.cts"];
+const FLAT_CONFIGS = [
+	"eslint.config.js",
+	"eslint.config.mjs",
+	"eslint.config.cjs",
+	"eslint.config.ts",
+	"eslint.config.mts",
+	"eslint.config.cts",
+];
 
 /** What an ESLint plugin tells {@link eslintCleanup} about itself. */
 export type EslintCleanupSpec = {
@@ -52,16 +67,22 @@ function shippedVersion(name: string, from: string): string | undefined {
  */
 export function eslintCleanup(ctx: DetectorContext, spec: EslintCleanupSpec): CleanupSuggestion[] {
 	const override = ctx.config?.lint?.[spec.shortName];
-	const notApplied = typeof override === "string" ? `opx lint uses ${override}, not this` : "opx lint uses its own config, not this";
-	const where = typeof override === "string"
-		? `Move any rules you still want into ${override}`
-		: `Move any rules you still want into a flat config and point \`lint.${spec.shortName}\` at it in .opx/config.json`;
+	const notApplied =
+		typeof override === "string" ? `opx lint uses ${override}, not this` : "opx lint uses its own config, not this";
+	const where =
+		typeof override === "string"
+			? `Move any rules you still want into ${override}`
+			: `Move any rules you still want into a flat config and point \`lint.${spec.shortName}\` at it in .opx/config.json`;
 	const canMigrate = !FLAT_CONFIGS.some((name) => existsSync(join(ctx.cwd, name)));
 
 	return [
 		...spec.bundledDeps.map((name): CleanupSuggestion => {
 			const version = shippedVersion(name, spec.from);
-			return { kind: "dependency", target: name, reason: `bundled by ${spec.id}${version ? ` at ${version}` : ""}` };
+			return {
+				kind: "dependency",
+				target: name,
+				reason: `bundled by ${spec.id}${version ? ` at ${version}` : ""}`,
+			};
 		}),
 		...LEGACY_CONFIGS.map((target): CleanupSuggestion => ({
 			kind: "file",
@@ -70,7 +91,9 @@ export function eslintCleanup(ctx: DetectorContext, spec: EslintCleanupSpec): Cl
 			hint: canMigrate
 				? `${where}, then delete it. The command writes eslint.config.mjs or .cjs beside it, with its own imports.`
 				: `${where}, then delete it. A flat config already exists, so the migrate command is not offered because it would overwrite it.`,
-			command: canMigrate ? { run: ["npx", "@eslint/migrate-config", target], description: "Convert it to a flat config" } : undefined,
+			command: canMigrate
+				? { run: ["npx", "@eslint/migrate-config", target], description: "Convert it to a flat config" }
+				: undefined,
 		})),
 		{
 			kind: "file",
