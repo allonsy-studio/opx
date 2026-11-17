@@ -1,5 +1,12 @@
 # @allons-y/opx-lint-md
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [217de3f]
+  - @allons-y/opx@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes
