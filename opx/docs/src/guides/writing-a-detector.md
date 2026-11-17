@@ -51,6 +51,7 @@ export default fooDetector;
 | `detect(ctx)` | Whether the plugin applies to this repository |
 | `describe(ctx)` | A summary and the tools it bundles |
 | `cleanup(ctx)` | Optional. What the project can drop now that your plugin is enabled. See [Suggesting cleanup](#suggesting-cleanup). |
+| `hooks` | Optional. Git hooks opx installs while your plugin is enabled. See [Installing git hooks](#installing-git-hooks). |
 | `run(ctx, args)` | Does the work and returns an exit code. `args` are the paths the user passed. |
 
 Write report output through `ctx.write()` rather than `process.stdout`, so opx can group output from concurrent detectors. Read `ctx.fix` to know whether `--fix` was passed, and `ctx.config` for the user's settings.
@@ -88,6 +89,22 @@ Because `cleanup` receives `ctx`, it can adapt to the project. Read `ctx.config`
 Say which version you ship. A plugin's dependencies are its own, so a project's older copy is replaced by yours. The ESLint plugins read each bundled package's version with `findPackageJSON` and put it in the `reason`. Pass your own `import.meta.url` so the package resolves from where your plugin is installed.
 
 Pin the tools you ship to exact versions in `dependencies` (`"eslint": "10.11.0"`, not `"^10.11.0"`). Then the version you name is the version everyone gets, and your configuration and advice are written against it. Let a dependency bot bump the pin, and release the plugin when it does.
+
+## Installing git hooks
+
+A plugin that needs a git hook, such as a `commit-msg` check, declares it instead of writing hook files itself:
+
+```ts
+hooks: {
+  "commit-msg": { args: ["hook", "commit-msg"], blocking: true },
+},
+```
+
+Each key is a git hook name. `args` are the `opx` arguments the hook runs; use `["hook", "<name>"]`, which runs `run` on every enabled plugin that declared that hook. `run` receives git's arguments (for `commit-msg`, the path to the message file) and `ctx.hook` holds the hook's name, so a plugin that declares several hooks can tell them apart.
+
+- **`blocking: true`** writes a foreground line that forwards git's arguments and exits with `opx`'s code, so a non-zero return from `run` stops the commit or push. Without it the hook runs in the background with its output discarded, and never blocks.
+- When several enabled plugins declare one hook, the line blocks if any of them does.
+- [`opx init`](../../cli/init/) and [`opx enable`](../../cli/enable/) install the hooks into `.husky/`, appending to a hook that already exists and leaving it alone when opx's line is there. [`opx disable`](../../cli/disable/) removes only the line opx wrote, and keeps the hook while another enabled plugin still declares it.
 
 ## Naming & packaging
 

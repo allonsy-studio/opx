@@ -3,6 +3,9 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import type { Detector } from "@allons-y/opx";
+import { POST_COMMIT_LINE, hookLine, installHook } from "@allons-y/opx";
+
 import { runToggleCommand } from "./toggle-command.js";
 
 const noConcerns = async (): Promise<undefined> => undefined;
@@ -32,6 +35,62 @@ describe("runToggleCommand", () => {
 	afterEach(() => {
 		jest.restoreAllMocks();
 		for (const dir of dirs.splice(0)) rmSync(dir, { recursive: true, force: true });
+	});
+
+	describe("git hooks", () => {
+		const declares = (name: string, blocking?: boolean): Detector => ({ hooks: { "commit-msg": { args: ["hook", "commit-msg"], blocking } }, shortName: name }) as unknown as Detector;
+		/** Stands in for the loader: each plugin turned on in the lint config declares its hook. */
+		const loaded = (plugins: Record<string, Detector>) => async (dir: string): Promise<Detector[]> => {
+			const lint = configOf(dir).lint ?? {};
+			return Object.entries(plugins).filter(([name]) => lint[name]).map(([, detector]) => detector);
+		};
+		const hookFile = (dir: string): string => readFileSync(join(dir, ".husky", "commit-msg"), "utf8");
+
+		it("installs the hooks of the plugin it enables and says so", async () => {
+			const dir = project({ version: 1 });
+			await runToggleCommand(dir, "js", true, undefined, noConcerns, loaded({ js: declares("js", true) }));
+			expect(hookFile(dir)).toContain(hookLine(["hook", "commit-msg"], true));
+			expect(said(log)).toContain("✔ .husky/commit-msg created");
+		});
+
+		it("removes only the line opx wrote when the plugin is disabled, and keeps the rest", async () => {
+			const dir = project({ version: 1, lint: { js: true } });
+			installHook(dir, "commit-msg", "echo mine");
+			installHook(dir, "commit-msg", hookLine(["hook", "commit-msg"], true));
+			await runToggleCommand(dir, "js", false, undefined, noConcerns, loaded({ js: declares("js", true) }));
+			expect(hookFile(dir)).toBe("#!/usr/bin/env sh\necho mine\nexit 0\n");
+			expect(said(log)).toContain("✔ .husky/commit-msg opx line removed");
+		});
+
+		it("deletes a hook file that held only opx's line", async () => {
+			const dir = project({ version: 1, lint: { js: true } });
+			installHook(dir, "commit-msg", hookLine(["hook", "commit-msg"]));
+			await runToggleCommand(dir, "js", false, undefined, noConcerns, loaded({ js: declares("js") }));
+			expect(existsSync(join(dir, ".husky", "commit-msg"))).toBe(false);
+		});
+
+		it("keeps a hook another enabled plugin still declares, no longer blocking if that plugin doesn't", async () => {
+			const dir = project({ version: 1, lint: { js: true, md: true } });
+			installHook(dir, "commit-msg", hookLine(["hook", "commit-msg"], true));
+			await runToggleCommand(dir, "js", false, undefined, noConcerns, loaded({ js: declares("js", true), md: declares("md") }));
+			expect(hookFile(dir)).toContain(hookLine(["hook", "commit-msg"]));
+			expect(hookFile(dir)).not.toContain("|| exit");
+			expect(said(log)).toContain("✔ .husky/commit-msg updated");
+		});
+
+		it("never removes the post-commit nudge", async () => {
+			const dir = project({ version: 1, lint: { js: true } });
+			installHook(dir, "post-commit", POST_COMMIT_LINE);
+			const nudges = { hooks: { "post-commit": { args: ["hook", "post-commit"] } } } as unknown as Detector;
+			await runToggleCommand(dir, "js", false, undefined, noConcerns, loaded({ js: nudges }));
+			expect(readFileSync(join(dir, ".husky", "post-commit"), "utf8")).toContain(POST_COMMIT_LINE);
+		});
+
+		it("leaves hooks alone when nothing changed", async () => {
+			const dir = project({ version: 1, lint: { js: true } });
+			await runToggleCommand(dir, "js", true, undefined, noConcerns, loaded({ js: declares("js") }));
+			expect(existsSync(join(dir, ".husky"))).toBe(false);
+		});
 	});
 
 	it("warns on stderr when saving drops a key opx doesn't know", async () => {

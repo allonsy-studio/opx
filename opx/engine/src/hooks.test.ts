@@ -5,7 +5,9 @@ import { spawnSync } from "node:child_process";
 
 import { useScratch } from "shared/testing.js";
 
-import { ensureGitignored, ensureOpxIgnored, installPostCommitHook } from "./hooks.js";
+import { POST_COMMIT_LINE, ensureGitignored, ensureOpxIgnored, hookLine, installHook, removeHook } from "./hooks.js";
+
+const installPostCommitHook = (cwd: string) => installHook(cwd, "post-commit", POST_COMMIT_LINE);
 
 function tmp(): string {
 	return mkdtempSync(join(tmpdir(), "opx-hooks-"));
@@ -16,7 +18,7 @@ const itPosix = process.platform === "win32" ? it.skip : it;
 
 const mode = (path: string): number => statSync(path).mode & 0o777;
 
-describe("installPostCommitHook", () => {
+describe("installHook for post-commit", () => {
 	it("creates a new post-commit hook", () => {
 		const dir = tmp();
 		const result = installPostCommitHook(dir);
@@ -257,5 +259,128 @@ describe("ensureOpxIgnored", () => {
 		expect(ensureOpxIgnored(dir)).toBe(true);
 		expect(readFileSync(join(dir, ".gitignore"), "utf8")).toBe("node_modules\r\n.opx/*\r\n!.opx/config.json\r\n");
 		rmSync(dir, { recursive: true });
+	});
+});
+
+describe("hookLine", () => {
+	it("backgrounds a non-blocking hook and discards its output", () => {
+		expect(hookLine(["hook", "pre-push"])).toBe(
+			'( if [ -f .pnp.cjs ]; then yarn opx hook pre-push; else PATH="node_modules/.bin:$PATH" opx hook pre-push; fi >/dev/null 2>&1 & ) || true',
+		);
+	});
+
+	it("runs a blocking hook in the foreground, forwarding git's arguments and its exit code", () => {
+		expect(hookLine(["hook", "commit-msg"], true)).toBe(
+			'if [ -f .pnp.cjs ]; then yarn opx hook commit-msg "$@"; else PATH="node_modules/.bin:$PATH" opx hook commit-msg "$@"; fi || exit $?',
+		);
+	});
+});
+
+describe("installHook for other hooks", () => {
+	const scratch = useScratch();
+	const line = hookLine(["hook", "commit-msg"], true);
+	const read = (dir: string, name: string): string => readFileSync(join(dir, ".husky", name), "utf8");
+
+	it("creates the hook with our line above a final exit", () => {
+		const dir = scratch.dir("opx-hook-");
+		const result = installHook(dir, "commit-msg", line);
+		expect(result).toMatchObject({ created: true, changed: true });
+		expect(read(dir, "commit-msg")).toBe(`#!/usr/bin/env sh\n${line}\nexit 0\n`);
+	});
+
+	it("appends to a hook someone else wrote, above its trailing exit, and keeps their lines", () => {
+		const dir = scratch.dir("opx-hook-");
+		mkdirSync(join(dir, ".husky"));
+		writeFileSync(join(dir, ".husky", "commit-msg"), "#!/usr/bin/env sh\nnpx commitlint --edit $1\nexit 0\n");
+		expect(installHook(dir, "commit-msg", line)).toMatchObject({ created: false, changed: true });
+		expect(read(dir, "commit-msg").split("\n")).toEqual(["#!/usr/bin/env sh", "npx commitlint --edit $1", line, "exit 0", ""]);
+	});
+
+	it("leaves a hook alone when it already has our line, or a hand-edited line for the same command", () => {
+		const dir = scratch.dir("opx-hook-");
+		installHook(dir, "commit-msg", line);
+		const before = read(dir, "commit-msg");
+		expect(installHook(dir, "commit-msg", line)).toMatchObject({ created: false, changed: false });
+		expect(read(dir, "commit-msg")).toBe(before);
+
+		writeFileSync(join(dir, ".husky", "pre-push"), "#!/usr/bin/env sh\nopx hook pre-push || true\n");
+		expect(installHook(dir, "pre-push", hookLine(["hook", "pre-push"])).changed).toBe(false);
+	});
+
+	it("replaces our line in place when a plugin makes the hook blocking", () => {
+		const dir = scratch.dir("opx-hook-");
+		installHook(dir, "commit-msg", hookLine(["hook", "commit-msg"]));
+		expect(installHook(dir, "commit-msg", line)).toMatchObject({ created: false, changed: true });
+		expect(read(dir, "commit-msg")).toBe(`#!/usr/bin/env sh\n${line}\nexit 0\n`);
+	});
+
+	itPosix("makes a hook someone else wrote executable", () => {
+		const dir = scratch.dir("opx-hook-");
+		mkdirSync(join(dir, ".husky"));
+		writeFileSync(join(dir, ".husky", "pre-commit"), "#!/usr/bin/env sh\necho hi\n", { mode: 0o644 });
+		installHook(dir, "pre-commit", hookLine(["hook", "pre-commit"]));
+		expect(mode(join(dir, ".husky", "pre-commit"))).toBe(0o755);
+	});
+});
+
+describe("removeHook", () => {
+	const scratch = useScratch();
+	const line = hookLine(["hook", "commit-msg"], true);
+	const read = (dir: string): string => readFileSync(join(dir, ".husky", "commit-msg"), "utf8");
+
+	it("deletes a hook that holds only what opx created", () => {
+		const dir = scratch.dir("opx-hook-");
+		const { path } = installHook(dir, "commit-msg", line);
+		expect(removeHook(dir, "commit-msg", line)).toEqual({ removed: true, deleted: true, path });
+		expect(existsSync(path)).toBe(false);
+	});
+
+	it("takes out only our line, whichever way it blocks, and keeps the rest", () => {
+		const dir = scratch.dir("opx-hook-");
+		mkdirSync(join(dir, ".husky"));
+		writeFileSync(join(dir, ".husky", "commit-msg"), "#!/usr/bin/env sh\nnpx commitlint --edit $1\nexit 0\n");
+		installHook(dir, "commit-msg", line);
+		expect(removeHook(dir, "commit-msg", hookLine(["hook", "commit-msg"]))).toMatchObject({ removed: true, deleted: false });
+		expect(read(dir)).toBe("#!/usr/bin/env sh\nnpx commitlint --edit $1\nexit 0\n");
+	});
+
+	it("leaves a hand-written line for the same command, a missing hook, and a hook without our line", () => {
+		const dir = scratch.dir("opx-hook-");
+		expect(removeHook(dir, "commit-msg", line).removed).toBe(false);
+		mkdirSync(join(dir, ".husky"));
+		const mine = "#!/usr/bin/env sh\nopx hook commit-msg \"$@\"\n";
+		writeFileSync(join(dir, ".husky", "commit-msg"), mine);
+		expect(removeHook(dir, "commit-msg", line).removed).toBe(false);
+		expect(read(dir)).toBe(mine);
+	});
+});
+
+describe("a blocking hook run by git", () => {
+	const scratch = useScratch();
+
+	/** A repo whose husky hooks run a fake `opx` that records its arguments and exits with `code`. */
+	function repoWithFakeOpx(code: number): string {
+		const dir = scratch.repo({ "README.txt": "x" });
+		const bin = join(dir, "node_modules", ".bin");
+		mkdirSync(bin, { recursive: true });
+		writeFileSync(join(bin, "opx"), `#!/bin/sh\necho "$*" > "${join(dir, "called")}"\nexit ${code}\n`);
+		chmodSync(join(bin, "opx"), 0o755);
+		installHook(dir, "commit-msg", hookLine(["hook", "commit-msg"], true));
+		spawnSync("git", ["config", "core.hooksPath", ".husky"], { cwd: dir });
+		writeFileSync(join(dir, "a.txt"), "a");
+		spawnSync("git", ["add", "."], { cwd: dir });
+		return dir;
+	}
+
+	const commit = (dir: string) => spawnSync("git", ["commit", "-m", "msg"], { cwd: dir, encoding: "utf8" });
+
+	itPosix("stops the commit when opx fails, and hands it git's message file", () => {
+		const dir = repoWithFakeOpx(3);
+		expect(commit(dir).status).not.toBe(0);
+		expect(readFileSync(join(dir, "called"), "utf8")).toMatch(/^hook commit-msg .*COMMIT_EDITMSG/);
+	});
+
+	itPosix("lets the commit through when opx passes", () => {
+		expect(commit(repoWithFakeOpx(0)).status).toBe(0);
 	});
 });

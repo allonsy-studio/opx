@@ -105,6 +105,8 @@ export type DetectorContext = {
 	branch: string;
 	/** Where to send log messages. */
 	logger: Logger;
+	/** The git hook being run, such as `commit-msg`. Set only by `opx hook <name>`. */
+	hook?: string;
 	/** Whether to report what would change without changing it. */
 	dryRun: boolean;
 	/** Whether the tool should fix problems it can fix. */
@@ -148,6 +150,19 @@ export type CleanupSuggestion = {
 	command?: SuggestionCommand;
 };
 
+/** A git hook a plugin asks opx to install. */
+export type HookDeclaration = {
+	/** The `opx` arguments the hook runs, normally `["hook", "<hook-name>"]`, which runs the plugins that declared it. */
+	args: string[];
+	/**
+	 * Whether a failure stops the git operation. A blocking hook runs in the
+	 * foreground, receives git's arguments, and fails with the plugin's exit
+	 * code. Otherwise it runs in the background and never blocks. When several
+	 * plugins declare one hook, it blocks if any of them does.
+	 */
+	blocking?: boolean;
+};
+
 /** The contract every opx plugin implements: decide when it applies, then run. */
 export type Detector = {
 	/** The package id, such as `@allons-y/opx-lint-js`. */
@@ -174,6 +189,14 @@ export type Detector = {
 	 * @returns The suggestions, or none.
 	 */
 	cleanup?(ctx: DetectorContext): CleanupSuggestion[];
+	/**
+	 * Git hooks to install while the plugin is enabled, by hook name, such as `commit-msg`.
+	 *
+	 * `opx hook <name>` calls `run` on every enabled plugin that declared that hook,
+	 * with git's arguments and `ctx.hook` set. Disabling the plugin removes the
+	 * line opx wrote, unless another enabled plugin declared the same hook.
+	 */
+	hooks?: Record<string, HookDeclaration>;
 	/**
 	 * Run the tool.
 	 *

@@ -5,7 +5,11 @@ import { join } from "node:path";
 
 import { useScratch } from "shared/testing.js";
 
-import { runPostCommit } from "./hook.js";
+import { Command } from "commander";
+
+import type { Detector, DetectorContext } from "@allons-y/opx";
+
+import register, { runHook, runPostCommit } from "./hook.js";
 
 const TODAY = "2026-06-15";
 
@@ -165,4 +169,96 @@ describe("runPostCommit", () => {
 			expect(existsSync(join(dir, ".opx", "state.json"))).toBe(false);
 		});
 	});
+});
+
+describe("runHook", () => {
+	const detector = (shortName: string, hook: string | undefined, run: (ctx: unknown, args: string[]) => Promise<number>): Detector =>
+		({ shortName, hooks: hook ? { [hook]: { args: ["hook", hook] } } : undefined, run }) as unknown as Detector;
+	const ctx = { hook: "commit-msg" } as DetectorContext;
+	const loading = (...detectors: Detector[]) => async (): Promise<Detector[]> => detectors;
+	let stderr: ReturnType<typeof jest.spyOn>;
+
+	beforeEach(() => {
+		stderr = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
+	});
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
+
+	it("runs only the plugins that declared the hook, with git's arguments", async () => {
+		const wanted = jest.fn<(ctx: unknown, args: string[]) => Promise<number>>(async () => 0);
+		const other = jest.fn(async () => 0);
+		const code = await runHook(ctx, "commit-msg", [".git/COMMIT_EDITMSG"], loading(
+			detector("a", "commit-msg", wanted),
+			detector("b", "pre-push", other),
+			detector("c", undefined, other),
+		));
+		expect(code).toBe(0);
+		expect(wanted).toHaveBeenCalledWith(ctx, [".git/COMMIT_EDITMSG"]);
+		expect(other).not.toHaveBeenCalled();
+	});
+
+	it("passes when no plugin declared the hook", async () => {
+		expect(await runHook(ctx, "pre-push", [], loading(detector("a", "commit-msg", async () => 1)))).toBe(0);
+	});
+
+	it("returns the first failing code but still runs every plugin", async () => {
+		const last = jest.fn(async () => 0);
+		const code = await runHook(ctx, "commit-msg", [], loading(
+			detector("a", "commit-msg", async () => 0),
+			detector("b", "commit-msg", async () => 3),
+			detector("c", "commit-msg", async () => 5),
+			detector("d", "commit-msg", last),
+		));
+		expect(code).toBe(3);
+		expect(last).toHaveBeenCalled();
+	});
+
+	it("counts a plugin that throws as failed, naming it on stderr without a stack", async () => {
+		const code = await runHook(ctx, "commit-msg", [], loading(detector("lint-git", "commit-msg", async () => { throw new Error("boom"); })));
+		expect(code).toBe(1);
+		expect(String(stderr.mock.calls[0]?.[0])).toBe("✖ lint-git failed boom\n");
+	});
+
+	it("passes a plugin that declared the hook but has no run", async () => {
+		const bare = { shortName: "bare", hooks: { "commit-msg": { args: ["hook", "commit-msg"] } } } as unknown as Detector;
+		expect(await runHook(ctx, "commit-msg", [], loading(bare))).toBe(0);
+	});
+});
+
+describe("opx hook <name>", () => {	const program = (): Command => {
+	const cmd = new Command().exitOverride();
+	register(cmd);
+	return cmd;
+};
+const originalCwd = process.cwd();
+
+afterEach(() => {
+	process.chdir(originalCwd);
+	process.exitCode = undefined;
+	jest.restoreAllMocks();
+});
+
+it("exits with the failing plugin's code for a hook a plugin declared", async () => {
+	const dir = scratch.repo({ "package.json": JSON.stringify({ name: "host", devDependencies: { "opx-plugin-gate": "1.0.0" } }) });
+	writeConfig(dir, { version: 1, lint: { "opx-plugin-gate": true } });
+	const plugin = join(dir, "node_modules", "opx-plugin-gate");
+	mkdirSync(plugin, { recursive: true });
+	writeFileSync(join(plugin, "package.json"), JSON.stringify({ name: "opx-plugin-gate", type: "module", exports: { ".": { import: "./index.js" } } }));
+	writeFileSync(join(plugin, "index.js"), "export default [{ id: \"opx-plugin-gate\", shortName: \"gate\", displayName: \"Gate\", concern: \"lint\", detect: () => true, describe: () => ({ summary: \"\", bundledDeps: [] }), hooks: { \"commit-msg\": { args: [\"hook\", \"commit-msg\"], blocking: true } }, run: async (ctx, args) => (ctx.hook === \"commit-msg\" && args[0] === \"msg.txt\" ? 7 : 0) }];\n");
+	process.chdir(dir);
+	await program().parseAsync(["node", "opx", "hook", "commit-msg", "msg.txt"]);
+	expect(process.exitCode).toBe(7);
+});
+
+it("skips with a warning, and passes, when the config can't be read", async () => {
+	const stderr = jest.spyOn(process.stderr, "write").mockImplementation(() => true);
+	const dir = scratch.repo({ "package.json": "{}" });
+	mkdirSync(join(dir, ".opx"));
+	writeFileSync(join(dir, ".opx", "config.json"), "{ nope");
+	process.chdir(dir);
+	await program().parseAsync(["node", "opx", "hook", "commit-msg"]);
+	expect(String(stderr.mock.calls[0]?.[0])).toContain("▲ Skipped the commit-msg hook");
+	expect(process.exitCode).toBeUndefined();
+});
 });

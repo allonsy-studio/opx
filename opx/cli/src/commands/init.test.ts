@@ -276,6 +276,20 @@ describe("init", () => {
 			expect(confirm).not.toHaveBeenCalled();
 		});
 
+		it("installs the hooks the enabled plugins declare and says what it did", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG });
+			const declares = [{ hooks: { "commit-msg": { args: ["hook", "commit-msg"], blocking: true } } }] as unknown as Detector[];
+			await runAccept(dir, install, { accept: ["js"], detectors: async () => declares });
+			const hook = read(dir, ".husky/commit-msg");
+			expect(hook).toContain('opx hook commit-msg "$@"; else');
+			expect(hook).toContain("|| exit $?");
+			expect(printed()).toContain("✔ .husky/commit-msg created");
+
+			log.mockClear();
+			await runAccept(dir, install, { accept: ["js"], detectors: async () => declares });
+			expect(printed()).toContain("– .husky/commit-msg already set up");
+		});
+
 		it("enables exactly the named plugins, including release, which files cannot imply", async () => {
 			const dir = make({ "a.js": "x", "b.md": "x", "package.json": PKG });
 			await runAccept(dir, install, { accept: ["js", "release"] });
@@ -507,12 +521,23 @@ describe("init", () => {
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 		});
 
-		it("does nothing about cleanup unless asked, and loads no plugin", async () => {
+		it("does nothing about cleanup unless asked", async () => {
 			const dir = make(files);
 			answers({}, "no");
 			await runInteractive(dir, install, { detectors });
-			expect(detectors).not.toHaveBeenCalled();
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
+			expect(logInfo).not.toHaveBeenCalledWith(expect.stringContaining(".eslintrc.json"));
+		});
+	});
+
+	describe("plugin hooks", () => {
+		it("installs the hooks the enabled plugins declare", async () => {
+			const dir = make({ "a.js": "x", "package.json": PKG });
+			answers({}, "no");
+			const detectors = async (): Promise<Detector[]> => [{ hooks: { "pre-push": { args: ["hook", "pre-push"] } } } as unknown as Detector];
+			await runInteractive(dir, install, { detectors });
+			expect(read(dir, ".husky/pre-push")).toContain("fi >/dev/null 2>&1 &");
+			expect(logInfo).toHaveBeenCalledWith(expect.stringContaining(".husky/pre-push"));
 		});
 	});
 
@@ -631,7 +656,7 @@ describe("init", () => {
 			await runInteractive(make({ "a.js": "x", "package.json": PKG }), install, { cleanup: true });
 			await runReport(make({ "a.js": "x", "package.json": PKG }), { cleanup: true });
 
-			expect(loadDetectors).toHaveBeenCalledTimes(2);
+			expect(loadDetectors).toHaveBeenCalledTimes(3);
 			expect(warn).not.toHaveBeenCalled();
 			expect(error).not.toHaveBeenCalled();
 			expect(printed()).not.toContain("declared but not installed");
@@ -687,7 +712,6 @@ describe("init", () => {
 			await run(dir, "--auto", "--cleanup");
 
 			expect(existsSync(join(dir, ".opx/config.json"))).toBe(true);
-			expect(loadDetectors).not.toHaveBeenCalled();
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 		});
 
@@ -695,7 +719,6 @@ describe("init", () => {
 			const dir = project();
 			await run(dir);
 
-			expect(loadDetectors).not.toHaveBeenCalled();
 			expect(existsSync(join(dir, ".eslintrc.json"))).toBe(true);
 		});
 

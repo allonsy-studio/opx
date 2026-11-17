@@ -33,7 +33,7 @@ opx init [--yes | --accept <names>] [--auto] [--quiet] [--cleanup]
 3. Saves your choices and offers to install any missing packages with the project's [package manager](#package-manager) (npm, Yarn, pnpm, or Bun). An accepted lint plugin points at the same config file as your other lint plugins when they all share one. Accepting `ts` installs `lint-js` from its JavaScript-only 1.x range, or upgrades a 0.x release, since 0.x also lints TypeScript.
 4. Scaffolds a root `eslint.config.js` composed from your enabled lint plugins. It never overwrites an existing file. When you have one, it prints the import & spread lines that file needs for the plugins you just accepted.
 5. Offers to add `"lint": "opx lint"` to your `package.json` scripts.
-6. Installs the `post-commit` husky hook and updates `.gitignore` to ignore `.opx/*` except `.opx/config.json`, which stays tracked.
+6. Installs the `post-commit` husky hook, then the [git hooks](../../guides/writing-a-detector/#installing-git-hooks) your enabled plugins declare, printing a line for each, and updates `.gitignore` to ignore `.opx/*` except `.opx/config.json`, which stays tracked.
 7. With `--cleanup`, shows the [cleanup suggestions](#cleanup) your enabled plugins make, and offers to delete empty files they replace.
 
 ## Without prompts

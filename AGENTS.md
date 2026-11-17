@@ -50,6 +50,7 @@ A plugin is a package whose default export is a `Detector` (`opx/engine/src/dete
 - **`detect(ctx)`:** whether the plugin applies, usually from `ctx.fileTypes`. Keep it fast and side-effect free.
 - **`describe(ctx)`:** a summary and `bundledDeps`, the third-party packages the plugin ships.
 - **`cleanup(ctx)`:** optional advice on what the project can drop once the plugin is on, such as a leftover `.eslintrc`. opx only ever deletes a suggested file that is empty and unchanged in git.
+- **`hooks`:** optional git hooks to install while the plugin is on, as `{ "commit-msg": { args: ["hook", "commit-msg"], blocking: true } }`. `opx init` and `opx enable` install them, `opx disable` removes only opx's line, and `opx hook <name>` runs every enabled plugin that declared that hook, with `ctx.hook` set. A blocking hook fails the git operation with the plugin's exit code.
 - **`run(ctx, args)`:** does the work.
 
 Rules every plugin follows:

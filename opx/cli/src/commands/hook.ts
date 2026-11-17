@@ -3,10 +3,14 @@ import type { BuiltInShortName } from "../built-in.js";
 
 import { basename } from "node:path";
 
+import type { DetectorContext } from "@allons-y/opx";
+
 import { enabledNames, isDeferred, readConfig, readState, writeState } from "@allons-y/opx";
 
 import { fileTypesOf, getCurrentBranch, getHeadCommit, listFilesInHeadCommit } from "../scanner.js";
 import builtIns from "../built-in.js";
+import { buildContext } from "../context.js";
+import { colors } from "../colors.js";
 
 export default function register(program: Command): void {
 	const hook = program.command("hook").description("Internal — invoked by git hooks");
@@ -17,6 +21,49 @@ export default function register(program: Command): void {
 		.action(() => {
 			runPostCommit();
 		});
+
+	hook
+		.command("run <name> [args...]", { isDefault: true, hidden: true })
+		.description("Run the enabled plugins that declared a git hook, with git's arguments")
+		.allowUnknownOption(true)
+		.action(async (name: string, args: string[]) => {
+			let ctx: DetectorContext;
+			try {
+				ctx = buildContext({ cwd: process.cwd(), hook: name });
+			} catch (error) {
+				process.stderr.write(`${colors.yellow("▲")} Skipped the ${name} hook ${colors.dim(error instanceof Error ? error.message : String(error))}\n`);
+				return;
+			}
+			process.exitCode = await runHook(ctx, name, args);
+		});
+}
+
+/**
+ * Run every enabled plugin that declared a git hook.
+ *
+ * Plugins run in order, each with git's arguments and `ctx.hook` set. Every one
+ * runs even after a failure, so each can report; a plugin that throws counts as
+ * failed. A broken config is reported and passes, so it never locks up git.
+ *
+ * @param ctx - The detector context, built with `hook` set to `name`.
+ * @param name - The git hook, such as `commit-msg`.
+ * @param args - The arguments git passed to the hook.
+ * @param load - Loads the enabled plugins' detectors; injectable for tests.
+ * @returns The first failing plugin's exit code, or `0`.
+ */
+export async function runHook(ctx: DetectorContext, name: string, args: string[], load: typeof builtIns.load = builtIns.load): Promise<number> {
+	const detectors = (await load(ctx)).filter((detector) => detector.hooks?.[name] !== undefined);
+	let exitCode = 0;
+	for (const detector of detectors) {
+		try {
+			const code = (await detector.run?.(ctx, args)) ?? 0;
+			if (code !== 0 && exitCode === 0) exitCode = code;
+		} catch (error) {
+			process.stderr.write(`${colors.red("✖")} ${detector.shortName} failed ${colors.dim(error instanceof Error ? error.message : String(error))}\n`);
+			if (exitCode === 0) exitCode = 1;
+		}
+	}
+	return exitCode;
 }
 
 /**

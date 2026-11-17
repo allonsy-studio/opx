@@ -11,6 +11,8 @@ export type BuildContextOptions = {
 	debug?: boolean;
 	dryRun?: boolean;
 	fix?: boolean;
+	/** The git hook being run, exposed to plugins as `ctx.hook`. */
+	hook?: string;
 	/** Where to report; defaults to the console. */
 	logger?: Logger;
 };
@@ -31,14 +33,14 @@ export function readHostPackage(cwd: string): PackageJson {
  * @returns The context passed to detectors and commands.
  */
 export function buildContext(options: BuildContextOptions): DetectorContext {
-	const { cwd, debug = false, dryRun = false, fix = false, logger = createConsoleLogger({ debug }) } = options;
+	const { cwd, debug = false, dryRun = false, fix = false, hook, logger = createConsoleLogger({ debug }) } = options;
 	const hostPkg = readHostPackage(cwd);
 	const config: OpxConfig = readConfig(cwd);
 	const state: OpxState = readState(cwd);
 	let fileTypes: Set<string> | undefined;
 	let branch: string | undefined;
 
-	return {
+	const ctx: DetectorContext = {
 		cwd,
 		get fileTypes() {
 			return fileTypes ??= scanCommittedTree(cwd).fileTypes;
@@ -55,4 +57,6 @@ export function buildContext(options: BuildContextOptions): DetectorContext {
 		fix,
 		write: (chunk) => void process.stdout.write(chunk),
 	};
+	if (hook !== undefined) ctx.hook = hook;
+	return ctx;
 }
