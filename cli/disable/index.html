@@ -116,6 +116,7 @@
 <li><code>release</code> is a static task: it sets the top-level <code>release</code> boolean and ignores <code>--task</code>.</li>
 <li>Unknown names, and <code>--task</code> values a plugin doesn't provide, print an error and exit <code>1</code>.</li>
 <li>Running it when nothing would change prints a message and exits <code>0</code>.</li>
+<li>Removes the <a href="../../guides/writing-a-detector/#installing-git-hooks">git hook</a> lines opx wrote for the plugin, and nothing else in those hooks. A hook file left with only opx's own boilerplate is deleted. A hook another enabled plugin still declares stays, rewritten if that changes whether it blocks. The <code>post-commit</code> nudge from <code>opx init</code> is never removed.</li>
 </ul>
 <h2 id="examples" tabindex="-1"><a class="header-anchor" href="#examples">Examples</a></h2>
 <pre class="language-sh"><code class="language-sh">opx disable js

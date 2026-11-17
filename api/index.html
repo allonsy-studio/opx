@@ -141,8 +141,20 @@
 <td>Environment variables by name, without depending on the <code>NodeJS</code> global from <code>@types/node</code>.</td>
 </tr>
 <tr>
+<td><a href="/opx/api/type-aliases/HookDeclaration/">HookDeclaration</a></td>
+<td>A git hook a plugin asks opx to install.</td>
+</tr>
+<tr>
 <td><a href="/opx/api/type-aliases/HookInstallResult/">HookInstallResult</a></td>
-<td>The outcome of <a href="/opx/api/functions/installPostCommitHook/">installPostCommitHook</a>.</td>
+<td>The outcome of <a href="/opx/api/functions/installHook/">installHook</a>.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/HookPlan/">HookPlan</a></td>
+<td>What to write for one git hook.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/type-aliases/HookRemoveResult/">HookRemoveResult</a></td>
+<td>The outcome of <a href="/opx/api/functions/removeHook/">removeHook</a>.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/type-aliases/InstallOptions/">InstallOptions</a></td>
@@ -215,6 +227,10 @@
 <td><a href="/opx/api/variables/CONFIG_KEYS/">CONFIG_KEYS</a></td>
 <td>The top-level keys <code>writeConfig</code> keeps; the schema allows no others.</td>
 </tr>
+<tr>
+<td><a href="/opx/api/variables/POST_COMMIT_LINE/">POST_COMMIT_LINE</a></td>
+<td>The post-commit nudge's line.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="functions" tabindex="-1"><a class="header-anchor" href="#functions">Functions</a></h2>
@@ -275,6 +291,10 @@
 <td>Filter CLI path arguments to those a detector should handle, given the file extensions it owns.</td>
 </tr>
 <tr>
+<td><a href="/opx/api/functions/hookLine/">hookLine</a></td>
+<td>The line that runs <code>opx</code> with <code>args</code> from a git hook.</td>
+</tr>
+<tr>
 <td><a href="/opx/api/functions/inspectPackageManager/">inspectPackageManager</a></td>
 <td>Work out the host project's package manager, and how sure that is.</td>
 </tr>
@@ -283,8 +303,8 @@
 <td>Build the command that installs packages with a package manager.</td>
 </tr>
 <tr>
-<td><a href="/opx/api/functions/installPostCommitHook/">installPostCommitHook</a></td>
-<td>Install the husky post-commit hook that nudges the user about new file types after each commit. Runs in a backgrounded subshell and always exits 0, so it never blocks the commit.</td>
+<td><a href="/opx/api/functions/installHook/">installHook</a></td>
+<td>Install a line into a husky hook, creating the hook when it is missing.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/isDeferred/">isDeferred</a></td>
@@ -311,12 +331,20 @@
 <td>The entry an <code>import</code> of the package root loads, relative to the package folder.</td>
 </tr>
 <tr>
+<td><a href="/opx/api/functions/planHooks/">planHooks</a></td>
+<td>Merge the hooks that detectors declare into one line per hook.</td>
+</tr>
+<tr>
 <td><a href="/opx/api/functions/readConfig/">readConfig</a></td>
 <td>Read <code>.opx/config.json</code>, filling gaps with defaults.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/readState/">readState</a></td>
 <td>Read <code>.opx/state.json</code>. The file is a disposable cache, so a missing or unreadable file gives an empty state rather than an error.</td>
+</tr>
+<tr>
+<td><a href="/opx/api/functions/removeHook/">removeHook</a></td>
+<td>Remove the line opx wrote for a hook, leaving every other line alone.</td>
 </tr>
 <tr>
 <td><a href="/opx/api/functions/resolvePackageEntry/">resolvePackageEntry</a></td>

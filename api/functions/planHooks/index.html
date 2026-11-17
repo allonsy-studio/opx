@@ -90,29 +90,32 @@
 	</aside>
 	<main id="main" class="docs-content" data-pagefind-body="">
 		
-		<h1 id="function%3A-installpostcommithook()" tabindex="-1"><a class="header-anchor" href="#function%3A-installpostcommithook()">Function: installPostCommitHook()</a></h1>
-<pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">installPostCommitHook</span><span class="token punctuation">(</span>cwd<span class="token punctuation">)</span><span class="token operator">:</span> HookInstallResult<span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/cc03c91ebf9f524bacae59e035f69b49758dcc67/opx/engine/src/hooks.ts#L58">hooks.ts:58</a></p>
-<p>Install the husky post-commit hook that nudges the user about new file types
-after each commit. Runs in a backgrounded subshell and always exits 0, so it
-never blocks the commit.</p>
+		<h1 id="function%3A-planhooks()" tabindex="-1"><a class="header-anchor" href="#function%3A-planhooks()">Function: planHooks()</a></h1>
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">planHooks</span><span class="token punctuation">(</span>detectors<span class="token punctuation">)</span><span class="token operator">:</span> HookPlan<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span></code></pre>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/217de3fa9d4c3cbf37e14fcc115caf4aedeff80e/opx/engine/src/hook-plan.ts#L21">hook-plan.ts:21</a></p>
+<p>Merge the hooks that detectors declare into one line per hook.</p>
+<p>The first declaration sets the <code>opx</code> arguments. The line blocks when any
+detector that declared the hook does.</p>
 <h2 id="parameters" tabindex="-1"><a class="header-anchor" href="#parameters">Parameters</a></h2>
 <table>
 <thead>
 <tr>
 <th>Parameter</th>
 <th>Type</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>cwd</code></td>
-<td><code>string</code></td>
+<td><code>detectors</code></td>
+<td><a href="/opx/api/type-aliases/Detector/"><code>Detector</code></a>[]</td>
+<td>The enabled detectors.</td>
 </tr>
 </tbody>
 </table>
 <h2 id="returns" tabindex="-1"><a class="header-anchor" href="#returns">Returns</a></h2>
-<p><a href="/opx/api/type-aliases/HookInstallResult/"><code>HookInstallResult</code></a></p>
+<p><a href="/opx/api/type-aliases/HookPlan/"><code>HookPlan</code></a>[]</p>
+<p>One plan per hook name, in the order first declared.</p>
 
 	</main>
 </div>

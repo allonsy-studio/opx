@@ -153,6 +153,10 @@
 <td>Optional. What the project can drop now that your plugin is enabled. See <a href="#suggesting-cleanup">Suggesting cleanup</a>.</td>
 </tr>
 <tr>
+<td><code>hooks</code></td>
+<td>Optional. Git hooks opx installs while your plugin is enabled. See <a href="#installing-git-hooks">Installing git hooks</a>.</td>
+</tr>
+<tr>
 <td><code>run(ctx, args)</code></td>
 <td>Does the work and returns an exit code. <code>args</code> are the paths the user passed.</td>
 </tr>
@@ -199,6 +203,17 @@
 <p>Because <code>cleanup</code> receives <code>ctx</code>, it can adapt to the project. Read <code>ctx.config</code> to see whether the person overrides your config, and check <code>ctx.cwd</code> before offering a command that could overwrite a file. The ESLint plugins do both: they name the override file as the place to move rules, and they withhold <code>@eslint/migrate-config</code> when a flat config already exists, because it overwrites one.</p>
 <p>Say which version you ship. A plugin's dependencies are its own, so a project's older copy is replaced by yours. The ESLint plugins read each bundled package's version with <code>findPackageJSON</code> and put it in the <code>reason</code>. Pass your own <code>import.meta.url</code> so the package resolves from where your plugin is installed.</p>
 <p>Pin the tools you ship to exact versions in <code>dependencies</code> (<code>&quot;eslint&quot;: &quot;10.11.0&quot;</code>, not <code>&quot;^10.11.0&quot;</code>). Then the version you name is the version everyone gets, and your configuration and advice are written against it. Let a dependency bot bump the pin, and release the plugin when it does.</p>
+<h2 id="installing-git-hooks" tabindex="-1"><a class="header-anchor" href="#installing-git-hooks">Installing git hooks</a></h2>
+<p>A plugin that needs a git hook, such as a <code>commit-msg</code> check, declares it instead of writing hook files itself:</p>
+<pre class="language-ts"><code class="language-ts">hooks<span class="token operator">:</span> <span class="token punctuation">{</span>
+  <span class="token string-property property">"commit-msg"</span><span class="token operator">:</span> <span class="token punctuation">{</span> args<span class="token operator">:</span> <span class="token punctuation">[</span><span class="token string">"hook"</span><span class="token punctuation">,</span> <span class="token string">"commit-msg"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> blocking<span class="token operator">:</span> <span class="token boolean">true</span> <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span></code></pre>
+<p>Each key is a git hook name. <code>args</code> are the <code>opx</code> arguments the hook runs; use <code>[&quot;hook&quot;, &quot;&lt;name&gt;&quot;]</code>, which runs <code>run</code> on every enabled plugin that declared that hook. <code>run</code> receives git's arguments (for <code>commit-msg</code>, the path to the message file) and <code>ctx.hook</code> holds the hook's name, so a plugin that declares several hooks can tell them apart.</p>
+<ul>
+<li><strong><code>blocking: true</code></strong> writes a foreground line that forwards git's arguments and exits with <code>opx</code>'s code, so a non-zero return from <code>run</code> stops the commit or push. Without it the hook runs in the background with its output discarded, and never blocks.</li>
+<li>When several enabled plugins declare one hook, the line blocks if any of them does.</li>
+<li><a href="../../cli/init/"><code>opx init</code></a> and <a href="../../cli/enable/"><code>opx enable</code></a> install the hooks into <code>.husky/</code>, appending to a hook that already exists and leaving it alone when opx's line is there. <a href="../../cli/disable/"><code>opx disable</code></a> removes only the line opx wrote, and keeps the hook while another enabled plugin still declares it.</li>
+</ul>
 <h2 id="naming-%26-packaging" tabindex="-1"><a class="header-anchor" href="#naming-%26-packaging">Naming &amp; packaging</a></h2>
 <p>opx loads a plugin only if it is in the project's dependencies and its name matches one of:</p>
 <ul>

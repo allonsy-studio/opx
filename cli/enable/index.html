@@ -120,6 +120,7 @@
 <li>Running it when nothing would change prints a message and exits <code>0</code>. A plugin that already points at a config file counts as enabled and keeps its path.</li>
 <li>A newly enabled plugin follows the others in its task: when they all point at the same config file, such as <code>./eslint.config.js</code>, it points there too. Otherwise it's set to <code>true</code>.</li>
 <li>After enabling a lint plugin, opx prints any import &amp; spread lines your own <code>eslint.config.js</code> still needs. It never edits that file.</li>
+<li>If the plugin declares <a href="../../guides/writing-a-detector/#installing-git-hooks">git hooks</a>, opx installs them into <code>.husky/</code> and prints a line for each: <code>✔ .husky/commit-msg created</code>, or <code>– .husky/pre-push already set up</code>. An existing hook keeps its other lines.</li>
 <li>Enabling <code>ts</code> next to a 0.x <code>@allons-y/opx-lint-js</code> prints the command to upgrade it, because 0.x also lints TypeScript. See <a href="../../plugins/lint-ts/#move-from-lint-js-0x">Move from lint-js 0.x</a>.</li>
 </ul>
 <h2 id="examples" tabindex="-1"><a class="header-anchor" href="#examples">Examples</a></h2>

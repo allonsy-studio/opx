@@ -92,11 +92,12 @@
 		
 		<h1 id="type-alias%3A-hookinstallresult" tabindex="-1"><a class="header-anchor" href="#type-alias%3A-hookinstallresult">Type Alias: HookInstallResult</a></h1>
 <pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">HookInstallResult</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+  changed<span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">;</span>
   created<span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">;</span>
   path<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/cc03c91ebf9f524bacae59e035f69b49758dcc67/opx/engine/src/hooks.ts#L46">hooks.ts:46</a></p>
-<p>The outcome of <a href="/opx/api/functions/installPostCommitHook/">installPostCommitHook</a>.</p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/217de3fa9d4c3cbf37e14fcc115caf4aedeff80e/opx/engine/src/hooks.ts#L71">hooks.ts:71</a></p>
+<p>The outcome of <a href="/opx/api/functions/installHook/">installHook</a>.</p>
 <h2 id="properties" tabindex="-1"><a class="header-anchor" href="#properties">Properties</a></h2>
 <table>
 <thead>
@@ -109,16 +110,22 @@
 </thead>
 <tbody>
 <tr>
+<td><a id="changed"></a> <code>changed</code></td>
+<td><code>boolean</code></td>
+<td>Whether the hook file changed: created, extended, or upgraded.</td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/217de3fa9d4c3cbf37e14fcc115caf4aedeff80e/opx/engine/src/hooks.ts#L75">hooks.ts:75</a></td>
+</tr>
+<tr>
 <td><a id="created"></a> <code>created</code></td>
 <td><code>boolean</code></td>
 <td>Whether a new hook file was written, rather than found or extended.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/cc03c91ebf9f524bacae59e035f69b49758dcc67/opx/engine/src/hooks.ts#L48">hooks.ts:48</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/217de3fa9d4c3cbf37e14fcc115caf4aedeff80e/opx/engine/src/hooks.ts#L73">hooks.ts:73</a></td>
 </tr>
 <tr>
 <td><a id="path"></a> <code>path</code></td>
 <td><code>string</code></td>
 <td>The hook file's path.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/cc03c91ebf9f524bacae59e035f69b49758dcc67/opx/engine/src/hooks.ts#L50">hooks.ts:50</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/217de3fa9d4c3cbf37e14fcc115caf4aedeff80e/opx/engine/src/hooks.ts#L77">hooks.ts:77</a></td>
 </tr>
 </tbody>
 </table>
