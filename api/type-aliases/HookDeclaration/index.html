@@ -95,7 +95,7 @@
   args<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
   blocking<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span><span class="token punctuation">;</span></code></pre>
-<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/217de3fa9d4c3cbf37e14fcc115caf4aedeff80e/opx/engine/src/detector.ts#L154">detector.ts:154</a></p>
+<p>Defined in: <a href="https://github.com/allonsy-studio/opx/blob/7166c73c98ec867f25f2ee33e8449af50cf2acba/opx/engine/src/detector.ts#L154">detector.ts:154</a></p>
 <p>A git hook a plugin asks opx to install.</p>
 <h2 id="properties" tabindex="-1"><a class="header-anchor" href="#properties">Properties</a></h2>
 <table>
@@ -112,13 +112,13 @@
 <td><a id="args"></a> <code>args</code></td>
 <td><code>string</code>[]</td>
 <td>The <code>opx</code> arguments the hook runs, normally <code>[&quot;hook&quot;, &quot;&lt;hook-name&gt;&quot;]</code>, which runs the plugins that declared it.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/217de3fa9d4c3cbf37e14fcc115caf4aedeff80e/opx/engine/src/detector.ts#L156">detector.ts:156</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/7166c73c98ec867f25f2ee33e8449af50cf2acba/opx/engine/src/detector.ts#L156">detector.ts:156</a></td>
 </tr>
 <tr>
 <td><a id="blocking"></a> <code>blocking?</code></td>
 <td><code>boolean</code></td>
 <td>Whether a failure stops the git operation. A blocking hook runs in the foreground, receives git's arguments, and fails with the plugin's exit code. Otherwise it runs in the background and never blocks. When several plugins declare one hook, it blocks if any of them does.</td>
-<td><a href="https://github.com/allonsy-studio/opx/blob/217de3fa9d4c3cbf37e14fcc115caf4aedeff80e/opx/engine/src/detector.ts#L163">detector.ts:163</a></td>
+<td><a href="https://github.com/allonsy-studio/opx/blob/7166c73c98ec867f25f2ee33e8449af50cf2acba/opx/engine/src/detector.ts#L163">detector.ts:163</a></td>
 </tr>
 </tbody>
 </table>
